@@ -25,13 +25,8 @@ export default function Home() {
           <Sidebar />
         </div>
 
-        <main
-          className="main-content"
-          style={{
-            flex: 1,
-            padding: "32px",
-          }}
-        >
+        <main className="main-content">
+
           <h2
             style={{
               color: "#FFFFFF",
@@ -41,61 +36,50 @@ export default function Home() {
             Dashboard
           </h2>
 
-          <div
-            className="dashboard-cards"
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "20px",
-            }}
-          >
-            <DashboardCard title="PUFI Balance" value="0 PUFI" />
-            <DashboardCard title="Completed Tasks" value="0" />
-            <DashboardCard title="Campaign Rewards" value="0" />
-            <DashboardCard title="Referral" value="0" />
+          <div className="dashboard-cards">
+
+            <DashboardCard
+              title="PUFI Balance"
+              value="0 PUFI"
+            />
+
+            <DashboardCard
+              title="Completed Tasks"
+              value="0"
+            />
+
+            <DashboardCard
+              title="Campaign Rewards"
+              value="0"
+            />
+
+            <DashboardCard
+              title="Referral"
+              value="0"
+            />
+
           </div>
 
-          <div
-            className="dashboard-sections"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-              marginTop: "24px",
-            }}
-          >
+          <div className="dashboard-sections">
+
             <ActivityCard />
+
             <TaskList />
+
             <CampaignCard />
+
             <WalletCard />
+
             <LeaderboardCard />
+
           </div>
+
         </main>
+
       </div>
 
       <BottomNav />
 
-      <style jsx>{`
-        @media (max-width: 767px) {
-          .sidebar-wrapper {
-            display: none;
-          }
-
-          .main-content {
-            padding: 16px;
-            padding-bottom: 96px;
-          }
-
-          .dashboard-cards {
-            flex-direction: column;
-            gap: 16px;
-          }
-
-          .dashboard-sections {
-            gap: 16px;
-          }
-        }
-      `}</style>
     </>
   );
 }
