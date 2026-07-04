@@ -37,7 +37,7 @@ export default function HeroBanner() {
           marginBottom: "28px",
         }}
       >
-        Complete today's activities and earn PUFI rewards.
+        Complete today&apos;s activities and earn PUFI rewards.
       </p>
 
       <button
