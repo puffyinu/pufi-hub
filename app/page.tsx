@@ -1,7 +1,7 @@
 import Header from "./components/Header";
 import HeroBanner from "./components/HeroBanner";
 import Sidebar from "./components/Sidebar";
-import DashboardCard from "./components/DashboardCard";
+import DashboardStats from "./components/DashboardStats";
 import ActivityCard from "./components/ActivityCard";
 import TaskList from "./components/TaskList";
 import CampaignCard from "./components/CampaignCard";
@@ -36,29 +36,7 @@ export default function Home() {
             Dashboard
           </h2>
 
-          <div className="dashboard-cards">
-
-            <DashboardCard
-              title="PUFI Balance"
-              value="0 PUFI"
-            />
-
-            <DashboardCard
-              title="Completed Tasks"
-              value="0"
-            />
-
-            <DashboardCard
-              title="Campaign Rewards"
-              value="0"
-            />
-
-            <DashboardCard
-              title="Referral"
-              value="0"
-            />
-
-          </div>
+          <DashboardStats />
 
           <div className="dashboard-sections">
 

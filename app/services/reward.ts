@@ -6,6 +6,13 @@ export interface RewardState {
 }
 
 const STORAGE_KEY = "pufi-reward";
+export const REWARD_EVENT = "pufi-reward-changed";
+
+function notifyRewardChanged(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(REWARD_EVENT));
+  }
+}
 
 let reward: RewardState =
   load<RewardState>(STORAGE_KEY) ?? {
@@ -24,6 +31,7 @@ export function addReward(points: number): void {
   };
 
   save(STORAGE_KEY, reward);
+  notifyRewardChanged();
 }
 
 export function resetReward(): void {
@@ -33,4 +41,5 @@ export function resetReward(): void {
   };
 
   remove(STORAGE_KEY);
+  notifyRewardChanged();
 }
