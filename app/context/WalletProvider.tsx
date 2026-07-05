@@ -3,9 +3,11 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   ReactNode,
 } from "react";
+import { getSession, SESSION_EVENT } from "@/app/services/session";
 
 export interface WalletState {
   connected: boolean;
@@ -25,10 +27,38 @@ export function WalletProvider({
 }: {
   children: ReactNode;
 }) {
+  const session = getSession();
   const [wallet, setWallet] = useState<WalletState>({
-    connected: false,
+    connected: session?.isAuthenticated ?? false,
+    address: session?.user?.walletAddress,
     balance: 0,
   });
+
+  useEffect(() => {
+    function syncWallet() {
+      const currentSession = getSession();
+
+      if (currentSession) {
+        setWallet({
+          connected: currentSession.isAuthenticated,
+          address: currentSession.user?.walletAddress,
+          balance: 0,
+        });
+      } else {
+        setWallet({
+          connected: false,
+          address: undefined,
+          balance: 0,
+        });
+      }
+    }
+
+    window.addEventListener(SESSION_EVENT, syncWallet);
+
+    return () => {
+      window.removeEventListener(SESSION_EVENT, syncWallet);
+    };
+  }, []);
 
   return (
     <WalletContext.Provider

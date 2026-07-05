@@ -1,4 +1,10 @@
+"use client";
+
+import { useCheckIn } from "@/app/hooks/useCheckIn";
+
 export default function ActivityCard() {
+  const { status, checkIn } = useCheckIn();
+
   return (
     <div
       style={{
@@ -17,17 +23,58 @@ export default function ActivityCard() {
           fontSize: "22px",
         }}
       >
-        Recent Activity
+        Daily Check-In
       </h3>
 
-      <p
-        style={{
-          color: "#94A3B8",
-          margin: 0,
-        }}
-      >
-        No activity yet.
-      </p>
+      {status.checkedIn ? (
+        <>
+          <p
+            style={{
+              color: "#94A3B8",
+              margin: 0,
+            }}
+          >
+            Daily check-in completed.
+          </p>
+          {status.lastCheckIn ? (
+            <p
+              style={{
+                color: "#94A3B8",
+                margin: "8px 0 0",
+              }}
+            >
+              Last Check-In:
+              {status.lastCheckIn}
+            </p>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <p
+            style={{
+              color: "#94A3B8",
+              margin: 0,
+            }}
+          >
+            Complete your daily check-in.
+          </p>
+          <button
+            type="button"
+            onClick={() => checkIn()}
+            style={{
+              marginTop: "16px",
+              background: "#3B82F6",
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 16px",
+              cursor: "pointer",
+            }}
+          >
+            Check In
+          </button>
+        </>
+      )}
     </div>
   );
 }
