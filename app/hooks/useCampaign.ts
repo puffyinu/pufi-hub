@@ -6,16 +6,18 @@ import {
   completeCampaign,
   getCampaigns,
   resetCampaigns,
+  type Campaign,
 } from "@/app/services/campaign";
 
 export function useCampaign() {
-  const [campaigns, setCampaigns] = useState(getCampaigns());
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
     function syncCampaigns() {
       setCampaigns(getCampaigns());
     }
 
+    syncCampaigns();
     window.addEventListener(CAMPAIGN_EVENT, syncCampaigns);
 
     return () => {

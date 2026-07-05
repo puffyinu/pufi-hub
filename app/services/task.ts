@@ -42,32 +42,43 @@ function notifyTaskChanged(): void {
   }
 }
 
-const storedTasks = load<Task[]>(STORAGE_KEY);
-let tasks: Task[] = storedTasks ?? [];
+let tasks: Task[] | null = null;
 
-if (!tasks || tasks.length === 0) {
-  tasks = DEFAULT_TASKS;
-  save(STORAGE_KEY, tasks);
-}
+function ensureTasks(): Task[] {
+  if (tasks === null) {
+    const storedTasks = load<Task[]>(STORAGE_KEY);
 
-export function getTasks(): Task[] {
+    if (storedTasks && storedTasks.length > 0) {
+      tasks = storedTasks;
+    } else {
+      tasks = DEFAULT_TASKS;
+      save(STORAGE_KEY, tasks);
+    }
+  }
+
   return tasks;
 }
 
+export function getTasks(): Task[] {
+  return ensureTasks();
+}
+
 export function addTask(task: Task): void {
-  tasks = [...tasks, task];
+  const currentTasks = ensureTasks();
+  tasks = [...currentTasks, task];
   save(STORAGE_KEY, tasks);
   notifyTaskChanged();
 }
 
 export function completeTask(id: string): boolean {
-  const task = tasks.find(task => task.id === id);
+  const currentTasks = ensureTasks();
+  const task = currentTasks.find(task => task.id === id);
 
   if (!task || task.completed) {
     return false;
   }
 
-  tasks = tasks.map(task =>
+  tasks = currentTasks.map(task =>
     task.id === id
       ? { ...task, completed: true }
       : task

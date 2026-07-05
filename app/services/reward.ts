@@ -7,6 +7,10 @@ export interface RewardState {
 
 const STORAGE_KEY = "pufi-reward";
 export const REWARD_EVENT = "pufi-reward-changed";
+const DEFAULT_REWARD: RewardState = {
+  points: 0,
+  lastReward: null,
+};
 
 function notifyRewardChanged(): void {
   if (typeof window !== "undefined") {
@@ -14,19 +18,24 @@ function notifyRewardChanged(): void {
   }
 }
 
-let reward: RewardState =
-  load<RewardState>(STORAGE_KEY) ?? {
-    points: 0,
-    lastReward: null,
-  };
+let reward: RewardState | null = null;
 
-export function getReward(): RewardState {
+function ensureReward(): RewardState {
+  if (reward === null) {
+    reward = load<RewardState>(STORAGE_KEY) ?? DEFAULT_REWARD;
+  }
+
   return reward;
 }
 
+export function getReward(): RewardState {
+  return ensureReward();
+}
+
 export function addReward(points: number): void {
+  const current = ensureReward();
   reward = {
-    points: reward.points + points,
+    points: current.points + points,
     lastReward: new Date().toISOString(),
   };
 
@@ -35,10 +44,7 @@ export function addReward(points: number): void {
 }
 
 export function resetReward(): void {
-  reward = {
-    points: 0,
-    lastReward: null,
-  };
+  reward = { ...DEFAULT_REWARD };
 
   remove(STORAGE_KEY);
   notifyRewardChanged();

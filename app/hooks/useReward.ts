@@ -4,16 +4,21 @@ import {
   addReward,
   resetReward,
   REWARD_EVENT,
+  type RewardState,
 } from "@/app/services/reward";
 
 export function useReward() {
-  const [reward, setReward] = useState(getReward());
+  const [reward, setReward] = useState<RewardState>({
+    points: 0,
+    lastReward: null,
+  });
 
   useEffect(() => {
     function syncReward() {
       setReward(getReward());
     }
 
+    syncReward();
     window.addEventListener(REWARD_EVENT, syncReward);
 
     return () => {

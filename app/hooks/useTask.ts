@@ -5,16 +5,18 @@ import {
   completeTask,
   resetTasks,
   TASK_EVENT,
+  type Task,
 } from "@/app/services/task";
 
 export function useTask() {
-  const [tasks, setTasks] = useState(getTasks());
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     function syncTasks() {
       setTasks(getTasks());
     }
 
+    syncTasks();
     window.addEventListener(TASK_EVENT, syncTasks);
 
     return () => {

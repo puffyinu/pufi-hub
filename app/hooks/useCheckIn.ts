@@ -4,16 +4,21 @@ import {
   getCheckInStatus,
   checkIn,
   resetCheckIn,
+  type CheckInStatus,
 } from "@/app/services/checkin";
 
 export function useCheckIn() {
-  const [status, setStatus] = useState(getCheckInStatus());
+  const [status, setStatus] = useState<CheckInStatus>({
+    checkedIn: false,
+    lastCheckIn: null,
+  });
 
   useEffect(() => {
     function syncCheckIn() {
       setStatus(getCheckInStatus());
     }
 
+    syncCheckIn();
     window.addEventListener(CHECKIN_EVENT, syncCheckIn);
 
     return () => {
