@@ -1,4 +1,5 @@
 import { load, save, remove } from "@/app/services/storage";
+import { addReward } from "@/app/services/reward";
 
 export interface Task {
   id: string;
@@ -7,9 +8,47 @@ export interface Task {
 }
 
 const STORAGE_KEY = "pufi-tasks";
+export const TASK_EVENT = "pufi-task-changed";
+const TASK_REWARD = 5;
 
-let tasks: Task[] =
-  load<Task[]>(STORAGE_KEY) ?? [];
+const DEFAULT_TASKS: Task[] = [
+  {
+    id: "daily-checkin",
+    title: "Daily Check-In",
+    completed: false,
+  },
+  {
+    id: "visit-sponsor",
+    title: "Visit Sponsor",
+    completed: false,
+  },
+  {
+    id: "claim-reward",
+    title: "Claim Reward",
+    completed: false,
+  },
+  {
+    id: "invite-friend",
+    title: "Invite Friend",
+    completed: false,
+  },
+];
+
+function notifyTaskChanged(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(TASK_EVENT)
+    );
+  }
+}
+
+const storedTasks = load<Task[]>(STORAGE_KEY);
+let tasks: Task[] = storedTasks ?? [];
+
+if (!tasks || tasks.length === 0) {
+  tasks = DEFAULT_TASKS;
+  save(STORAGE_KEY, tasks);
+}
 
 export function getTasks(): Task[] {
   return tasks;
@@ -18,9 +57,16 @@ export function getTasks(): Task[] {
 export function addTask(task: Task): void {
   tasks = [...tasks, task];
   save(STORAGE_KEY, tasks);
+  notifyTaskChanged();
 }
 
-export function completeTask(id: string): void {
+export function completeTask(id: string): boolean {
+  const task = tasks.find(task => task.id === id);
+
+  if (!task || task.completed) {
+    return false;
+  }
+
   tasks = tasks.map(task =>
     task.id === id
       ? { ...task, completed: true }
@@ -28,9 +74,13 @@ export function completeTask(id: string): void {
   );
 
   save(STORAGE_KEY, tasks);
+  addReward(TASK_REWARD);
+  notifyTaskChanged();
+  return true;
 }
 
 export function resetTasks(): void {
   tasks = [];
   remove(STORAGE_KEY);
+  notifyTaskChanged();
 }

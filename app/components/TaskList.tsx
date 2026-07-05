@@ -1,10 +1,12 @@
+"use client";
+
+import { useTask } from "@/app/hooks/useTask";
+
 export default function TaskList() {
-  const tasks = [
-    "Daily Check-In",
-    "Visit Sponsor",
-    "Claim Reward",
-    "Invite Friend",
-  ];
+  const {
+    tasks,
+    completeTask,
+  } = useTask();
 
   return (
     <div
@@ -30,6 +32,11 @@ export default function TaskList() {
         {tasks.map((task, index) => (
           <div
             key={index}
+            onClick={() => {
+              if (!task.completed) {
+                completeTask(task.id);
+              }
+            }}
             style={{
               display: "flex",
               alignItems: "center",
@@ -38,6 +45,9 @@ export default function TaskList() {
                 index !== tasks.length - 1
                   ? "1px solid #23304A"
                   : "none",
+              cursor: task.completed
+                ? "default"
+                : "pointer",
             }}
           >
             <span
@@ -47,7 +57,7 @@ export default function TaskList() {
                 fontSize: "18px",
               }}
             >
-              ○
+              {task.completed ? "✓" : "○"}
             </span>
 
             <span
@@ -56,7 +66,7 @@ export default function TaskList() {
                 fontSize: "16px",
               }}
             >
-              {task}
+              {task.title}
             </span>
           </div>
         ))}
