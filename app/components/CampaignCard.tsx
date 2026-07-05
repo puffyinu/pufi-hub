@@ -1,4 +1,10 @@
+"use client";
+
+import { useCampaign } from "@/app/hooks/useCampaign";
+
 export default function CampaignCard() {
+  const { campaigns, completeCampaign } = useCampaign();
+
   return (
     <div
       style={{
@@ -25,97 +31,96 @@ export default function CampaignCard() {
           gap: "16px",
         }}
       >
-        {/* Campaign 1 */}
-        <div
-          style={{
-            background: "#111A30",
-            border: "1px solid #2A3654",
-            borderRadius: "12px",
-            padding: "18px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                margin: 0,
-                color: "#FFFFFF",
-              }}
-            >
-              Daily Check-In
-            </h3>
-
-            <p
-              style={{
-                marginTop: "8px",
-                color: "#94A3B8",
-              }}
-            >
-              Earn 5 PUFI
-            </p>
-          </div>
-
-          <span
+        {campaigns.map(campaign => (
+          <div
+            key={campaign.id}
             style={{
-              background: "#16A34A",
-              color: "#FFFFFF",
-              padding: "6px 12px",
-              borderRadius: "999px",
-              fontSize: "12px",
-              fontWeight: "600",
+              background: "#111A30",
+              border: "1px solid #2A3654",
+              borderRadius: "12px",
+              padding: "18px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            OPEN
-          </span>
-        </div>
+            <div>
+              <h3
+                style={{
+                  margin: 0,
+                  color: "#FFFFFF",
+                }}
+              >
+                {campaign.title}
+              </h3>
 
-        {/* Campaign 2 */}
-        <div
-          style={{
-            background: "#111A30",
-            border: "1px solid #2A3654",
-            borderRadius: "12px",
-            padding: "18px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                margin: 0,
-                color: "#FFFFFF",
-              }}
-            >
-              Visit Website
-            </h3>
+              <p
+                style={{
+                  marginTop: "8px",
+                  color: "#94A3B8",
+                }}
+              >
+                {campaign.description}
+              </p>
 
-            <p
-              style={{
-                marginTop: "8px",
-                color: "#94A3B8",
-              }}
-            >
-              Earn 10 PUFI
-            </p>
+              <p
+                style={{
+                  marginTop: "6px",
+                  color: "#FFC857",
+                  fontSize: "14px",
+                }}
+              >
+                Reward: {campaign.reward} PUFI
+              </p>
+
+              <p
+                style={{
+                  marginTop: "6px",
+                  color: "#94A3B8",
+                  fontSize: "14px",
+                }}
+              >
+                Status: {campaign.completed ? "Completed" : "Pending"}
+              </p>
+            </div>
+
+            {campaign.completed ? (
+              <button
+                type="button"
+                disabled
+                style={{
+                  background: "#16A34A",
+                  color: "#FFFFFF",
+                  padding: "8px 12px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  border: "none",
+                  cursor: "default",
+                }}
+              >
+                Completed
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => completeCampaign(campaign.id)}
+                style={{
+                  background: "#16A34A",
+                  color: "#FFFFFF",
+                  padding: "8px 12px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Complete
+              </button>
+            )}
           </div>
-
-          <span
-            style={{
-              background: "#16A34A",
-              color: "#FFFFFF",
-              padding: "6px 12px",
-              borderRadius: "999px",
-              fontSize: "12px",
-              fontWeight: "600",
-            }}
-          >
-            OPEN
-          </span>
-        </div>
+        ))}
       </div>
     </div>
   );
