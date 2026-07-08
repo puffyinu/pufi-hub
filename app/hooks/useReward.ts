@@ -1,34 +1,55 @@
+"use client";
+
 import { useEffect, useState } from "react";
+
 import {
-  getReward,
-  addReward,
-  resetReward,
-  REWARD_EVENT,
-  type RewardState,
-} from "@/app/services/reward";
+  getRewardState,
+  resetRewardState,
+  setRewardState,
+  REWARD_SESSION_EVENT,
+} from "@/app/services/rewardSession";
+
+import type { RewardState } from "@/app/types/reward";
 
 export function useReward() {
-  const [reward, setReward] = useState<RewardState>({
-    points: 0,
-    lastReward: null,
-  });
+  const [reward, setReward] =
+    useState<RewardState>(() =>
+      getRewardState()
+    );
 
   useEffect(() => {
-    function syncReward() {
-      setReward(getReward());
-    }
+    const sync = () => {
+      setReward(getRewardState());
+    };
 
-    syncReward();
-    window.addEventListener(REWARD_EVENT, syncReward);
+    sync();
+
+    window.addEventListener(
+      REWARD_SESSION_EVENT,
+      sync
+    );
 
     return () => {
-      window.removeEventListener(REWARD_EVENT, syncReward);
+      window.removeEventListener(
+        REWARD_SESSION_EVENT,
+        sync
+      );
     };
   }, []);
 
+  const setAvailable = (amount: number) => {
+    setRewardState({
+      available: amount,
+    });
+  };
+
+  const reset = () => {
+    resetRewardState();
+  };
+
   return {
     reward,
-    addReward,
-    resetReward,
+    setAvailable,
+    reset,
   };
 }
