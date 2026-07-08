@@ -6,8 +6,11 @@ import {
   CHECKIN_SESSION_EVENT,
   getCheckInState,
   resetCheckInState,
-  setCheckInState,
 } from "@/app/services/checkinSession";
+
+import {
+  performDailyCheckIn,
+} from "@/app/services/checkinEngine";
 
 import type { CheckInState } from "@/app/types/checkin";
 
@@ -38,16 +41,15 @@ export function useCheckIn() {
   }, []);
 
   const check = () => {
-    setCheckInState({
-      checkedIn: true,
-      lastCheckIn: new Date().toISOString(),
-      loading: false,
-      error: null,
-    });
+    performDailyCheckIn();
+
+    setCheckIn(getCheckInState());
   };
 
   const reset = () => {
     resetCheckInState();
+
+    setCheckIn(getCheckInState());
   };
 
   return {
