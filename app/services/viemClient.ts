@@ -1,11 +1,9 @@
 import { createPublicClient, http } from "viem";
 import { worldchain } from "viem/chains";
 
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
-
-if (!rpcUrl) {
-  throw new Error("NEXT_PUBLIC_RPC_URL is not configured.");
-}
+const rpcUrl =
+  process.env.NEXT_PUBLIC_RPC_URL ??
+  "http://localhost:8545";
 
 export const publicClient = createPublicClient({
   chain: worldchain,
