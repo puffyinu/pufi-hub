@@ -4,12 +4,14 @@ import { useMiniKit } from "../hooks/useMiniKit";
 import { useWallet } from "../hooks/useWallet";
 import { useWalletBalance } from "../hooks/useWalletBalance";
 import { useTokenInfo } from "../hooks/useTokenInfo";
+import { useTransaction } from "../hooks/useTransaction";
 
 export default function WalletCard() {
   const { installed } = useMiniKit();
   const { wallet, connect, loading } = useWallet();
   const { balance, loading: balanceLoading, refresh } = useWalletBalance();
   const { token, loading: tokenLoading } = useTokenInfo();
+  const { transaction } = useTransaction();
 
   return (
     <div
@@ -61,14 +63,26 @@ export default function WalletCard() {
       </p>
 
       <p>
-  WLD :
-  <strong> {balance.wld}</strong>
-</p>
+        WLD :
+        <strong> {balance.wld}</strong>
+      </p>
 
-<p>
-  PUFI :
-  <strong> {balance.pufi}</strong>
-</p>
+      <p>
+        PUFI :
+        <strong> {balance.pufi}</strong>
+      </p>
+
+      <p style={{ marginTop: 16 }}>
+        Transaction Status :
+        <strong> {transaction.status}</strong>
+      </p>
+
+      {transaction.transactionId && (
+        <p>
+          Transaction ID :
+          <strong> {transaction.transactionId}</strong>
+        </p>
+      )}
 
       {wallet.connected && (
         <div
@@ -90,30 +104,30 @@ export default function WalletCard() {
       )}
 
       <button
-  onClick={async () => {
-    await connect();
-    await refresh();
-  }}
-  disabled={loading}
-  style={{
-    width: "100%",
-    marginTop: 20,
-    padding: "16px",
-    borderRadius: 12,
-    background: "#FFC857",
-    color: "#111",
-    border: "none",
-    fontWeight: 700,
-    cursor: loading ? "wait" : "pointer",
-    opacity: loading ? 0.6 : 1,
-  }}
->
-  {loading
-    ? "Connecting..."
-    : wallet.connected
-    ? "Connected ✅"
-    : "Connect Wallet"}
-</button>
+        onClick={async () => {
+          await connect();
+          await refresh();
+        }}
+        disabled={loading}
+        style={{
+          width: "100%",
+          marginTop: 20,
+          padding: "16px",
+          borderRadius: 12,
+          background: "#FFC857",
+          color: "#111",
+          border: "none",
+          fontWeight: 700,
+          cursor: loading ? "wait" : "pointer",
+          opacity: loading ? 0.6 : 1,
+        }}
+      >
+        {loading
+          ? "Connecting..."
+          : wallet.connected
+          ? "Connected ✅"
+          : "Connect Wallet"}
+      </button>
 
       <button
         onClick={refresh}
