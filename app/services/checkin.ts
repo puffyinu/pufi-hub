@@ -1,5 +1,7 @@
 import { load, save, remove } from "@/app/services/storage";
 import { addReward } from "@/app/services/reward";
+import { updateDailyStreak } from "@/app/services/streakEngine";
+import { recordCheckInActivity } from "@/app/services/activityEngine";
 
 export interface CheckInStatus {
   checkedIn: boolean;
@@ -7,24 +9,34 @@ export interface CheckInStatus {
 }
 
 const STORAGE_KEY = "pufi-checkin";
+
 export const CHECKIN_EVENT = "pufi-checkin-changed";
 
 function isSameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 function notifyCheckInChanged(): void {
-  window.dispatchEvent(new CustomEvent(CHECKIN_EVENT));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(CHECKIN_EVENT)
+    );
+  }
 }
 
 let status: CheckInStatus | null = null;
 
 function ensureStatus(): CheckInStatus {
   if (status === null) {
-    status = load<CheckInStatus>(STORAGE_KEY) ?? {
-      checkedIn: false,
-      lastCheckIn: null,
-    };
+    status =
+      load<CheckInStatus>(STORAGE_KEY) ?? {
+        checkedIn: false,
+        lastCheckIn: null,
+      };
   }
 
   return status;
@@ -52,8 +64,15 @@ export function checkIn(): boolean {
   };
 
   save(STORAGE_KEY, status);
+
+  updateDailyStreak();
+
   addReward(10);
+
+  recordCheckInActivity(10);
+
   notifyCheckInChanged();
+
   return true;
 }
 
@@ -64,5 +83,6 @@ export function resetCheckIn(): void {
   };
 
   remove(STORAGE_KEY);
+
   notifyCheckInChanged();
 }
