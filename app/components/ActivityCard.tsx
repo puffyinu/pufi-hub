@@ -3,7 +3,10 @@
 import { useCheckIn } from "@/app/hooks/useCheckIn";
 
 export default function ActivityCard() {
-  const { status, checkIn } = useCheckIn();
+  const {
+    checkIn,
+    check,
+  } = useCheckIn();
 
   return (
     <div
@@ -26,7 +29,7 @@ export default function ActivityCard() {
         Daily Check-In
       </h3>
 
-      {status.checkedIn ? (
+      {checkIn.checkedIn ? (
         <>
           <p
             style={{
@@ -36,7 +39,8 @@ export default function ActivityCard() {
           >
             Daily check-in completed.
           </p>
-          {status.lastCheckIn ? (
+
+          {checkIn.lastCheckIn && (
             <p
               style={{
                 color: "#94A3B8",
@@ -44,9 +48,10 @@ export default function ActivityCard() {
               }}
             >
               Last Check-In:
-              {status.lastCheckIn}
+              <br />
+              {checkIn.lastCheckIn}
             </p>
-          ) : null}
+          )}
         </>
       ) : (
         <>
@@ -58,9 +63,10 @@ export default function ActivityCard() {
           >
             Complete your daily check-in.
           </p>
+
           <button
             type="button"
-            onClick={() => checkIn()}
+            onClick={check}
             style={{
               marginTop: "16px",
               background: "#3B82F6",

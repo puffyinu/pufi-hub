@@ -1,34 +1,58 @@
+"use client";
+
 import { useEffect, useState } from "react";
+
 import {
-  CHECKIN_EVENT,
-  getCheckInStatus,
-  checkIn,
-  resetCheckIn,
-  type CheckInStatus,
-} from "@/app/services/checkin";
+  CHECKIN_SESSION_EVENT,
+  getCheckInState,
+  resetCheckInState,
+  setCheckInState,
+} from "@/app/services/checkinSession";
+
+import type { CheckInState } from "@/app/types/checkin";
 
 export function useCheckIn() {
-  const [status, setStatus] = useState<CheckInStatus>({
-    checkedIn: false,
-    lastCheckIn: null,
-  });
+  const [checkIn, setCheckIn] =
+    useState<CheckInState>(() =>
+      getCheckInState()
+    );
 
   useEffect(() => {
-    function syncCheckIn() {
-      setStatus(getCheckInStatus());
-    }
+    const sync = () => {
+      setCheckIn(getCheckInState());
+    };
 
-    syncCheckIn();
-    window.addEventListener(CHECKIN_EVENT, syncCheckIn);
+    sync();
+
+    window.addEventListener(
+      CHECKIN_SESSION_EVENT,
+      sync
+    );
 
     return () => {
-      window.removeEventListener(CHECKIN_EVENT, syncCheckIn);
+      window.removeEventListener(
+        CHECKIN_SESSION_EVENT,
+        sync
+      );
     };
   }, []);
 
+  const check = () => {
+    setCheckInState({
+      checkedIn: true,
+      lastCheckIn: new Date().toISOString(),
+      loading: false,
+      error: null,
+    });
+  };
+
+  const reset = () => {
+    resetCheckInState();
+  };
+
   return {
-    status,
     checkIn,
-    resetCheckIn,
+    check,
+    reset,
   };
 }
