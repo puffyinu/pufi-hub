@@ -1,27 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import {
-  CAMPAIGN_EVENT,
+  CAMPAIGN_SESSION_EVENT,
+} from "@/app/services/campaignSession";
+
+import {
+  getCampaignList,
   completeCampaign,
-  getCampaigns,
   resetCampaigns,
-  type Campaign,
-} from "@/app/services/campaign";
+} from "@/app/services/campaignEngine";
 
 export function useCampaign() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaigns, setCampaigns] =
+    useState(getCampaignList());
 
   useEffect(() => {
-    function syncCampaigns() {
-      setCampaigns(getCampaigns());
-    }
+    const sync = () => {
+      setCampaigns(
+        getCampaignList()
+      );
+    };
 
-    syncCampaigns();
-    window.addEventListener(CAMPAIGN_EVENT, syncCampaigns);
+    sync();
+
+    window.addEventListener(
+      CAMPAIGN_SESSION_EVENT,
+      sync
+    );
 
     return () => {
-      window.removeEventListener(CAMPAIGN_EVENT, syncCampaigns);
+      window.removeEventListener(
+        CAMPAIGN_SESSION_EVENT,
+        sync
+      );
     };
   }, []);
 

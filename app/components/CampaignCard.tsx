@@ -3,122 +3,60 @@
 import { useCampaign } from "@/app/hooks/useCampaign";
 
 export default function CampaignCard() {
-  const { campaigns, completeCampaign } = useCampaign();
+  const {
+    campaigns,
+    completeCampaign,
+  } = useCampaign();
 
   return (
-    <div
-      style={{
-        marginTop: "32px",
-        background: "#1E2947",
-        border: "1px solid #2A3654",
-        borderRadius: "16px",
-        padding: "24px",
-      }}
-    >
-      <h2
-        style={{
-          color: "#FFFFFF",
-          marginBottom: "24px",
-        }}
-      >
-        Campaigns
-      </h2>
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">
+          🎯 Campaigns
+        </h2>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-        }}
-      >
-        {campaigns.map(campaign => (
+        <p className="text-sm text-zinc-400">
+          Complete campaigns to earn PUFI rewards.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {campaigns.map((campaign) => (
           <div
             key={campaign.id}
-            style={{
-              background: "#111A30",
-              border: "1px solid #2A3654",
-              borderRadius: "12px",
-              padding: "18px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
+            className="rounded-lg border border-zinc-700 p-4"
           >
-            <div>
-              <h3
-                style={{
-                  margin: 0,
-                  color: "#FFFFFF",
-                }}
-              >
-                {campaign.title}
-              </h3>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">
+                  {campaign.title}
+                </h3>
 
-              <p
-                style={{
-                  marginTop: "8px",
-                  color: "#94A3B8",
-                }}
-              >
-                {campaign.description}
-              </p>
+                <p className="mt-1 text-sm text-zinc-400">
+                  {campaign.description}
+                </p>
 
-              <p
-                style={{
-                  marginTop: "6px",
-                  color: "#FFC857",
-                  fontSize: "14px",
-                }}
-              >
-                Reward: {campaign.reward} PUFI
-              </p>
+                <p className="mt-2 text-xs text-emerald-400">
+                  Reward: {campaign.reward} PUFI
+                </p>
+              </div>
 
-              <p
-                style={{
-                  marginTop: "6px",
-                  color: "#94A3B8",
-                  fontSize: "14px",
-                }}
+              <button
+                disabled={campaign.completed}
+                onClick={() =>
+                  completeCampaign(campaign.id)
+                }
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  campaign.completed
+                    ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+                    : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                }`}
               >
-                Status: {campaign.completed ? "Completed" : "Pending"}
-              </p>
+                {campaign.completed
+                  ? "Completed"
+                  : "Complete"}
+              </button>
             </div>
-
-            {campaign.completed ? (
-              <button
-                type="button"
-                disabled
-                style={{
-                  background: "#16A34A",
-                  color: "#FFFFFF",
-                  padding: "8px 12px",
-                  borderRadius: "999px",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  border: "none",
-                  cursor: "default",
-                }}
-              >
-                Completed
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => completeCampaign(campaign.id)}
-                style={{
-                  background: "#16A34A",
-                  color: "#FFFFFF",
-                  padding: "8px 12px",
-                  borderRadius: "999px",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Complete
-              </button>
-            )}
           </div>
         ))}
       </div>
