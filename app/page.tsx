@@ -2,17 +2,29 @@ import Header from "./components/Header";
 import HeroBanner from "./components/HeroBanner";
 import Sidebar from "./components/Sidebar";
 import DashboardStats from "./components/DashboardStats";
-import ActivityCard from "./components/ActivityCard";
-import TaskList from "./components/TaskList";
-import CampaignCard from "./components/CampaignCard";
+
 import WalletCard from "./components/WalletCard";
+
+import CampaignCard from "./components/CampaignCard";
+
+import ActivityCard from "./components/ActivityCard";
+import ActivityHistoryCard from "./components/ActivityHistoryCard";
+
+import DailyStreakCard from "./components/DailyStreakCard";
+
+import AchievementCard from "./components/AchievementCard";
+
+import TaskList from "./components/TaskList";
+
 import LeaderboardCard from "./components/LeaderboardCard";
+
 import BottomNav from "./components/BottomNav";
 
 export default function Home() {
   return (
     <>
       <Header />
+
       <HeroBanner />
 
       <div
@@ -26,7 +38,6 @@ export default function Home() {
         </div>
 
         <main className="main-content">
-
           <h2
             style={{
               color: "#FFFFFF",
@@ -40,24 +51,27 @@ export default function Home() {
 
           <div className="dashboard-sections">
 
+            <WalletCard />
+
             <ActivityCard />
 
-            <TaskList />
+            <DailyStreakCard />
+
+            <AchievementCard />
 
             <CampaignCard />
 
-            <WalletCard />
+            <ActivityHistoryCard />
+
+            <TaskList />
 
             <LeaderboardCard />
 
           </div>
-
         </main>
-
       </div>
 
       <BottomNav />
-
     </>
   );
 }
