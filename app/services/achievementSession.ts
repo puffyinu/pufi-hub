@@ -1,4 +1,4 @@
-import { load, save, remove } from "@/app/services/storage";
+import { provider } from "@/app/providers/providerAccess";
 
 import type {
   Achievement,
@@ -32,6 +32,10 @@ const DEFAULT_STATE: AchievementState = {
 
 let session: AchievementState | null = null;
 
+function storage() {
+  return provider();
+}
+
 function notify(): void {
   if (typeof window !== "undefined") {
     window.dispatchEvent(
@@ -45,7 +49,7 @@ function notify(): void {
 function ensureState(): AchievementState {
   if (session === null) {
     session =
-      load<AchievementState>(
+      storage().load<AchievementState>(
         STORAGE_KEY
       ) ?? DEFAULT_STATE;
   }
@@ -68,7 +72,7 @@ export function saveAchievements(
     achievements,
   };
 
-  save(STORAGE_KEY, session);
+  storage().save(STORAGE_KEY, session);
 
   notify();
 }
@@ -78,7 +82,7 @@ export function resetAchievements(): void {
     ...DEFAULT_STATE,
   };
 
-  remove(STORAGE_KEY);
+  storage().remove(STORAGE_KEY);
 
   notify();
 }
