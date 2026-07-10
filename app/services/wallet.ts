@@ -1,4 +1,7 @@
-import { MiniKit } from "@worldcoin/minikit-js";
+import {
+  walletAuth,
+  isMiniKitReady,
+} from "@/app/runtime/minikitManager";
 
 export interface WalletResult {
   connected: boolean;
@@ -6,16 +9,17 @@ export interface WalletResult {
 }
 
 export async function connectWallet(): Promise<WalletResult> {
-  if (!MiniKit.isInstalled()) {
+  if (!isMiniKitReady()) {
     return {
       connected: false,
     };
   }
 
   try {
-    const result = await MiniKit.walletAuth({
-      nonce: crypto.randomUUID(),
-    });
+    const result =
+      await walletAuth(
+        crypto.randomUUID()
+      );
 
     if (result.data.address) {
       return {

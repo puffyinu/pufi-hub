@@ -1,5 +1,10 @@
-import { MiniKit } from "@worldcoin/minikit-js";
-import type { MiniKitSendTransactionOptions } from "@worldcoin/minikit-js/commands";
+import {
+  sendMiniKitTransaction,
+} from "@/app/runtime/minikitManager";
+
+import type {
+  MiniKitSendTransactionOptions,
+} from "@worldcoin/minikit-js/commands";
 
 export interface TransactionResult {
   success: boolean;
@@ -22,15 +27,19 @@ export async function sendTransaction(
   options: MiniKitSendTransactionOptions
 ): Promise<TransactionResult> {
   try {
-    const result = await MiniKit.sendTransaction(options);
+    const result =
+      await sendMiniKitTransaction(
+        options
+      );
 
     return {
-  success: true,
-  transactionId: result.data.userOpHash,
-  status: result.data.status,
-  from: result.data.from,
-  timestamp: result.data.timestamp,
-};
+      success: true,
+      transactionId:
+        result.data.userOpHash,
+      status: result.data.status,
+      from: result.data.from,
+      timestamp: result.data.timestamp,
+    };
   } catch (error) {
     return {
       success: false,
