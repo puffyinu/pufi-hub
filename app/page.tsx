@@ -1,18 +1,34 @@
 import Header from "./components/Header";
 import HeroBanner from "./components/HeroBanner";
 import Sidebar from "./components/Sidebar";
-import DashboardCard from "./components/DashboardCard";
-import ActivityCard from "./components/ActivityCard";
-import TaskList from "./components/TaskList";
-import CampaignCard from "./components/CampaignCard";
+import DashboardStats from "./components/DashboardStats";
+
 import WalletCard from "./components/WalletCard";
+
+import CampaignCard from "./components/CampaignCard";
+
+import ActivityCard from "./components/ActivityCard";
+import ActivityHistoryCard from "./components/ActivityHistoryCard";
+
+import DailyStreakCard from "./components/DailyStreakCard";
+
+import AchievementCard from "./components/AchievementCard";
+
+import TaskList from "./components/TaskList";
+
 import LeaderboardCard from "./components/LeaderboardCard";
+
 import BottomNav from "./components/BottomNav";
+
+import RuntimeStatusCard from "./components/RuntimeStatusCard";
+
+import TransactionStatusCard from "./components/TransactionStatusCard";
 
 export default function Home() {
   return (
     <>
       <Header />
+
       <HeroBanner />
 
       <div
@@ -26,7 +42,6 @@ export default function Home() {
         </div>
 
         <main className="main-content">
-
           <h2
             style={{
               color: "#FFFFFF",
@@ -36,50 +51,34 @@ export default function Home() {
             Dashboard
           </h2>
 
-          <div className="dashboard-cards">
-
-            <DashboardCard
-              title="PUFI Balance"
-              value="0 PUFI"
-            />
-
-            <DashboardCard
-              title="Completed Tasks"
-              value="0"
-            />
-
-            <DashboardCard
-              title="Campaign Rewards"
-              value="0"
-            />
-
-            <DashboardCard
-              title="Referral"
-              value="0"
-            />
-
-          </div>
+          <DashboardStats />
+          <RuntimeStatusCard />
 
           <div className="dashboard-sections">
 
+            <WalletCard />
+
+           <TransactionStatusCard />
+
             <ActivityCard />
 
-            <TaskList />
+            <DailyStreakCard />
+
+            <AchievementCard />
 
             <CampaignCard />
 
-            <WalletCard />
+            <ActivityHistoryCard />
+
+            <TaskList />
 
             <LeaderboardCard />
 
           </div>
-
         </main>
-
       </div>
 
       <BottomNav />
-
     </>
   );
 }

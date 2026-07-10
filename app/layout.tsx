@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { MiniKitProvider } from "@worldcoin/minikit-js/minikit-provider";
+
 import "./globals.css";
+import { WORLD_CONFIG } from "./config/world";
 import { WalletProvider } from "./context/WalletProvider";
+import RuntimeBootstrap from "./runtime/RuntimeBootstrap";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +33,16 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <WalletProvider>{children}</WalletProvider>
+        <MiniKitProvider
+          props={{
+            appId: WORLD_CONFIG.appId,
+          }}
+        >
+          <WalletProvider>
+            <RuntimeBootstrap />
+            {children}
+          </WalletProvider>
+        </MiniKitProvider>
       </body>
     </html>
   );

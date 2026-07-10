@@ -1,4 +1,12 @@
-import { MiniKit } from "@worldcoin/minikit-js";
+import {
+  walletAuth,
+  isMiniKitReady,
+} from "@/app/runtime/minikitManager";
+
+import {
+  resetWalletState,
+  setWalletState,
+} from "@/app/services/walletSession";
 
 export interface WalletResult {
   connected: boolean;
@@ -6,29 +14,48 @@ export interface WalletResult {
 }
 
 export async function connectWallet(): Promise<WalletResult> {
-  if (!MiniKit.isInstalled()) {
+  if (!isMiniKitReady()) {
+    resetWalletState();
+
     return {
       connected: false,
     };
   }
 
   try {
-    const result = await MiniKit.walletAuth({
-      nonce: crypto.randomUUID(),
-    });
+    const result = await walletAuth(
+      crypto.randomUUID()
+    );
 
-    if (result.data.address) {
+    const address = result.data.address;
+
+    if (address) {
+      setWalletState({
+        connected: true,
+        address,
+        loading: false,
+        error: null,
+      });
+
       return {
         connected: true,
-        address: result.data.address,
+        address,
       };
     }
+
+    resetWalletState();
 
     return {
       connected: false,
     };
   } catch (err) {
     console.error(err);
+
+    setWalletState({
+      connected: false,
+      loading: false,
+      error: "Wallet authentication failed.",
+    });
 
     return {
       connected: false,

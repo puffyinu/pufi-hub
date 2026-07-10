@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { connectWallet } from "../services/wallet";
+import { login } from "../runtime/auth";
 import { useWalletContext } from "../context/WalletProvider";
 
 export function useWallet() {
@@ -13,11 +13,15 @@ export function useWallet() {
     setLoading(true);
 
     try {
-      const result = await connectWallet();
-      setWallet({
-        ...result,
-        balance: 0,
-      });
+      const result = await login();
+
+if (result?.address) {
+  setWallet({
+    connected: true,
+    address: result.address,
+    balance: 0,
+  });
+}
     } catch (error) {
       console.error(error);
     }

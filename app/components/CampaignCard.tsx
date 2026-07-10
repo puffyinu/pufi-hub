@@ -1,122 +1,203 @@
+"use client";
+
+import { useMemo } from "react";
+import { useCampaign } from "@/app/hooks/useCampaign";
+
 export default function CampaignCard() {
+  const {
+    campaigns,
+    completeCampaign,
+    resetCampaigns,
+  } = useCampaign();
+
+  const stats = useMemo(() => {
+    const total = campaigns.length;
+
+    const completed =
+      campaigns.filter(
+        (campaign) => campaign.completed
+      ).length;
+
+    const active = total - completed;
+
+    return {
+      total,
+      completed,
+      active,
+    };
+  }, [campaigns]);
+
   return (
     <div
       style={{
-        marginTop: "32px",
-        background: "#1E2947",
-        border: "1px solid #2A3654",
-        borderRadius: "16px",
-        padding: "24px",
+        background: "#1E2A4A",
+        borderRadius: 20,
+        padding: 24,
+        marginTop: 24,
       }}
     >
       <h2
         style={{
-          color: "#FFFFFF",
-          marginBottom: "24px",
+          marginBottom: 20,
         }}
       >
-        Campaigns
+        Campaign Center
       </h2>
 
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
-          gap: "16px",
+          gap: 12,
+          marginBottom: 24,
+          flexWrap: "wrap",
         }}
       >
-        {/* Campaign 1 */}
-        <div
-          style={{
-            background: "#111A30",
-            border: "1px solid #2A3654",
-            borderRadius: "12px",
-            padding: "18px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                margin: 0,
-                color: "#FFFFFF",
-              }}
-            >
-              Daily Check-In
-            </h3>
+        <div>
+          <strong>Total</strong>
 
-            <p
-              style={{
-                marginTop: "8px",
-                color: "#94A3B8",
-              }}
-            >
-              Earn 5 PUFI
-            </p>
-          </div>
+          <br />
 
-          <span
-            style={{
-              background: "#16A34A",
-              color: "#FFFFFF",
-              padding: "6px 12px",
-              borderRadius: "999px",
-              fontSize: "12px",
-              fontWeight: "600",
-            }}
-          >
-            OPEN
-          </span>
+          {stats.total}
         </div>
 
-        {/* Campaign 2 */}
-        <div
-          style={{
-            background: "#111A30",
-            border: "1px solid #2A3654",
-            borderRadius: "12px",
-            padding: "18px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                margin: 0,
-                color: "#FFFFFF",
-              }}
-            >
-              Visit Website
-            </h3>
+        <div>
+          <strong>Active</strong>
 
-            <p
-              style={{
-                marginTop: "8px",
-                color: "#94A3B8",
-              }}
-            >
-              Earn 10 PUFI
-            </p>
-          </div>
+          <br />
 
-          <span
-            style={{
-              background: "#16A34A",
-              color: "#FFFFFF",
-              padding: "6px 12px",
-              borderRadius: "999px",
-              fontSize: "12px",
-              fontWeight: "600",
-            }}
-          >
-            OPEN
-          </span>
+          {stats.active}
+        </div>
+
+        <div>
+          <strong>Completed</strong>
+
+          <br />
+
+          {stats.completed}
         </div>
       </div>
+
+      {campaigns.length === 0 ? (
+        <p>No campaign available.</p>
+      ) : (
+        <>
+          {campaigns.map((campaign) => (
+            <div
+              key={campaign.id}
+              style={{
+                borderBottom:
+                  "1px solid #31456E",
+                paddingBottom: 18,
+                marginBottom: 18,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems: "center",
+                  gap: 16,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <strong>
+                    {campaign.title}
+                  </strong>
+
+                  <p>
+                    {campaign.description}
+                  </p>
+
+                  <p>
+                    Reward:
+                    <strong>
+                      {" "}
+                      {campaign.reward}
+                      {" "}
+                      PUFI
+                    </strong>
+                  </p>
+                </div>
+
+                <div>
+                  <span
+                    style={{
+                      display:
+                        "inline-block",
+                      padding:
+                        "4px 10px",
+                      borderRadius: 999,
+                      background:
+                        campaign.completed
+                          ? "#2E7D32"
+                          : "#1565C0",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {campaign.completed
+                      ? "COMPLETED"
+                      : "ACTIVE"}
+                  </span>
+
+                  <br />
+
+                  <button
+                    disabled={
+                      campaign.completed
+                    }
+                    onClick={() =>
+                      completeCampaign(
+                        campaign.id
+                      )
+                    }
+                    style={{
+                      marginTop: 12,
+                      padding:
+                        "10px 18px",
+                      border: "none",
+                      borderRadius: 10,
+                      cursor:
+                        campaign.completed
+                          ? "not-allowed"
+                          : "pointer",
+                      background:
+                        campaign.completed
+                          ? "#555"
+                          : "#2E7D32",
+                      color: "#fff",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {campaign.completed
+                      ? "Completed"
+                      : "Complete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <button
+            onClick={resetCampaigns}
+            style={{
+              width: "100%",
+              padding: 14,
+              border: "none",
+              borderRadius: 12,
+              background: "#E53935",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Reset Campaign Progress
+          </button>
+        </>
+      )}
     </div>
   );
 }

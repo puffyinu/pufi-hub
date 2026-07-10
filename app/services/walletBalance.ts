@@ -1,13 +1,8 @@
-import { ethers } from "ethers";
+import { type Abi, type Address } from "viem";
+import { formatEther, formatUnits } from "viem/utils";
 
-import { provider } from "./provider";
+import { publicClient } from "@/app/services/viemClient";
 import { PUFI_CONTRACT, ERC20_ABI } from "./contracts";
-
-const contract = new ethers.Contract(
-  PUFI_CONTRACT,
-  ERC20_ABI,
-  provider
-);
 
 export interface BalanceResult {
   wld: string;
@@ -17,6 +12,11 @@ export interface BalanceResult {
 export async function getWalletBalance(
   address?: string
 ): Promise<BalanceResult> {
+const contractAddress = PUFI_CONTRACT as Address;
+
+if (!PUFI_CONTRACT) {
+  throw new Error("PUFI contract address is not configured.");
+}
 
   if (!address) {
     return {
@@ -25,23 +25,26 @@ export async function getWalletBalance(
     };
   }
 
-  const [wldBalance, pufiBalance, decimals] =
-    await Promise.all([
-      provider.getBalance(address),
-      contract.balanceOf(address),
-      contract.decimals(),
-    ]);
+  const addressToCheck = address as Address;
+  const pufiAbi = ERC20_ABI as unknown as Abi;
+
+  const [wldBalance, pufiBalance, decimals] = await Promise.all([
+    publicClient.getBalance({ address: addressToCheck }),
+    publicClient.readContract({
+      address: contractAddress,
+      abi: pufiAbi,
+      functionName: "balanceOf",
+      args: [addressToCheck],
+    }),
+    publicClient.readContract({
+      address: contractAddress,
+      abi: pufiAbi,
+      functionName: "decimals",
+    }),
+  ]);
 
   return {
-    wld: Number(
-      ethers.formatEther(wldBalance)
-    ).toFixed(4),
-
-    pufi: Number(
-      ethers.formatUnits(
-        pufiBalance,
-        decimals
-      )
-    ).toFixed(4),
+    wld: Number(formatEther(wldBalance)).toFixed(4),
+    pufi: Number(formatUnits(pufiBalance as bigint, decimals as number)).toFixed(4),
   };
 }
