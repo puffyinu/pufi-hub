@@ -62,6 +62,18 @@ export function setWalletState(nextState: Partial<WalletState>): void {
   notifyWalletSessionChanged();
 }
 
+export function updateWalletConnection(
+  connected: boolean,
+  address: string | null
+): void {
+  setWalletState({
+    connected,
+    address,
+    error: null,
+    loading: false,
+  });
+}
+
 export function resetWalletState(): void {
   walletState = { ...DEFAULT_WALLET_STATE };
   remove(STORAGE_KEY);
