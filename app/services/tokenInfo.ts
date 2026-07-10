@@ -1,13 +1,8 @@
-import { ethers } from "ethers";
+import { type Address } from "viem";
+import { formatUnits } from "viem/utils";
 
-import { provider } from "./provider";
-import { PUFI_CONTRACT, ERC20_ABI } from "./contracts";
-
-const contract = new ethers.Contract(
-  PUFI_CONTRACT,
-  ERC20_ABI,
-  provider
-);
+import { publicClient } from "./viemClient";
+import { ERC20_ABI, PUFI_CONTRACT } from "./contracts";
 
 export interface TokenInfo {
   name: string;
@@ -17,21 +12,44 @@ export interface TokenInfo {
 }
 
 export async function getTokenInfo(): Promise<TokenInfo> {
+  if (!PUFI_CONTRACT) {
+    throw new Error("PUFI contract address is not configured.");
+  }
+
+  const contractAddress = PUFI_CONTRACT as Address;
+  const abi = ERC20_ABI;
+
   const [name, symbol, decimals, totalSupply] =
     await Promise.all([
-      contract.name(),
-      contract.symbol(),
-      contract.decimals(),
-      contract.totalSupply(),
+      publicClient.readContract({
+        address: contractAddress,
+        abi,
+        functionName: "name",
+      }),
+      publicClient.readContract({
+        address: contractAddress,
+        abi,
+        functionName: "symbol",
+      }),
+      publicClient.readContract({
+        address: contractAddress,
+        abi,
+        functionName: "decimals",
+      }),
+      publicClient.readContract({
+        address: contractAddress,
+        abi,
+        functionName: "totalSupply",
+      }),
     ]);
 
   return {
-    name,
-    symbol,
+    name: name as string,
+    symbol: symbol as string,
     decimals: Number(decimals),
-    totalSupply: ethers.formatUnits(
-      totalSupply,
-      decimals
+    totalSupply: formatUnits(
+      totalSupply as bigint,
+      Number(decimals)
     ),
   };
 }
