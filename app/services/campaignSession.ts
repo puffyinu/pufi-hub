@@ -1,12 +1,11 @@
-import { load, save, remove } from "@/app/services/storage";
+import { provider } from "@/app/providers/providerAccess";
 
 import type {
   Campaign,
   CampaignState,
 } from "@/app/types/campaign";
 
-const STORAGE_KEY =
-  "pufi-campaign-session";
+const STORAGE_KEY = "pufi-campaign-session";
 
 export const CAMPAIGN_SESSION_EVENT =
   "pufi-campaign-session-changed";
@@ -14,18 +13,16 @@ export const CAMPAIGN_SESSION_EVENT =
 const DEFAULT_STATE: CampaignState = {
   campaigns: [
     {
-      id: "visit-website",
-      title: "Visit PUFI Website",
-      description:
-        "Visit the official PUFI website.",
+      id: "daily-checkin",
+      title: "Daily Check-In",
+      description: "Complete today's daily check-in.",
       reward: 10,
       completed: false,
     },
     {
-      id: "join-community",
-      title: "Join Community",
-      description:
-        "Join the official PUFI community.",
+      id: "first-reward",
+      title: "First Reward",
+      description: "Claim your first reward.",
       reward: 20,
       completed: false,
     },
@@ -33,6 +30,10 @@ const DEFAULT_STATE: CampaignState = {
 };
 
 let session: CampaignState | null = null;
+
+function storage() {
+  return provider();
+}
 
 function notify(): void {
   if (typeof window !== "undefined") {
@@ -47,7 +48,7 @@ function notify(): void {
 function ensureState(): CampaignState {
   if (session === null) {
     session =
-      load<CampaignState>(
+      storage().load<CampaignState>(
         STORAGE_KEY
       ) ?? DEFAULT_STATE;
   }
@@ -70,7 +71,7 @@ export function saveCampaigns(
     campaigns,
   };
 
-  save(STORAGE_KEY, session);
+  storage().save(STORAGE_KEY, session);
 
   notify();
 }
@@ -80,7 +81,7 @@ export function resetCampaigns(): void {
     ...DEFAULT_STATE,
   };
 
-  remove(STORAGE_KEY);
+  storage().remove(STORAGE_KEY);
 
   notify();
 }
