@@ -3,7 +3,10 @@ import {
   setRuntimeState,
 } from "@/app/services/runtimeSession";
 
-import { isMiniKitReady } from "@/app/runtime/minikitManager";
+import {
+  initializeWorldRuntime,
+  resetWorldRuntime,
+} from "@/app/services/worldRuntime";
 
 class RuntimeCoordinator {
   private initialized = false;
@@ -15,10 +18,12 @@ class RuntimeCoordinator {
 
     this.initialized = true;
 
+    const runtime = initializeWorldRuntime();
+
     setRuntimeState({
       initialized: true,
-      miniKitReady: isMiniKitReady(),
-      lastSync: new Date().toISOString(),
+      miniKitReady: runtime.miniKitReady,
+      lastSync: runtime.initializedAt,
     });
   }
 
@@ -28,6 +33,8 @@ class RuntimeCoordinator {
 
   reset(): void {
     this.initialized = false;
+
+    resetWorldRuntime();
 
     resetRuntimeState();
   }
