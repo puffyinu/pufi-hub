@@ -1,56 +1,215 @@
 "use client";
 
+import { useMemo } from "react";
 import { useAchievement } from "@/app/hooks/useAchievement";
 
 export default function AchievementCard() {
-  const { achievements } =
-    useAchievement();
+  const {
+    achievements,
+    unlockAchievement,
+    resetAchievements,
+  } = useAchievement();
+
+  const stats = useMemo(() => {
+    const total = achievements.length;
+
+    const unlocked =
+      achievements.filter(
+        (achievement) => achievement.unlocked
+      ).length;
+
+    const locked = total - unlocked;
+
+    const completion =
+      total === 0
+        ? 0
+        : Math.round(
+            (unlocked / total) * 100
+          );
+
+    return {
+      total,
+      unlocked,
+      locked,
+      completion,
+    };
+  }, [achievements]);
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold">
-          🏆 Achievements
-        </h2>
+    <div
+      style={{
+        background: "#1E2A4A",
+        borderRadius: 20,
+        padding: 24,
+        marginTop: 24,
+      }}
+    >
+      <h2
+        style={{
+          marginBottom: 20,
+        }}
+      >
+        Achievement Center
+      </h2>
 
-        <p className="text-sm text-zinc-400">
-          Unlock achievements as you
-          use PUFI HUB.
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          flexWrap: "wrap",
+          marginBottom: 24,
+        }}
+      >
+        <div>
+          <strong>Total</strong>
+
+          <br />
+
+          {stats.total}
+        </div>
+
+        <div>
+          <strong>Unlocked</strong>
+
+          <br />
+
+          {stats.unlocked}
+        </div>
+
+        <div>
+          <strong>Locked</strong>
+
+          <br />
+
+          {stats.locked}
+        </div>
+
+        <div>
+          <strong>Completion</strong>
+
+          <br />
+
+          {stats.completion}%
+        </div>
+      </div>
+
+      {achievements.length === 0 ? (
+        <p>
+          No achievements yet.
         </p>
-      </div>
-
-      <div className="space-y-3">
-        {achievements.map(
-          (achievement) => (
-            <div
-              key={achievement.id}
-              className="rounded-lg border border-zinc-700 p-3"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">
-                  {achievement.title}
-                </h3>
-
-                <span
-                  className={
-                    achievement.unlocked
-                      ? "text-green-400 text-sm font-semibold"
-                      : "text-zinc-500 text-sm"
-                  }
+      ) : (
+        <>
+          {achievements.map(
+            (achievement) => (
+              <div
+                key={achievement.id}
+                style={{
+                  borderBottom:
+                    "1px solid #31456E",
+                  paddingBottom: 18,
+                  marginBottom: 18,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems: "center",
+                    gap: 16,
+                    flexWrap: "wrap",
+                  }}
                 >
-                  {achievement.unlocked
-                    ? "Unlocked"
-                    : "Locked"}
-                </span>
-              </div>
+                  <div>
+                    <strong>
+                      {achievement.title}
+                    </strong>
 
-              <p className="mt-2 text-sm text-zinc-400">
-                {achievement.description}
-              </p>
-            </div>
-          )
-        )}
-      </div>
+                    <p>
+                      {
+                        achievement.description
+                      }
+                    </p>
+                  </div>
+
+                  <div>
+                    <span
+                      style={{
+                        display:
+                          "inline-block",
+                        padding:
+                          "4px 10px",
+                        borderRadius: 999,
+                        background:
+                          achievement.unlocked
+                            ? "#2E7D32"
+                            : "#616161",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: 12,
+                      }}
+                    >
+                      {achievement.unlocked
+                        ? "UNLOCKED"
+                        : "LOCKED"}
+                    </span>
+
+                    <br />
+
+                    <button
+                      disabled={
+                        achievement.unlocked
+                      }
+                      onClick={() =>
+                        unlockAchievement(
+                          achievement.id
+                        )
+                      }
+                      style={{
+                        marginTop: 12,
+                        padding:
+                          "10px 18px",
+                        border: "none",
+                        borderRadius: 10,
+                        background:
+                          achievement.unlocked
+                            ? "#555"
+                            : "#2E7D32",
+                        color: "#fff",
+                        fontWeight: 700,
+                        cursor:
+                          achievement.unlocked
+                            ? "not-allowed"
+                            : "pointer",
+                      }}
+                    >
+                      {achievement.unlocked
+                        ? "Unlocked"
+                        : "Unlock"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+
+          <button
+            onClick={resetAchievements}
+            style={{
+              width: "100%",
+              padding: 14,
+              border: "none",
+              borderRadius: 12,
+              background: "#E53935",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Reset Achievement Progress
+          </button>
+        </>
+      )}
     </div>
   );
 }
