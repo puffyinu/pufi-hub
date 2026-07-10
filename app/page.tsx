@@ -22,6 +22,8 @@ import BottomNav from "./components/BottomNav";
 
 import RuntimeStatusCard from "./components/RuntimeStatusCard";
 
+import TransactionStatusCard from "./components/TransactionStatusCard";
+
 export default function Home() {
   return (
     <>
@@ -55,6 +57,8 @@ export default function Home() {
           <div className="dashboard-sections">
 
             <WalletCard />
+
+           <TransactionStatusCard />
 
             <ActivityCard />
 
