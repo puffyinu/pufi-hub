@@ -1,15 +1,25 @@
-import type { DataProvider } from "./providerTypes";
+import { LocalProvider } from "./localProvider";
 
-let provider: DataProvider | null = null;
+import type {
+  DataProvider,
+} from "./providerTypes";
 
-export function registerProvider(next: DataProvider) {
+let provider: DataProvider =
+  new LocalProvider();
+
+export async function
+initializeProvider(): Promise<void> {
+  await provider.initialize();
+}
+
+export function
+registerProvider(
+  next: DataProvider
+): void {
   provider = next;
 }
 
-export function getProvider(): DataProvider {
-  if (!provider) {
-    throw new Error("No data provider registered.");
-  }
-
+export function
+getProvider(): DataProvider {
   return provider;
 }

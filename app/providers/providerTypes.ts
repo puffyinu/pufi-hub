@@ -9,4 +9,17 @@ export interface DataProvider {
   isReady(): boolean;
 
   getStatus(): ProviderStatus;
+
+  load<T>(
+    key: string
+  ): T | null;
+
+  save<T>(
+    key: string,
+    value: T
+  ): void;
+
+  remove(
+    key: string
+  ): void;
 }
