@@ -1,23 +1,26 @@
 import {
-  setRuntimeState,
   resetRuntimeState,
+  setRuntimeState,
 } from "@/app/services/runtimeSession";
+
+import { isMiniKitReady } from "@/app/runtime/minikitManager";
 
 class RuntimeCoordinator {
   private initialized = false;
 
   async initialize(): Promise<void> {
-  if (this.initialized) {
-    return;
+    if (this.initialized) {
+      return;
+    }
+
+    this.initialized = true;
+
+    setRuntimeState({
+      initialized: true,
+      miniKitReady: isMiniKitReady(),
+      lastSync: new Date().toISOString(),
+    });
   }
-
-  this.initialized = true;
-
-  setRuntimeState({
-    initialized: true,
-    lastSync: new Date().toISOString(),
-  });
-}
 
   isInitialized(): boolean {
     return this.initialized;
@@ -25,8 +28,10 @@ class RuntimeCoordinator {
 
   reset(): void {
     this.initialized = false;
+
     resetRuntimeState();
   }
 }
 
-export const runtimeCoordinator = new RuntimeCoordinator();
+export const runtimeCoordinator =
+  new RuntimeCoordinator();
