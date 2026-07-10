@@ -1,4 +1,4 @@
-import { load, save, remove } from "@/app/services/storage";
+import { provider } from "@/app/providers/providerAccess";
 
 import type {
   Activity,
@@ -24,10 +24,14 @@ function notify(): void {
   }
 }
 
+function storage() {
+  return provider();
+}
+
 function ensureState(): ActivityState {
   if (session === null) {
     session =
-      load<ActivityState>(STORAGE_KEY) ??
+      storage().load<ActivityState>(STORAGE_KEY) ??
       DEFAULT_STATE;
   }
 
@@ -54,7 +58,7 @@ export function addActivity(
     ],
   };
 
-  save(STORAGE_KEY, session);
+  storage().save(STORAGE_KEY, session);
 
   notify();
 }
@@ -64,7 +68,7 @@ export function clearActivities(): void {
     ...DEFAULT_STATE,
   };
 
-  remove(STORAGE_KEY);
+  storage().remove(STORAGE_KEY);
 
   notify();
 }
