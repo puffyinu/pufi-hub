@@ -9,8 +9,9 @@ import {
   save,
 } from "@/app/services/storage";
 
-const STORAGE_KEY =
-  "pufi-runtime-session";
+import { getWorldRuntimeStatus } from "@/app/services/worldRuntime";
+
+const STORAGE_KEY = "pufi-runtime-session";
 
 export const RUNTIME_SESSION_EVENT =
   "pufi-runtime-session-changed";
@@ -22,20 +23,18 @@ let runtimeState =
 function notify(): void {
   if (typeof window !== "undefined") {
     window.dispatchEvent(
-      new CustomEvent(
-        RUNTIME_SESSION_EVENT
-      )
+      new CustomEvent(RUNTIME_SESSION_EVENT)
     );
   }
 }
 
-export function getRuntimeState() {
+export function getRuntimeState(): RuntimeState {
   return runtimeState;
 }
 
 export function setRuntimeState(
   next: Partial<RuntimeState>
-) {
+): void {
   runtimeState = {
     ...runtimeState,
     ...next,
@@ -46,7 +45,24 @@ export function setRuntimeState(
   notify();
 }
 
-export function resetRuntimeState() {
+export function refreshRuntimeState(): RuntimeState {
+  const world =
+    getWorldRuntimeStatus();
+
+  runtimeState = {
+    ...runtimeState,
+    miniKitReady: world.miniKitReady,
+    lastSync: world.initializedAt,
+  };
+
+  save(STORAGE_KEY, runtimeState);
+
+  notify();
+
+  return runtimeState;
+}
+
+export function resetRuntimeState(): void {
   runtimeState = {
     ...DEFAULT_RUNTIME_STATE,
   };

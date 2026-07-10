@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
   getRuntimeState,
+  refreshRuntimeState,
   resetRuntimeState,
   RUNTIME_SESSION_EVENT,
 } from "@/app/services/runtimeSession";
@@ -32,8 +33,22 @@ export function useRuntime() {
     };
   }, []);
 
+  function refresh() {
+    const next =
+      refreshRuntimeState();
+
+    setRuntime(next);
+  }
+
+  function reset() {
+    resetRuntimeState();
+
+    setRuntime(getRuntimeState());
+  }
+
   return {
     runtime,
-    reset: resetRuntimeState,
+    refresh,
+    reset,
   };
 }
