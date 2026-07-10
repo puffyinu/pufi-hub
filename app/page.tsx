@@ -20,6 +20,8 @@ import LeaderboardCard from "./components/LeaderboardCard";
 
 import BottomNav from "./components/BottomNav";
 
+import RuntimeStatusCard from "./components/RuntimeStatusCard";
+
 export default function Home() {
   return (
     <>
@@ -48,6 +50,7 @@ export default function Home() {
           </h2>
 
           <DashboardStats />
+          <RuntimeStatusCard />
 
           <div className="dashboard-sections">
 
