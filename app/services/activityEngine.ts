@@ -58,3 +58,18 @@ export function recordRewardClaimActivity(
     amount
   );
 }
+
+export function recordTransactionActivity(
+  success: boolean,
+  transactionId?: string
+): void {
+  recordActivity(
+    "transaction",
+    success
+      ? "Transaction Confirmed"
+      : "Transaction Failed",
+    success
+      ? `Transaction ${transactionId ?? ""} completed successfully`
+      : "Transaction failed"
+  );
+}

@@ -3,7 +3,7 @@ export type ActivityType =
   | "reward"
   | "claim"
   | "campaign"
-  | "referral";
+  | "transaction";
 
 export interface Activity {
   id: string;

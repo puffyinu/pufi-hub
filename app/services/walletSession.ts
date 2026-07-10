@@ -1,4 +1,5 @@
 import { load, save, remove } from "@/app/services/storage";
+import type { TransactionStatus } from "@/app/services/transactionSession";
 
 export interface WalletState {
   connected: boolean;
@@ -9,13 +10,21 @@ export interface WalletState {
   tokenBalance: string;
   tokenSymbol: string;
   tokenDecimals: number;
-  transactionStatus: "idle" | "pending" | "success" | "error";
+
+  transactionStatus:
+    | "idle"
+    | "pending"
+    | "success"
+    | "error";
+
   loading: boolean;
   error: string | null;
 }
 
 const STORAGE_KEY = "pufi-wallet-session";
-export const WALLET_SESSION_EVENT = "pufi-wallet-session-changed";
+
+export const WALLET_SESSION_EVENT =
+  "pufi-wallet-session-changed";
 
 const DEFAULT_WALLET_STATE: WalletState = {
   connected: false,
@@ -33,7 +42,9 @@ const DEFAULT_WALLET_STATE: WalletState = {
 
 function notifyWalletSessionChanged(): void {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(WALLET_SESSION_EVENT));
+    window.dispatchEvent(
+      new CustomEvent(WALLET_SESSION_EVENT)
+    );
   }
 }
 
@@ -41,7 +52,9 @@ let walletState: WalletState | null = null;
 
 function ensureWalletState(): WalletState {
   if (walletState === null) {
-    walletState = load<WalletState>(STORAGE_KEY) ?? DEFAULT_WALLET_STATE;
+    walletState =
+      load<WalletState>(STORAGE_KEY) ??
+      DEFAULT_WALLET_STATE;
   }
 
   return walletState;
@@ -51,15 +64,51 @@ export function getWalletState(): WalletState {
   return ensureWalletState();
 }
 
-export function setWalletState(nextState: Partial<WalletState>): void {
+export function setWalletState(
+  nextState: Partial<WalletState>
+): void {
   const currentState = ensureWalletState();
+
   walletState = {
     ...currentState,
     ...nextState,
   };
 
   save(STORAGE_KEY, walletState);
+
   notifyWalletSessionChanged();
+}
+
+export function syncWalletTransactionStatus(
+  status: TransactionStatus
+): void {
+  switch (status) {
+    case "idle":
+      setWalletState({
+        transactionStatus: "idle",
+      });
+      break;
+
+    case "preparing":
+    case "wallet_prompt":
+    case "pending":
+      setWalletState({
+        transactionStatus: "pending",
+      });
+      break;
+
+    case "confirmed":
+      setWalletState({
+        transactionStatus: "success",
+      });
+      break;
+
+    case "failed":
+      setWalletState({
+        transactionStatus: "error",
+      });
+      break;
+  }
 }
 
 export function updateWalletConnection(
@@ -69,13 +118,17 @@ export function updateWalletConnection(
   setWalletState({
     connected,
     address,
-    error: null,
     loading: false,
+    error: null,
   });
 }
 
 export function resetWalletState(): void {
-  walletState = { ...DEFAULT_WALLET_STATE };
+  walletState = {
+    ...DEFAULT_WALLET_STATE,
+  };
+
   remove(STORAGE_KEY);
+
   notifyWalletSessionChanged();
 }
