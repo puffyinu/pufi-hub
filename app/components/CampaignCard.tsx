@@ -1,65 +1,203 @@
 "use client";
 
+import { useMemo } from "react";
 import { useCampaign } from "@/app/hooks/useCampaign";
 
 export default function CampaignCard() {
   const {
     campaigns,
     completeCampaign,
+    resetCampaigns,
   } = useCampaign();
 
+  const stats = useMemo(() => {
+    const total = campaigns.length;
+
+    const completed =
+      campaigns.filter(
+        (campaign) => campaign.completed
+      ).length;
+
+    const active = total - completed;
+
+    return {
+      total,
+      completed,
+      active,
+    };
+  }, [campaigns]);
+
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold">
-          🎯 Campaigns
-        </h2>
+    <div
+      style={{
+        background: "#1E2A4A",
+        borderRadius: 20,
+        padding: 24,
+        marginTop: 24,
+      }}
+    >
+      <h2
+        style={{
+          marginBottom: 20,
+        }}
+      >
+        Campaign Center
+      </h2>
 
-        <p className="text-sm text-zinc-400">
-          Complete campaigns to earn PUFI rewards.
-        </p>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          marginBottom: 24,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <strong>Total</strong>
+
+          <br />
+
+          {stats.total}
+        </div>
+
+        <div>
+          <strong>Active</strong>
+
+          <br />
+
+          {stats.active}
+        </div>
+
+        <div>
+          <strong>Completed</strong>
+
+          <br />
+
+          {stats.completed}
+        </div>
       </div>
 
-      <div className="space-y-3">
-        {campaigns.map((campaign) => (
-          <div
-            key={campaign.id}
-            className="rounded-lg border border-zinc-700 p-4"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">
-                  {campaign.title}
-                </h3>
-
-                <p className="mt-1 text-sm text-zinc-400">
-                  {campaign.description}
-                </p>
-
-                <p className="mt-2 text-xs text-emerald-400">
-                  Reward: {campaign.reward} PUFI
-                </p>
-              </div>
-
-              <button
-                disabled={campaign.completed}
-                onClick={() =>
-                  completeCampaign(campaign.id)
-                }
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  campaign.completed
-                    ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                    : "bg-emerald-600 hover:bg-emerald-500 text-white"
-                }`}
+      {campaigns.length === 0 ? (
+        <p>No campaign available.</p>
+      ) : (
+        <>
+          {campaigns.map((campaign) => (
+            <div
+              key={campaign.id}
+              style={{
+                borderBottom:
+                  "1px solid #31456E",
+                paddingBottom: 18,
+                marginBottom: 18,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems: "center",
+                  gap: 16,
+                  flexWrap: "wrap",
+                }}
               >
-                {campaign.completed
-                  ? "Completed"
-                  : "Complete"}
-              </button>
+                <div>
+                  <strong>
+                    {campaign.title}
+                  </strong>
+
+                  <p>
+                    {campaign.description}
+                  </p>
+
+                  <p>
+                    Reward:
+                    <strong>
+                      {" "}
+                      {campaign.reward}
+                      {" "}
+                      PUFI
+                    </strong>
+                  </p>
+                </div>
+
+                <div>
+                  <span
+                    style={{
+                      display:
+                        "inline-block",
+                      padding:
+                        "4px 10px",
+                      borderRadius: 999,
+                      background:
+                        campaign.completed
+                          ? "#2E7D32"
+                          : "#1565C0",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {campaign.completed
+                      ? "COMPLETED"
+                      : "ACTIVE"}
+                  </span>
+
+                  <br />
+
+                  <button
+                    disabled={
+                      campaign.completed
+                    }
+                    onClick={() =>
+                      completeCampaign(
+                        campaign.id
+                      )
+                    }
+                    style={{
+                      marginTop: 12,
+                      padding:
+                        "10px 18px",
+                      border: "none",
+                      borderRadius: 10,
+                      cursor:
+                        campaign.completed
+                          ? "not-allowed"
+                          : "pointer",
+                      background:
+                        campaign.completed
+                          ? "#555"
+                          : "#2E7D32",
+                      color: "#fff",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {campaign.completed
+                      ? "Completed"
+                      : "Complete"}
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+
+          <button
+            onClick={resetCampaigns}
+            style={{
+              width: "100%",
+              padding: 14,
+              border: "none",
+              borderRadius: 12,
+              background: "#E53935",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Reset Campaign Progress
+          </button>
+        </>
+      )}
     </div>
   );
 }
