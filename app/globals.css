@@ -62,3 +62,83 @@ body {
     gap: 16px;
   }
 }
+
+/* ========================================
+   PUFI HUB Mascot Animation
+======================================== */
+
+@keyframes pufi-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pufi-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes pufi-shine {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  5%,
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+@keyframes pufi-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(59,130,246,.25));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 28px rgba(59,130,246,.6));
+  }
+}
+
+.pufi-float {
+  animation: pufi-float 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.pufi-sway {
+  animation: pufi-sway 5s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.pufi-glow {
+  animation: pufi-glow 3s ease-in-out infinite;
+  will-change: filter;
+}
+
+.pufi-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.pufi-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: pufi-shine 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
