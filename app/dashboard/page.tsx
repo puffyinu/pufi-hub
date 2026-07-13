@@ -1,84 +1,52 @@
-import Header from "../components/Header";
-import HeroBanner from "../components/HeroBanner";
-import Sidebar from "../components/Sidebar";
-import DashboardStats from "../components/DashboardStats";
+"use client";
 
-import WalletCard from "../components/WalletCard";
+import DashboardHeader from "@/app/components/DashboardHeader";
+import WelcomeCard from "@/app/components/WelcomeCard";
+import LiveCommunityFeed from "@/app/components/LiveCommunityFeed";
+import NetworkStats from "@/app/components/NetworkStats";
+import BottomNav from "@/app/components/BottomNav";
 
-import CampaignCard from "../components/CampaignCard";
-
-import ActivityCard from "../components/ActivityCard";
-import ActivityHistoryCard from "../components/ActivityHistoryCard";
-
-import DailyStreakCard from "../components/DailyStreakCard";
-
-import AchievementCard from "../components/AchievementCard";
-
-import TaskList from "../components/TaskList";
-
-import LeaderboardCard from "../components/LeaderboardCard";
-
-import BottomNav from "../components/BottomNav";
-
-import RuntimeStatusCard from "../components/RuntimeStatusCard";
-
-import TransactionStatusCard from "../components/TransactionStatusCard";
-
-export default function Home() {
+export default function DashboardPage() {
   return (
-    <>
-      <Header />
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0D1125] text-white font-sans selection:bg-[#FFC857]/30">
 
-      <HeroBanner />
+      {/* ========================= */}
+      {/* PREMIUM BACKGROUND LAYER */}
+      {/* ========================= */}
 
-      <div
-        style={{
-          display: "flex",
-          minHeight: "calc(100vh - 90px)",
-        }}
-      >
-        <div className="sidebar-wrapper">
-          <Sidebar />
-        </div>
+      {/* Main Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#2A1757] via-[#181633] to-[#0D1125]" />
 
-        <main className="main-content">
-          <h2
-            style={{
-              color: "#FFFFFF",
-              marginBottom: "24px",
-            }}
-          >
-            Dashboard
-          </h2>
+      {/* Purple Aurora */}
+      <div className="pointer-events-none absolute -top-40 -left-32 h-[420px] w-[420px] rounded-full bg-purple-600/20 blur-[140px]" />
 
-          <DashboardStats />
-          <RuntimeStatusCard />
+      {/* Gold Glow */}
+      <div className="pointer-events-none absolute top-0 right-[-80px] h-[260px] w-[260px] rounded-full bg-[#FFC857]/10 blur-[120px]" />
 
-          <div className="dashboard-sections">
+      {/* Bottom Purple Glow */}
+      <div className="pointer-events-none absolute bottom-[-120px] left-1/2 h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-violet-500/10 blur-[120px]" />
 
-            <WalletCard />
+      {/* Soft Gold Aura */}
+      <div className="pointer-events-none absolute bottom-0 right-0 h-[220px] w-[220px] rounded-full bg-yellow-400/5 blur-[120px]" />
 
-           <TransactionStatusCard />
+      {/* Content */}
+      <div className="relative mx-auto flex min-h-screen max-w-[480px] flex-col px-2">
 
-            <ActivityCard />
+        <DashboardHeader />
 
-            <DailyStreakCard />
+        <main className="flex-1 pt-2 pb-safe">
 
-            <AchievementCard />
+          <WelcomeCard />
 
-            <CampaignCard />
+          <LiveCommunityFeed />
 
-            <ActivityHistoryCard />
+          <NetworkStats />
 
-            <TaskList />
-
-            <LeaderboardCard />
-
-          </div>
         </main>
-      </div>
 
-      <BottomNav />
-    </>
+        <BottomNav />
+
+      </div>
+    </div>
   );
 }

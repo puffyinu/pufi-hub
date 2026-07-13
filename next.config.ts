@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  allowedDevOrigins: [
+    "3000-cs-89424410-f336-46bc-816f-3cf9294f086e.cs-asia-southeast1-palm.cloudshell.dev",
+  ],
 };
 
 export default nextConfig;
