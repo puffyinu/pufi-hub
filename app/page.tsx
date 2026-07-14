@@ -49,7 +49,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-3xl" />
 
           <Image
-            src="/images/pufi-mascot.png"
+            src="/images/mascot/pufi-mascot.png"
             alt="PUFI Mascot"
             width={170}
             height={170}

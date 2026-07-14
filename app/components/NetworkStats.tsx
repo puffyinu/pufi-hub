@@ -2,22 +2,22 @@
 
 const STATS = [
   {
-    label: "My Campaign Joined",
+    label: "Campaigns Joined",
     value: "0",
     icon: "🎯",
   },
   {
-    label: "My Total Rewards",
-    value: "0 PUFI",
-    icon: "💰",
-  },
-  {
-    label: "My Claims",
+    label: "Claims",
     value: "0",
     icon: "🎁",
   },
   {
-    label: "My Activity",
+    label: "Total Rewards",
+    value: "0 PUFI",
+    icon: "💰",
+  },
+  {
+    label: "Activity Log",
     value: "0",
     icon: "📈",
   },
@@ -27,7 +27,7 @@ export default function NetworkStats() {
   return (
     <div className="mx-4 mb-28">
       <h3 className="text-[#FFC857]/60 text-[10px] font-black uppercase tracking-[0.3em] mb-4 px-2">
-        My Summary
+        YOUR ACTIVITY
       </h3>
 
       <div className="grid grid-cols-2 gap-3">
