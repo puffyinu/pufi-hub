@@ -2,7 +2,7 @@
 
 export default function DashboardHeader() {
   return (
-    <header className="sticky top-0 z-50 mx-auto flex w-full max-w-[480px] items-center justify-between bg-transparent px-4 py-5">
+    <header className="relative mx-auto flex w-full max-w-[480px] items-center justify-between bg-transparent px-4 py-5">
 
       {/* Brand */}
       <div className="select-none">
