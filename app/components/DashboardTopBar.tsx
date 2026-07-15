@@ -1,6 +1,6 @@
 "use client";
 
-export default function DashboardHeader() {
+export default function DashboardTopBar() {
   return (
     <header className="relative mx-auto flex w-full max-w-[480px] items-center justify-between bg-transparent px-4 py-5">
 

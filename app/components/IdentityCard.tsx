@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useWallet } from "@/app/hooks/useWallet";
 
-export default function WelcomeCard() {
+export default function IdentityCard() {
   const { wallet } = useWallet();
 
   const username = "CHOQYE";

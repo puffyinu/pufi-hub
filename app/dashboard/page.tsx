@@ -1,7 +1,7 @@
 "use client";
 
-import DashboardHeader from "@/app/components/DashboardHeader";
-import WelcomeCard from "@/app/components/WelcomeCard";
+import DashboardTopBar from "@/app/components/DashboardTopBar";
+import IdentityCard from "@/app/components/IdentityCard";
 import LiveCommunityFeed from "@/app/components/LiveCommunityFeed";
 import NetworkStats from "@/app/components/NetworkStats";
 import BottomNav from "@/app/components/BottomNav";
@@ -32,17 +32,17 @@ export default function DashboardPage() {
       {/* Content */}
       <div className="relative mx-auto flex min-h-screen max-w-[480px] flex-col px-2">
 
-        <DashboardHeader />
+        <DashboardTopBar />
 
-        <main className="flex-1 pt-2 pb-safe">
+<main className="flex-1 pt-2 pb-safe">
 
-          <WelcomeCard />
+  <IdentityCard />
 
-          <LiveCommunityFeed />
+  <LiveCommunityFeed />
 
-          <NetworkStats />
+  <NetworkStats />
 
-        </main>
+</main>
 
         <BottomNav />
 
