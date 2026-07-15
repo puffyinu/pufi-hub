@@ -51,8 +51,8 @@ export default function LandingPage() {
           <Image
             src="/images/mascot/pufi-mascot.png"
             alt="PUFI Mascot"
-            width={170}
-            height={170}
+            width={200}
+            height={200}
             priority
             className="relative rounded-full pufi-sway pufi-glow"
           />
