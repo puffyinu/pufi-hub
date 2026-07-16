@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
 </main>
 
-        <BottomNav />
+        <BottomNav active="dashboard" />
 
       </div>
     </div>
