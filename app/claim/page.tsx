@@ -7,20 +7,23 @@ import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
 import RewardLoading from "./RewardLoading";
 import RewardModal from "./RewardModal";
+import RewardVideo from "./RewardVideo";
+
+type ClaimState = "idle" | "loading" | "video" | "success" | "claimed";
 
 export default function ClaimPage() {
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [showLoading, setShowLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [claimState, setClaimState] = useState<ClaimState>("idle");
 
-  const handleClaimStart = () => {
-    setIsClaiming(true);
-    setShowLoading(true);
-  };
+  const handleClaimStart = () => setClaimState("loading");
+  
+  const handleLoadingComplete = () => setClaimState("video");
 
-  const handleLoadingComplete = () => {
-    setShowLoading(false);
-    setShowModal(true);
+  const handleVideoFinish = () => setClaimState("success");
+
+  const handleModalClose = () => {
+    // Final state of the machine
+    setClaimState("claimed");
+    console.log("Reward Claimed successfully");
   };
 
   return (
@@ -128,7 +131,7 @@ export default function ClaimPage() {
           {/* CTA Button Section */}
           <div className="flex-none">
             <button
-              disabled={isClaiming}
+              disabled={claimState !== "idle"}
               onClick={handleClaimStart}
               className={`
                 w-full rounded-[24px] 
@@ -136,10 +139,20 @@ export default function ClaimPage() {
                 py-5 text-xl font-black text-[#171717]
                 shadow-[0_8px_32px_rgba(255,200,87,0.25)] ring-1 ring-yellow-400/30 
                 transition-all duration-200 
-                ${!isClaiming ? "hover:scale-[1.02] hover:shadow-[0_8px_40px_rgba(255,200,87,0.4)] active:scale-[0.98]" : "opacity-50 grayscale-[0.5]"}
+                ${claimState === "idle" ? "hover:scale-[1.02] hover:shadow-[0_8px_40px_rgba(255,200,87,0.4)] active:scale-[0.98]" : "opacity-50 grayscale-[0.5]"}
               `}
             >
-              {isClaiming ? "CHECKING..." : "🎁 CLAIM REWARD"}
+              {
+  claimState === "loading"
+    ? "CHECKING..."
+    : claimState === "video"
+    ? "PLAYING REWARD..."
+    : claimState === "success"
+    ? "REWARD READY"
+    : claimState === "claimed"
+    ? "CLAIMED TODAY"
+    : "🎁 CLAIM REWARD"
+}
             </button>
           </div>
 
@@ -148,14 +161,24 @@ export default function ClaimPage() {
         <BottomNav active="claim" />
 
         {/* Overlays */}
-        <RewardLoading isOpen={showLoading} onComplete={handleLoadingComplete} />
-        <RewardModal 
-          isOpen={showModal} 
-          onClose={() => console.log("Open reward triggered")} 
-        />
+        <RewardLoading
+  isOpen={claimState === "loading"}
+  onComplete={handleLoadingComplete}
+/>
+
+<RewardVideo
+  isOpen={claimState === "video"}
+  videoSrc="/videos/daily-claim.mp4"
+  poster="/images/reward/daily-claim-poster.jpg"
+  onFinish={handleVideoFinish}
+/>
+
+<RewardModal
+  isOpen={claimState === "success"}
+  onClose={handleModalClose}
+/>
 
       </div>
-
     </div>
   );
 }
