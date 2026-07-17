@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { executeLandingGateway } from "@/app/services/landingGatewayService";
 
 const APP_NAME = "PUFI HUB";
 
@@ -9,23 +10,14 @@ export default function LandingPage() {
   const router = useRouter();
 
   const handleConnectWallet = async () => {
-    try {
-      /**
-       * BUILD #001
-       *
-       * Placeholder.
-       *
-       * BUILD #009 nanti diganti menjadi:
-       *
-       * await MiniKit.walletAuth()
-       * await World ID Verification
-       * await Runtime Synchronization
-       */
+    const result = await executeLandingGateway();
 
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Wallet connection failed:", error);
+    if (!result.success) {
+      alert(result.error);
+      return;
     }
+
+    router.push("/dashboard");
   };
 
   return (
