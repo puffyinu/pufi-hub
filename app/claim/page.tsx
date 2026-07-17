@@ -5,8 +5,7 @@ import Image from "next/image";
 
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
-import { performDailyCheckIn } from "@/app/services/checkinEngine";
-import { prepareRewardClaim } from "@/app/services/rewardClaimEngine";
+import { executeDailyClaim } from "@/app/services/dailyClaimService";
 import RewardLoading from "./RewardLoading";
 import RewardModal from "./RewardModal";
 
@@ -15,23 +14,16 @@ type ClaimState = "idle" | "loading" | "success" | "claimed";
 export default function ClaimPage() {
   const [claimState, setClaimState] = useState<ClaimState>("idle");
 
-  const handleClaimStart = () => {
-  const checked = performDailyCheckIn();
+  const handleClaimStart = async () => {
+    const result = await executeDailyClaim();
 
-  if (!checked) {
-    alert("You have already claimed today's reward.");
-    return;
-  }
+    if (!result.success) {
+      alert(result.error);
+      return;
+    }
 
-  const prepared = prepareRewardClaim();
-
-  if (!prepared) {
-    alert("No reward available.");
-    return;
-  }
-
-  setClaimState("loading");
-};
+    setClaimState("loading");
+  };
   
   const handleLoadingComplete = () => setClaimState("success");
 
