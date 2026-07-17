@@ -3,11 +3,13 @@ import {
   setCheckInState,
 } from "@/app/services/checkinSession";
 
-import { getRewardState } from "@/app/services/rewardSession";
-import { setRewardState } from "@/app/services/rewardSession";
+import { getRewardState, setRewardState } from "@/app/services/rewardSession";
 import { createRewardEvent } from "@/app/services/rewardEvent";
+import { recordCheckInActivity } from "@/app/services/activityEngine";
+import { updateDailyStreak } from "@/app/services/streakEngine";
+import { unlockAchievement } from "@/app/services/achievementEngine";
 
-const DAILY_CHECKIN_REWARD = 10;
+const DAILY_CHECKIN_REWARD = 1;
 
 function startOfDay(date: Date): number {
   const value = new Date(date);
@@ -42,10 +44,23 @@ export function canCheckInToday(): boolean {
 }
 
 export function performDailyCheckIn(): boolean {
+  // Step: Loading
+  setCheckInState({ loading: true, error: null });
+
+  // Step: Validation
   if (!canCheckInToday()) {
+    setCheckInState({
+      loading: false,
+      error: "You have already claimed your reward today.",
+    });
     return false;
   }
 
+  // Step: Integration (Streak & Achievement)
+  updateDailyStreak();
+  unlockAchievement("first-checkin");
+
+  // Step: +1 PUFI (Reward)
   createRewardEvent(
     "daily_checkin",
     DAILY_CHECKIN_REWARD
@@ -54,10 +69,15 @@ export function performDailyCheckIn(): boolean {
   const reward = getRewardState();
 
   setRewardState({
-    available:
-      reward.available + DAILY_CHECKIN_REWARD,
+    available: reward.available + DAILY_CHECKIN_REWARD,
   });
 
+  // Step: Activity Updated
+  recordCheckInActivity(
+    DAILY_CHECKIN_REWARD
+  );
+
+  // Step: Claimed Today
   setCheckInState({
     checkedIn: true,
     lastCheckIn: new Date().toISOString(),

@@ -16,7 +16,7 @@ const DEFAULT_STATE: CampaignState = {
       id: "daily-checkin",
       title: "Daily Check-In",
       description: "Complete today's daily check-in.",
-      reward: 10,
+      reward: 1,
       completed: false,
     },
     {

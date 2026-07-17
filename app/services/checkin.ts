@@ -80,11 +80,11 @@ export function checkIn(): boolean {
 
   updateDailyStreak();
 
-  addReward(10);
+  addReward(1);
 
   unlockAchievement("first-checkin");
 
-  recordCheckInActivity(10);
+  recordCheckInActivity(1);
 
   notifyCheckInChanged();
 
