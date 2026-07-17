@@ -9,9 +9,8 @@ import { performDailyCheckIn } from "@/app/services/checkinEngine";
 import { prepareRewardClaim } from "@/app/services/rewardClaimEngine";
 import RewardLoading from "./RewardLoading";
 import RewardModal from "./RewardModal";
-import RewardVideo from "./RewardVideo";
 
-type ClaimState = "idle" | "loading" | "video" | "success" | "claimed";
+type ClaimState = "idle" | "loading" | "success" | "claimed";
 
 export default function ClaimPage() {
   const [claimState, setClaimState] = useState<ClaimState>("idle");
@@ -34,9 +33,7 @@ export default function ClaimPage() {
   setClaimState("loading");
 };
   
-  const handleLoadingComplete = () => setClaimState("video");
-
-  const handleVideoFinish = () => setClaimState("success");
+  const handleLoadingComplete = () => setClaimState("success");
 
   const handleModalClose = () => {
     // Final state of the machine
@@ -163,8 +160,6 @@ export default function ClaimPage() {
               {
   claimState === "loading"
     ? "CHECKING..."
-    : claimState === "video"
-    ? "PLAYING REWARD..."
     : claimState === "success"
     ? "REWARD READY"
     : claimState === "claimed"
@@ -182,13 +177,6 @@ export default function ClaimPage() {
         <RewardLoading
   isOpen={claimState === "loading"}
   onComplete={handleLoadingComplete}
-/>
-
-<RewardVideo
-  isOpen={claimState === "video"}
-  videoSrc="/videos/daily-claim.mp4"
-  poster="/images/reward/daily-claim-poster.jpg"
-  onFinish={handleVideoFinish}
 />
 
 <RewardModal
