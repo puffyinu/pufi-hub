@@ -1,40 +1,48 @@
-import { MiniKit } from "@worldcoin/minikit-js";
+import { walletAuth } from "@/app/runtime/minikitManager";
 import { clearSession, hasSession, setSession } from "@/app/services/session";
 import type { WorldSession } from "@/app/types/world";
+import { setWalletState, resetWalletState } from "@/app/services/walletSession";
 
 export async function login() {
   const nonce = crypto.randomUUID();
 
   try {
-    const result = await MiniKit.walletAuth({
-      nonce,
-    });
+  const result = await walletAuth(nonce);
 
-    if (result?.data?.address) {
-      const session: WorldSession = {
-        isAuthenticated: true,
-        user: {
-          walletAddress: result.data.address,
-          verified: true,
-        },
-      };
+  if (result?.data?.address) {
+    const session: WorldSession = {
+      isAuthenticated: true,
+      user: {
+        walletAddress: result.data.address,
+        verified: true,
+      },
+    };
 
-      setSession(session);
+    setSession(session);
 
-      return {
-        address: result.data.address,
-        result,
-      };
-    }
-  } catch {
-    return null;
+setWalletState({
+  connected: true,
+  address: result.data.address,
+  isVerified: true,
+  loading: false,
+  error: null,
+});
+
+return {
+  address: result.data.address,
+  result,
+    };
   }
-
+} catch {
   return null;
+}
+
+return null;
 }
 
 export function logout() {
   clearSession();
+  resetWalletState();
 }
 
 export function isLoggedIn() {
