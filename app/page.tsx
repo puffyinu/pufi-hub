@@ -10,14 +10,23 @@ export default function LandingPage() {
   const router = useRouter();
 
   const handleConnectWallet = async () => {
-    const result = await executeLandingGateway();
+    console.log("[PAGE-1] Button Clicked");
 
-    if (!result.success) {
-      alert(result.error);
-      return;
-    }
+const result = await executeLandingGateway();
 
-    router.push("/dashboard");
+console.log("[PAGE-2] Gateway Result =", result);
+
+if (!result.success) {
+    console.log("[PAGE-3] Gateway Failed");
+
+    alert(result.error);
+
+    return;
+}
+
+console.log("[PAGE-4] router.push('/dashboard')");
+
+router.push("/dashboard");
   };
 
   return (

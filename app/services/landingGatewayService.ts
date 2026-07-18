@@ -1,5 +1,7 @@
 import { isMiniKitReady } from "@/app/runtime/minikitManager";
 import { login } from "@/app/runtime/auth";
+import { isDevelopmentRuntime } from "@/app/runtime/runtimeMode";
+import { createDevelopmentSession } from "@/app/runtime/development";
 
 export interface LandingGatewayResult {
   success: boolean;
@@ -13,31 +15,58 @@ export interface LandingGatewayResult {
  */
 export async function executeLandingGateway(): Promise<LandingGatewayResult> {
   try {
-    // Step 1: Runtime Validation
+    console.log("[TRACE-1] executeLandingGateway()");
+    
+if (isDevelopmentRuntime()) {
+  console.log("[DEV] Development Runtime detected");
+
+  await createDevelopmentSession();
+
+  return {
+    success: true,
+  };
+}
+
+    console.log("[TRACE-2] isMiniKitReady =", isMiniKitReady());
+
     if (!isMiniKitReady()) {
+      console.log("[TRACE-3] MiniKit NOT Ready");
+
       return {
         success: false,
         error: "Please open PUFI HUB inside the World App.",
       };
     }
 
-    // Step 2: Authentication Orchestration
-    // The login() function handles walletAuth and session management internally.
+    console.log("[TRACE-4] Calling login()");
+
     const loginResult = await login();
 
+    console.log("[TRACE-5] login() returned:", loginResult);
+
     if (!loginResult) {
+      console.log("[TRACE-6] loginResult = false");
+
       return {
         success: false,
         error: "Connection failed. Please authorize the wallet request in World App.",
       };
     }
 
-    return { success: true };
+    console.log("[TRACE-7] executeLandingGateway SUCCESS");
+
+    return {
+      success: true,
+    };
   } catch (error) {
-    console.error("LandingGatewayService: Unexpected error", error);
+    console.error("[TRACE-ERROR]", error);
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "An unexpected authentication error occurred.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unexpected authentication error",
     };
   }
 }

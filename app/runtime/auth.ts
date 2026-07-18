@@ -7,7 +7,15 @@ export async function login() {
   const nonce = crypto.randomUUID();
 
   try {
+    console.log("[AUTH-1] login()");
+
+console.log("[AUTH-2] before walletAuth");
+
   const result = await walletAuth(nonce);
+  
+console.log("[AUTH-3] walletAuth returned", result);
+
+console.log("[AUTH-4] login success");
 
   if (result?.data?.address) {
     const session: WorldSession = {
