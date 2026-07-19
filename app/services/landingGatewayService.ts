@@ -17,15 +17,13 @@ export async function executeLandingGateway(): Promise<LandingGatewayResult> {
   try {
     console.log("[TRACE-1] executeLandingGateway()");
     
-if (isDevelopmentRuntime()) {
-  console.log("[DEV] Development Runtime detected");
-
-  await createDevelopmentSession();
-
-  return {
-    success: true,
-  };
-}
+    if (isDevelopmentRuntime()) {
+      console.log("[DEV] Development Runtime detected");
+      await createDevelopmentSession();
+      return {
+        success: true,
+      };
+    }
 
     console.log("[TRACE-2] isMiniKitReady =", isMiniKitReady());
 

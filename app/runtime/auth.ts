@@ -8,42 +8,40 @@ export async function login() {
 
   try {
     console.log("[AUTH-1] login()");
+    console.log("[AUTH-2] before walletAuth");
 
-console.log("[AUTH-2] before walletAuth");
+    const result = await walletAuth(nonce);
+    console.log("[AUTH-3] walletAuth returned", result);
 
-  const result = await walletAuth(nonce);
-  
-console.log("[AUTH-3] walletAuth returned", result);
+    if (result?.data?.address) {
+      console.log("[AUTH-4] login success");
+      const session: WorldSession = {
+        isAuthenticated: true,
+        user: {
+          walletAddress: result.data.address,
+          verified: true,
+        },
+      };
 
-console.log("[AUTH-4] login success");
+      setSession(session);
 
-  if (result?.data?.address) {
-    const session: WorldSession = {
-      isAuthenticated: true,
-      user: {
-        walletAddress: result.data.address,
-        verified: true,
-      },
-    };
+      setWalletState({
+        connected: true,
+        address: result.data.address,
+        isVerified: true,
+        loading: false,
+        error: null,
+      });
 
-    setSession(session);
-
-setWalletState({
-  connected: true,
-  address: result.data.address,
-  isVerified: true,
-  loading: false,
-  error: null,
-});
-
-return {
-  address: result.data.address,
-  result,
-    };
+      return {
+        address: result.data.address,
+        result,
+      };
+    }
+  } catch (error) {
+    console.error("[AUTH-ERROR] Wallet authentication failed:", error);
+    return null;
   }
-} catch {
-  return null;
-}
 
 return null;
 }

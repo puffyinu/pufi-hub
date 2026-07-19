@@ -25,7 +25,7 @@ const STATS = [
 
 export default function NetworkStats() {
   return (
-    <div className="mx-4 mb-28">
+    <div className="mx-4">
       <h3 className="text-[#FFC857]/60 text-[10px] font-black uppercase tracking-[0.3em] mb-4 px-2">
         YOUR ACTIVITY
       </h3>

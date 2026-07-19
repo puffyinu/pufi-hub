@@ -39,39 +39,31 @@ router.push("/dashboard");
         flex-col
         justify-between
         px-6
-        pt-[max(env(safe-area-inset-top),2rem)]
-        pb-[max(env(safe-area-inset-bottom),2rem)]
+        pt-[max(env(safe-area-inset-top),1rem)]
+        pb-[max(env(safe-area-inset-bottom),2.5rem)]
       "
     >
       {/* HERO */}
 
-      <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center text-center">
-        <div className="relative mb-6 pufi-float">
+      <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center pt-4 pb-10 text-center">
+        <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-5xl font-black tracking-tight text-transparent">
+          {APP_NAME}
+        </h1>
+
+        <div className="relative mb-2 pufi-float">
           <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-3xl" />
 
           <Image
             src="/images/mascot/pufi-mascot.png"
             alt="PUFI Mascot"
-            width={200}
-            height={200}
+            width={220}
+            height={220}
             priority
             className="relative rounded-full pufi-sway pufi-glow"
           />
         </div>
 
-        <h2 className="text-2xl font-bold text-blue-400">
-          Welcome Human 👋
-        </h2>
-
-        <p className="mt-2 text-slate-400">
-          Start earning rewards on World App.
-        </p>
-
-        <h1 className="mt-8 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-5xl font-black tracking-tight text-transparent">
-          {APP_NAME}
-        </h1>
-
-        <div className="mt-6 flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2">
+        <div className="mt-2 flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2">
           <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
 
           <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
@@ -82,7 +74,7 @@ router.push("/dashboard");
         <button
           onClick={handleConnectWallet}
           className="
-            mt-10
+            mt-6
             w-full
             rounded-2xl
             bg-blue-600
@@ -103,7 +95,7 @@ router.push("/dashboard");
 
       {/* FOOTER */}
 
-      <footer className="mx-auto w-full max-w-md border-t border-white/10 pt-8 text-center">
+      <footer className="mx-auto w-full max-w-md border-t border-white/10 pt-4 text-center">
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
           Powered by
         </p>
@@ -114,7 +106,7 @@ router.push("/dashboard");
           <span>World Chain</span>
         </div>
 
-        <p className="mt-8 text-[11px] italic uppercase tracking-[0.2em] text-slate-600">
+        <p className="mt-6 text-[11px] italic uppercase tracking-[0.2em] text-slate-600">
           © 2026 PUFFY INU
         </p>
       </footer>
