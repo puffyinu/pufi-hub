@@ -19,7 +19,7 @@ console.log("[PAGE-2] Gateway Result =", result);
 if (!result.success) {
     console.log("[PAGE-3] Gateway Failed");
 
-    alert(result.error);
+    console.warn(result.error);
 
     return;
 }

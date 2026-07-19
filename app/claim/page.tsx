@@ -6,32 +6,33 @@ import Image from "next/image";
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
 import { executeDailyClaim } from "@/app/services/dailyClaimService";
-import RewardLoading from "./RewardLoading";
-import RewardModal from "./RewardModal";
 
-type ClaimState = "idle" | "loading" | "success" | "claimed";
+type ClaimState = "idle" | "loading" | "claimed";
 
 export default function ClaimPage() {
   const [claimState, setClaimState] = useState<ClaimState>("idle");
 
   const handleClaimStart = async () => {
-    const result = await executeDailyClaim();
+  setClaimState("loading");
 
-    if (!result.success) {
-      alert(result.error);
-      return;
-    }
+  const result = await executeDailyClaim();
 
-    setClaimState("loading");
-  };
-  
-  const handleLoadingComplete = () => setClaimState("success");
+  if (!result.success) {
+    console.warn(result.error);
+    setClaimState("idle");
+    return;
+  }
 
-  const handleModalClose = () => {
-    // Final state of the machine
+  // BUILD #009
+  // Placeholder integrasi World MiniKit.
+  // Nantinya proses ini diganti dengan:
+  // await verifyWithIDKit();
+  // await sendTransaction();
+
+  setTimeout(() => {
     setClaimState("claimed");
-    console.log("Reward Claimed successfully");
-  };
+  }, 1000);
+};
 
   return (
     <div className="relative h-dvh w-full overflow-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30">
@@ -152,8 +153,6 @@ export default function ClaimPage() {
               {
   claimState === "loading"
     ? "CHECKING..."
-    : claimState === "success"
-    ? "REWARD READY"
     : claimState === "claimed"
     ? "CLAIMED TODAY"
     : "🎁 CLAIM REWARD"
@@ -166,15 +165,6 @@ export default function ClaimPage() {
         <BottomNav active="claim" />
 
         {/* Overlays */}
-        <RewardLoading
-  isOpen={claimState === "loading"}
-  onComplete={handleLoadingComplete}
-/>
-
-<RewardModal
-  isOpen={claimState === "success"}
-  onClose={handleModalClose}
-/>
 
       </div>
     </div>
