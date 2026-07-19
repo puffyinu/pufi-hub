@@ -2,6 +2,7 @@
 
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import IdentityCard from "@/app/components/IdentityCard";
+import PortfolioCard from "@/app/components/PortfolioCard";
 import LiveCommunityFeed from "@/app/components/LiveCommunityFeed";
 import NetworkStats from "@/app/components/NetworkStats";
 import BottomNav from "@/app/components/BottomNav";
@@ -38,6 +39,8 @@ export default function DashboardPage() {
 <main className="flex-1 pt-2 pb-28">
 
   <IdentityCard />
+
+  <PortfolioCard />
 
   <LiveCommunityFeed />
 
