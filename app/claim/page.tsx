@@ -1,7 +1,6 @@
 "use client";
-
-import { useState } from "react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
@@ -11,6 +10,7 @@ type ClaimState = "idle" | "loading" | "claimed";
 
 export default function ClaimPage() {
   const [claimState, setClaimState] = useState<ClaimState>("idle");
+  const [countdown, setCountdown] = useState("23:59:59");
 
   const handleClaimStart = async () => {
   setClaimState("loading");
@@ -30,9 +30,34 @@ export default function ClaimPage() {
   // await sendTransaction();
 
   setTimeout(() => {
-    setClaimState("claimed");
-  }, 1000);
+  setCountdown("23:59:59");
+  setClaimState("claimed");
+}, 1000);
 };
+
+useEffect(() => {
+  if (claimState !== "claimed") return;
+
+  let remaining = 24 * 60 * 60 - 1;
+
+  const timer = setInterval(() => {
+    remaining--;
+
+    const hours = String(Math.floor(remaining / 3600)).padStart(2, "0");
+    const minutes = String(Math.floor((remaining % 3600) / 60)).padStart(2, "0");
+    const seconds = String(remaining % 60).padStart(2, "0");
+
+    setCountdown(`${hours}:${minutes}:${seconds}`);
+
+    if (remaining <= 0) {
+      clearInterval(timer);
+      setClaimState("idle");
+      setCountdown("23:59:59");
+    }
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [claimState]);
 
   return (
     <div className="relative h-dvh w-full overflow-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30">
@@ -151,11 +176,19 @@ export default function ClaimPage() {
               `}
             >
               {
-  claimState === "loading"
-    ? "CHECKING..."
-    : claimState === "claimed"
-    ? "CLAIMED TODAY"
-    : "🎁 CLAIM REWARD"
+  claimState === "loading" ? (
+    "CHECKING..."
+  ) : claimState === "claimed" ? (
+    <div className="flex flex-col items-center leading-tight">
+      <span>✓ CLAIMED TODAY</span>
+      <span className="mt-1 text-base font-bold tabular-nums text-[#171717]/80">
+  {countdown}
+
+      </span>
+    </div>
+  ) : (
+    "🎁 CLAIM REWARD"
+  )
 }
             </button>
           </div>
