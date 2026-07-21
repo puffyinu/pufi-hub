@@ -17,14 +17,14 @@ const DEFAULT_STATE: CampaignState = {
       title: "Daily Check-In",
       description: "Complete today's daily check-in.",
       reward: 1,
-      completed: false,
+      status: "ACTIVE",
     },
     {
       id: "first-reward",
       title: "First Reward",
       description: "Claim your first reward.",
       reward: 20,
-      completed: false,
+      status: "ACTIVE",
     },
   ],
 };

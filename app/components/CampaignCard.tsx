@@ -7,63 +7,91 @@ const icons = ["📅", "🎁", "🚀"];
 export default function CampaignCard() {
   const { campaigns, completeCampaign } = useCampaign();
 
-  const readyToEarn = campaigns.filter((c) => !c.completed);
-  const available = campaigns.filter((c) => c.completed);
+  const readyToEarn = campaigns.filter(
+    (c) => c.status === "ACTIVE"
+  );
 
-  const renderCard = (campaign: (typeof campaigns)[number], index: number) => (
-    <div
-      key={campaign.id}
-      className="rounded-[24px] border border-[#31456E] bg-[#1E2A4A] p-5"
-    >
-      <div className="flex gap-5">
-        {/* Logo */}
-        <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-[24px] bg-[#2A3A63] text-6xl">
-          {icons[index % icons.length]}
-        </div>
+  const available = campaigns.filter(
+    (c) =>
+      c.status === "CLAIMED" ||
+      c.status === "COMPLETED"
+  );
 
-        {/* Content */}
-        <div className="flex flex-1 flex-col justify-between">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-2xl font-bold text-white">
-                {campaign.title}
-              </h3>
+  const renderCard = (
+    campaign: (typeof campaigns)[number],
+    index: number
+  ) => {
+    const isClaimed =
+      campaign.status === "CLAIMED" ||
+      campaign.status === "COMPLETED";
 
-              <p className="mt-2 text-lg text-gray-400">
-                {campaign.description}
-              </p>
-            </div>
-
-            <span className="rounded-full bg-[#2563EB] px-5 py-2 text-sm font-bold text-white">
-              ACTIVE
-            </span>
+    return (
+      <div
+        key={campaign.id}
+        className="rounded-[24px] border border-[#31456E] bg-[#1E2A4A] p-5"
+      >
+        <div className="flex gap-5">
+          {/* Logo */}
+          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-[24px] bg-[#2A3A63] text-6xl">
+            {icons[index % icons.length]}
           </div>
 
-          <div className="mt-8 flex items-end justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-wider text-gray-500">
-                Reward
-              </p>
+          {/* Content */}
+          <div className="flex flex-1 flex-col justify-between">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-bold text-white">
+                  {campaign.title}
+                </h3>
 
-              <p className="mt-1 text-3xl font-black text-white">
-                {campaign.reward} PUFI
-              </p>
+                <p className="mt-2 text-lg text-gray-400">
+                  {campaign.description}
+                </p>
+              </div>
+
+              <span
+                className={`rounded-full px-5 py-2 text-sm font-bold text-white ${
+                  isClaimed
+                    ? "bg-[#16A34A]"
+                    : "bg-[#2563EB]"
+                }`}
+              >
+                {campaign.status}
+              </span>
             </div>
 
-            <button
-              onClick={() => completeCampaign(campaign.id)}
-              className="h-16 w-40 rounded-[20px] bg-gradient-to-r from-violet-600 to-fuchsia-600 text-2xl font-bold text-white transition hover:opacity-90"
-            >
-              GO
-            </button>
+            <div className="mt-8 flex items-end justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-wider text-gray-500">
+                  Reward
+                </p>
+
+                <p className="mt-1 text-3xl font-black text-white">
+                  {campaign.reward} PUFI
+                </p>
+              </div>
+
+              <button
+                disabled={isClaimed}
+                onClick={() => completeCampaign(campaign.id)}
+                className={`h-16 w-40 rounded-[20px] text-2xl font-bold text-white transition ${
+                  isClaimed
+                    ? "cursor-default bg-[#16A34A]"
+                    : "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90"
+                }`}
+              >
+                {isClaimed ? "DONE" : "GO"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="mt-8">
+      {/* READY TO EARN */}
       <div className="mb-5 inline-flex rounded-xl bg-[#5145CD] px-6 py-3">
         <span className="text-xl font-bold text-white">
           READY TO EARN
@@ -74,7 +102,8 @@ export default function CampaignCard() {
         {readyToEarn.map(renderCard)}
       </div>
 
-      <div className="mt-10 mb-5 inline-flex rounded-xl bg-[#5145CD] px-6 py-3">
+      {/* AVAILABLE */}
+      <div className="mb-5 mt-10 inline-flex rounded-xl bg-[#5145CD] px-6 py-3">
         <span className="text-xl font-bold text-white">
           AVAILABLE
         </span>

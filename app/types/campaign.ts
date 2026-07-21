@@ -1,3 +1,10 @@
+export type CampaignStatus =
+  | "ACTIVE"
+  | "CLAIMED"
+  | "COMPLETED"
+  | "PAUSED"
+  | "ENDED";
+
 export interface Campaign {
   id: string;
 
@@ -7,7 +14,7 @@ export interface Campaign {
 
   reward: number;
 
-  completed: boolean;
+  status: CampaignStatus;
 }
 
 export interface CampaignState {

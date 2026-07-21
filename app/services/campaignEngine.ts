@@ -23,18 +23,18 @@ export function completeCampaign(
     (item) => item.id === id
   );
 
-  if (!campaign || campaign.completed) {
-    return false;
-  }
+  if (!campaign || campaign.status !== "ACTIVE") {
+  return false;
+}
 
-  const updated = campaigns.map((item) =>
-    item.id === id
-      ? {
-          ...item,
-          completed: true,
-        }
-      : item
-  );
+  const updated: Campaign[] = campaigns.map((item) =>
+  item.id === id
+    ? {
+        ...item,
+        status: "CLAIMED" as const,
+      }
+    : item
+);
 
   saveCampaigns(updated);
 
