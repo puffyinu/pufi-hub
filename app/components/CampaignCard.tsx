@@ -2,84 +2,87 @@
 
 import { useCampaign } from "@/app/hooks/useCampaign";
 
-export default function CampaignCard() {
-  const {
-    campaigns,
-    completeCampaign,
-    resetCampaigns,
-  } = useCampaign();
+const icons = ["📅", "🎁", "🚀"];
 
-  const isDevelopment = process.env.NODE_ENV === "development";
+export default function CampaignCard() {
+  const { campaigns, completeCampaign } = useCampaign();
+
+  const readyToEarn = campaigns.filter((c) => !c.completed);
+  const available = campaigns.filter((c) => c.completed);
+
+  const renderCard = (campaign: (typeof campaigns)[number], index: number) => (
+    <div
+      key={campaign.id}
+      className="rounded-[24px] border border-[#31456E] bg-[#1E2A4A] p-5"
+    >
+      <div className="flex gap-5">
+        {/* Logo */}
+        <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-[24px] bg-[#2A3A63] text-6xl">
+          {icons[index % icons.length]}
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-1 flex-col justify-between">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-2xl font-bold text-white">
+                {campaign.title}
+              </h3>
+
+              <p className="mt-2 text-lg text-gray-400">
+                {campaign.description}
+              </p>
+            </div>
+
+            <span className="rounded-full bg-[#2563EB] px-5 py-2 text-sm font-bold text-white">
+              ACTIVE
+            </span>
+          </div>
+
+          <div className="mt-8 flex items-end justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-wider text-gray-500">
+                Reward
+              </p>
+
+              <p className="mt-1 text-3xl font-black text-white">
+                {campaign.reward} PUFI
+              </p>
+            </div>
+
+            <button
+              onClick={() => completeCampaign(campaign.id)}
+              className="h-16 w-40 rounded-[20px] bg-gradient-to-r from-violet-600 to-fuchsia-600 text-2xl font-bold text-white transition hover:opacity-90"
+            >
+              GO
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="bg-[#1E2A4A] rounded-[20px] p-6 mt-6 border border-[#31456E]">
-      <h2 className="text-[20px] font-bold mb-6 text-white">
-        📢 AVAILABLE CAMPAIGNS
-      </h2>
+    <div className="mt-8">
+      <div className="mb-5 inline-flex rounded-xl bg-[#5145CD] px-6 py-3">
+        <span className="text-xl font-bold text-white">
+          READY TO EARN
+        </span>
+      </div>
 
-      {campaigns.length === 0 ? (
-        <p className="text-gray-400 text-center py-4">No campaigns available at the moment.</p>
-      ) : (
-        <div className="space-y-4">
-          {campaigns.map((campaign) => (
-            <div
-              key={campaign.id}
-              className="bg-[#1E2A4A] border border-[#31456E] rounded-[20px] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-[#7C3AED]/50"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <h3 className="text-xl font-bold text-white leading-tight">
-                    {campaign.title}
-                  </h3>
-                  <span
-                    className={`px-3 py-1 rounded-full text-[12px] font-bold text-white ${
-                      campaign.completed ? "bg-[#16A34A]" : "bg-[#2563EB]"
-                    }`}
-                  >
-                    {campaign.completed ? "COMPLETED" : "ACTIVE"}
-                  </span>
-                </div>
+      <div className="space-y-5">
+        {readyToEarn.map(renderCard)}
+      </div>
 
-                <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-                  {campaign.description}
-                </p>
+      <div className="mt-10 mb-5 inline-flex rounded-xl bg-[#5145CD] px-6 py-3">
+        <span className="text-xl font-bold text-white">
+          AVAILABLE
+        </span>
+      </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">
-                    REWARD
-                  </span>
-                  <span className="text-lg font-black text-white">
-                    {campaign.reward} PUFI
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end">
-                <button
-                  disabled={campaign.completed}
-                  onClick={() => completeCampaign(campaign.id)}
-                  className={`w-full sm:w-auto px-8 py-3 rounded-[15px] font-bold text-white transition-all transform active:scale-95 ${
-                    campaign.completed
-                      ? "bg-[#16A34A]/20 text-[#16A34A] cursor-default border border-[#16A34A]/30"
-                      : "bg-[#7C3AED] hover:bg-[#8B5CF6] shadow-lg shadow-[#7C3AED]/20 cursor-pointer"
-                  }`}
-                >
-                  {campaign.completed ? "COMPLETED" : "GO"}
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {isDevelopment && (
-            <button
-              onClick={resetCampaigns}
-              className="w-full mt-4 py-3 border border-red-500/30 bg-red-500/10 text-red-500 rounded-[15px] font-bold text-sm hover:bg-red-500 hover:text-white transition-all cursor-pointer"
-            >
-              Reset Campaign Progress
-            </button>
-          )}
-        </div>
-      )}
+      <div className="space-y-5">
+        {available.map(renderCard)}
+      </div>
     </div>
   );
 }

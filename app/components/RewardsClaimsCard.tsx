@@ -20,69 +20,91 @@ const rewards = [
 
 export default function RewardsClaimsCard() {
   return (
-    <section
-      style={{
-        background: "#1E2A4A",
-        borderRadius: 20,
-        padding: 24,
-      }}
-    >
+    <>
       <h2
         style={{
-          fontSize: 20,
+          color: "#FFFFFF",
+          fontSize: 11,
           fontWeight: 700,
-          marginBottom: 20,
+          marginBottom: 12,
         }}
       >
         🎁 REWARDS CLAIMS
       </h2>
 
-      {rewards.map((reward) => (
-        <div
-          key={reward.token}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "18px 0",
-            borderBottom: "1px solid #31456E",
-          }}
-        >
-          <div>
+      <section
+        style={{
+          display: "flex",
+          gap: 12,
+        }}
+      >
+        {rewards.map((reward) => (
+          <div
+            key={reward.token}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              boxSizing: "border-box",
+              background: "#1E2A4A",
+              border: "1px solid #31456E",
+              borderRadius: 20,
+              padding: 10,
+            }}
+          >
             <div
               style={{
-                fontWeight: 700,
-                fontSize: 16,
+                fontSize: 20,
+                textAlign: "center",
+                marginBottom: 5,
               }}
             >
-              {reward.icon} {reward.token}
+              {reward.icon}
             </div>
 
             <div
               style={{
+                textAlign: "center",
+                fontSize: 14,
+                fontWeight: 700,
+                color: "#FFFFFF",
+              }}
+            >
+              {reward.token}
+            </div>
+
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: 13,
+                lineHeight: 1.2,
                 color: "#B8C4E0",
-                marginTop: 6,
+                marginTop: 4,
+                minHeight: 26,
               }}
             >
               {reward.amount}
             </div>
-          </div>
 
-          <button
-            style={{
-              background: "#7C3AED",
-              color: "#fff",
-              border: "none",
-              borderRadius: 12,
-              padding: "10px 20px",
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            CLAIM
-          </button>
-        </div>
-      ))}
-    </section>
+            <button
+              style={{
+                width: "100%",
+                marginTop: 5,
+                height: 32,
+                border: "none",
+                borderRadius: 10,
+                background:
+                  "linear-gradient(90deg,#7C3AED 0%,#9333EA 100%)",
+                color: "#FFFFFF",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              CLAIM
+            </button>
+          </div>
+        ))}
+      </section>
+    </>
   );
 }
