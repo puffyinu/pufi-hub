@@ -20,30 +20,30 @@ export default function PortfolioCard() {
 
   return (
     <>
-      <section className="mx-4 mb-8 rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-xl text-center">
-        <h2 className="text-xs font-bold tracking-[0.3em] text-slate-400 uppercase mb-4">
-          Portfolio
+      <section className="mx-4 mb-5 rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-2xl p-6 shadow-2xl text-center">
+        <h2 className="text-[10px] font-black tracking-[0.4em] text-slate-500 uppercase mb-4">
+          Available Balance
         </h2>
 
-        <div className="mb-5">
-          <span className="text-4xl font-black text-white">
+        <div className="mb-6 flex items-baseline justify-center gap-1.5">
+          <span className="text-5xl font-black tracking-tighter text-white">
             {formattedPufi}
           </span>
-          <span className="ml-2 text-lg font-bold text-yellow-400">
+          <span className="text-sm font-black text-[#FFC857] uppercase tracking-widest">
             PUFI
           </span>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <button
             onClick={handleSwap}
-            className="flex-1 rounded-2xl bg-white/10 py-3 text-sm font-bold text-white transition-all hover:bg-white/20 active:scale-95 border border-white/5"
+            className="flex-1 rounded-2xl bg-white/5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-white/10 active:scale-95 border border-white/10 shadow-lg"
           >
             Swap
           </button>
           <button
             onClick={() => setIsInviteModalOpen(true)}
-            className="flex-1 rounded-2xl bg-gradient-to-b from-[#FFE580] via-[#FFB323] to-[#E59400] py-3 text-sm font-black text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110"
+            className="flex-1 rounded-2xl bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400] py-4 text-xs font-black uppercase tracking-widest text-[#171717] shadow-[0_4px_15px_rgba(255,200,87,0.2)] transition-all active:scale-95 hover:brightness-110"
           >
             Invite
           </button>

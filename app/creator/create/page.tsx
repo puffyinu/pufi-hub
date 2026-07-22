@@ -4,71 +4,59 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 export default function CreateCampaignPage() {
+  const [rewardToken, setRewardToken] = useState("PUFI");
+  const [poolAmount, setPoolAmount] = useState("");
+  const [rewardPerClick, setRewardPerClick] = useState("");
 
-     const [rewardToken, setRewardToken] = useState("PUFI");
+  const maximumClicks = useMemo(() => {
+    const pool = Number(poolAmount);
+    const reward = Number(rewardPerClick);
 
-     const [poolAmount, setPoolAmount] = useState("");
+    if (!pool || !reward || reward <= 0) {
+      return 0;
+    }
 
-     const [rewardPerClick, setRewardPerClick] = useState("");
+    return Math.floor(pool / reward);
+  }, [poolAmount, rewardPerClick]);
 
-   const maximumClicks = useMemo(() => {
-  const pool = Number(poolAmount);
+  const formatAmount = (value: number) => {
+    if (rewardToken === "PUFI") {
+      return Number.isInteger(value) ? value.toString() : value.toFixed(2);
+    }
+    return value.toFixed(3);
+  };
 
-  const reward = Number(rewardPerClick);
+  const platformFee = useMemo(() => {
+    const pool = Number(poolAmount);
+    if (!pool) return 0;
+    return pool * 0.3;
+  }, [poolAmount]);
 
-  if (
-    !pool ||
-    !reward ||
-    reward <= 0
-  ) {
-    return 0;
-  }
-
-  return Math.floor(pool / reward);
-}, [
-  poolAmount,
-  rewardPerClick,
-]);
-
-const formatAmount = (value: number) => {
-  if (rewardToken === "PUFI") {
-    return Number.isInteger(value)
-      ? value.toString()
-      : value.toFixed(2);
-  }
-
-  return value.toFixed(3);
-};
-
-const platformFee = useMemo(() => {
-  const pool = Number(poolAmount);
-
-  if (!pool) return 0;
-
-  return pool * 0.3;
-}, [poolAmount]);
-
-const totalPayment = useMemo(() => {
-  const pool = Number(poolAmount);
-
-  return pool + platformFee;
-}, [poolAmount, platformFee]);
+  const totalPayment = useMemo(() => {
+    const pool = Number(poolAmount);
+    return pool + platformFee;
+  }, [poolAmount, platformFee]);
 
   return (
     <main
       style={{
-        maxWidth: 900,
+        maxWidth: 600,
         margin: "0 auto",
-        padding: 20,
+        padding: "16px 20px",
+        paddingBottom: 40,
       }}
     >
       <Link
         href="/creator"
         style={{
-          color: "#FFFFFF",
+          color: "#94A3B8",
           textDecoration: "none",
-          fontSize: 16,
+          fontSize: 13,
           fontWeight: 600,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          marginBottom: 16,
         }}
       >
         ← Back
@@ -77,10 +65,11 @@ const totalPayment = useMemo(() => {
       <h1
         style={{
           color: "#FFFFFF",
-          fontSize: 20,
-          fontWeight: 700,
-          marginTop: 10,
-          marginBottom: 30,
+          fontSize: 18,
+          fontWeight: 800,
+          marginTop: 0,
+          marginBottom: 24,
+          letterSpacing: "-0.02em",
         }}
       >
         CREATE CAMPAIGN
@@ -90,321 +79,229 @@ const totalPayment = useMemo(() => {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: 22,
+          gap: 20,
         }}
       >
         {/* LOGO URL */}
-
         <div>
-          <label
-            style={{
-              color: "#FFFFFF",
-              fontWeight: 700,
-            }}
-          >
-            LOGO URL  (OPTIONAL)
-          </label>
-          <div>
-          </div>
-
-          <input
-            type="text"
-            placeholder="https://..."
-            style={inputStyle}
-          />
+          <label style={labelStyle}>LOGO URL (OPTIONAL)</label>
+          <input type="text" placeholder="https://..." style={inputStyle} />
           <p
             style={{
-            marginTop: 10,
-            marginBottom: 8,
-            color: "#94A3B8",
-            fontSize: 12,
-            lineHeight: 1.6,
-           }}
+              marginTop: 6,
+              color: "#64748B",
+              fontSize: 11,
+              lineHeight: 1.5,
+              paddingLeft: 4,
+            }}
           >
-            Upload on <strong>imgbb.com</strong> and paste the direct image
-           link
-         <br />
-            (e.g. <strong>i.ibb.co/.../logo.png</strong>), not the
-         <br />
-         <strong>ibb.co/...</strong> page URL.
-        </p>
-   
+            Upload on <strong>imgbb.com</strong> and paste the direct image link
+            (e.g. <strong>i.ibb.co/.../logo.png</strong>).
+          </p>
         </div>
 
         {/* TITLE */}
-
         <div>
-          <label style={labelStyle}>
-            TITLE  (APP NAME)
-          </label>
-          <div>
-
-          </div>
-
-          <input
-            type="text"
-            placeholder="My Awesome App"
-            style={inputStyle}
-          />
+          <label style={labelStyle}>TITLE (APP NAME)</label>
+          <input type="text" placeholder="My Awesome App" style={inputStyle} />
         </div>
 
         {/* DESCRIPTION */}
-
         <div>
-          <label style={labelStyle}>
-            DESCRIPTION (MAX 150)
-          </label>
-          <div>
-
-          </div>
-                 
+          <label style={labelStyle}>DESCRIPTION (MAX 150)</label>
           <textarea
-            rows={5}
+            rows={3}
             style={textareaStyle}
-            placeholder="Short description..."                  
+            placeholder="What is your app about?"
           />
         </div>
 
         {/* MINI APP URL */}
-
         <div>
-          <label style={labelStyle}>
-            MINI APP URL
-          </label>
-
-          <input
-            type="text"
-            placeholder="https://..."
-            style={inputStyle}
-          />
+          <label style={labelStyle}>MINI APP URL</label>
+          <input type="text" placeholder="https://..." style={inputStyle} />
         </div>
 
         {/* Reward Token */}
-
         <div>
-          <label style={labelStyle}>
-            REWARD TOKEN
-          </label>
-
+          <label style={labelStyle}>REWARD TOKEN</label>
           <div
             style={{
               display: "flex",
-              gap: 10,
-              marginTop: 10,
+              gap: 8,
+              marginTop: 8,
             }}
           >
-            <button
-              onClick={() => setRewardToken("PUFI")}
-              style={{
-              ...tokenButton,
-              background:
-              rewardToken === "PUFI"
-              ? "#7C3AED"
-              : "#1E2A4A",
-           }}
-          >
-              PUFI
-            </button>
-
-            <button
-            onClick={() => setRewardToken("WLD")}
-            style={{
-            ...tokenButton,
-            background:
-            rewardToken === "WLD"
-            ? "#7C3AED"
-            : "#1E2A4A",
-       }}
-        >
-            WLD
-            </button>
-
-            <button
-            onClick={() => setRewardToken("USDC")}
-            style={{
-            ...tokenButton,
-            background:
-            rewardToken === "USDC"
-            ? "#7C3AED"
-            : "#1E2A4A",
-         }}
-        >
-            USDC
-          </button>
+            {["PUFI", "WLD", "USDC"].map((token) => (
+              <button
+                key={token}
+                onClick={() => setRewardToken(token)}
+                style={{
+                  ...tokenButton,
+                  background: rewardToken === token ? "#7C3AED" : "#1E293B",
+                  borderColor: rewardToken === token ? "#7C3AED" : "#334155",
+                  boxShadow:
+                    rewardToken === token
+                      ? "0 4px 12px rgba(124, 58, 237, 0.2)"
+                      : "none",
+                }}
+              >
+                {token}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Pool */}
-
         <div>
-          <label style={labelStyle}>
-            POOL AMOUNT  (Min 1)
-          </label>
-          <div>
-          </div>
-
+          <label style={labelStyle}>POOL AMOUNT (MIN 1)</label>
           <input
-  type="number"
-  value={poolAmount}
-  onChange={(e) =>
-    setPoolAmount(e.target.value)
-  }
-  style={inputStyle}
-/>
+            type="number"
+            value={poolAmount}
+            onChange={(e) => setPoolAmount(e.target.value)}
+            style={inputStyle}
+            placeholder="0.00"
+          />
         </div>
 
         {/* Reward */}
-
         <div>
-          <label style={labelStyle}>
-            REWARD PER CLICK
-          </label>
-
+          <label style={labelStyle}>REWARD PER CLICK</label>
           <div style={helperStyle}>
-  How much each user earns per click.
-  <br />
-  {rewardToken === "PUFI"
-    ? "Min. 1"
-    : "Min. 0.001"}
-</div>
-
+            How much each user earns per click (Min.{" "}
+            {rewardToken === "PUFI" ? "1" : "0.001"})
+          </div>
           <input
-  type="number"
-  step={
-    rewardToken === "PUFI"
-      ? "1"
-      : "0.001"
-  }
-  value={rewardPerClick}
-  onChange={(e) =>
-    setRewardPerClick(e.target.value)
-  }
-  style={inputStyle}
-/>
+            type="number"
+            step={rewardToken === "PUFI" ? "1" : "0.001"}
+            value={rewardPerClick}
+            onChange={(e) => setRewardPerClick(e.target.value)}
+            style={inputStyle}
+            placeholder="0.00"
+          />
         </div>
 
         {/* Maximum Click */}
-
-        <div
-          style={cardStyle}
-        >
-          <div style={labelStyle}>
-            MAXIMUM CLICKS
-          </div>
-
+        <div style={cardStyle}>
+          <div style={labelStyle}>MAXIMUM CLICKS</div>
           <div
             style={{
-              fontSize: 26,
+              fontSize: 22,
               color: "#FFFFFF",
-              fontWeight: 700,
-              marginTop: 10,
+              fontWeight: 800,
+              marginTop: 4,
             }}
           >
-            {maximumClicks} Clicks
+            {maximumClicks.toLocaleString()} Clicks
           </div>
+          <div style={{ ...helperStyle, marginTop: 2 }}>(Auto Calculated)</div>
+        </div>
 
-          <div style={helperStyle}>
-            (Auto Calculate)
+        {/* TOTAL PAYMENT */}
+        <div
+          style={{
+            ...cardStyle,
+            background: "#1E293B",
+            borderColor: "#334155",
+          }}
+        >
+          <div style={labelStyle}>TOTAL PAYMENT</div>
+
+          <div style={{ marginTop: 12 }}>
+            <div style={rowStyle}>
+              <span>Pool Amount</span>
+              <strong>
+                {formatAmount(Number(poolAmount || 0))} {rewardToken}
+              </strong>
+            </div>
+
+            <div style={rowStyle}>
+              <span>Platform Fee (30%)</span>
+              <strong>
+                {formatAmount(platformFee)} {rewardToken}
+              </strong>
+            </div>
+
+            <div
+              style={{
+                height: 1,
+                background: "#334155",
+                margin: "12px 0",
+                opacity: 0.5,
+              }}
+            />
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                color: "#FFFFFF",
+                marginTop: 8,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "#94A3B8",
+                  paddingBottom: 4,
+                }}
+              >
+                TOTAL
+              </span>
+              <span
+                style={{
+                  fontSize: 28,
+                  fontWeight: 900,
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                {formatAmount(totalPayment)}{" "}
+                <span style={{ fontSize: 16, fontWeight: 700 }}>
+                  {rewardToken}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
 
-{/* TOTAL PAYMENT */}
-
-<div style={cardStyle}>
-  <div style={labelStyle}>
-    TOTAL PAYMENT
-  </div>
-
-  <div style={{ marginTop: 18 }}>
-
-    <div style={rowStyle}>
-      <span>Pool Amount</span>
-
-      <strong>
-        {formatAmount(Number(poolAmount || 0))}{" "}
-        {rewardToken}
-      </strong>
-    </div>
-
-    <div style={rowStyle}>
-      <span>Platform Fee (30%)</span>
-
-      <strong>
-        {formatAmount(platformFee)}{" "}
-        {rewardToken}
-      </strong>
-    </div>
-
-    <hr
-      style={{
-        borderColor: "#31456E",
-        margin: "18px 0",
-      }}
-    />
-
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        color: "#FFFFFF",
-        fontWeight: 700,
-        fontSize: 22,
-      }}
-    >
-      <span>TOTAL</span>
-
-      <span>
-        {formatAmount(totalPayment)}{" "}
-        {rewardToken}
-      </span>
-    </div>
-
-  </div>
-</div>
-
-        {/* Fee */}
-
-        <div
-          style={cardStyle}
-        >
-          <div style={labelStyle}>
-            PLATFORM FEE
-          </div>
-
-          <div
+        {/* Platform Fee Detail */}
+        <div style={{ ...cardStyle, background: "transparent", padding: 12 }}>
+          <label
             style={{
-              color: "#FFFFFF",
-              marginTop: 14,
+              ...labelStyle,
+              fontSize: 10,
+              display: "block",
+              marginBottom: 4,
             }}
           >
-            30% Management Fee
-          </div>
-
+            PLATFORM FEE STRUCTURE
+          </label>
           <div
             style={{
-              color: "#B8C4E0",
-              marginTop: 10,
+              color: "#64748B",
+              fontSize: 11,
+              lineHeight: 1.4,
             }}
           >
-            70% Distributed as User Rewards
+            30% Management Fee applied to pool. 70% Distributed as User Rewards.
           </div>
         </div>
 
         {/* Button */}
-
         <button
           style={{
-            height: 55,
+            height: 52,
             border: "none",
-            borderRadius: 15,
-            background:
-              "linear-gradient(90deg,#7C3AED,#9333EA)",
+            borderRadius: 14,
+            background: "linear-gradient(90deg, #7C3AED, #9333EA)",
             color: "#FFFFFF",
-            fontWeight: 700,
-            fontSize: 20,
+            fontWeight: 800,
+            fontSize: 16,
             cursor: "pointer",
-            marginBottom: 30,
+            marginTop: 8,
+            boxShadow: "0 4px 15px rgba(124, 58, 237, 0.3)",
           }}
         >
           CONFIRM & PAY
@@ -415,26 +312,36 @@ const totalPayment = useMemo(() => {
 }
 
 const labelStyle = {
-  color: "#FFFFFF",
+  color: "#64748B",
   fontWeight: 700,
-} as const;
+  fontSize: 11,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.05em",
+  display: "block",
+  marginBottom: 6,
+  paddingLeft: 4,
+};
 
 const helperStyle = {
   color: "#94A3B8",
-  fontSize: 13,
-  marginTop: 4,
-} as const;
+  fontSize: 12,
+  marginBottom: 6,
+  paddingLeft: 4,
+  lineHeight: 1.4,
+};
 
 const inputStyle = {
   width: "100%",
-  marginTop: 10,
-  background: "#1E2A4A",
-  border: "1px solid #31456E",
-  borderRadius: 16,
+  background: "#1E293B",
+  border: "1px solid #334155",
+  borderRadius: 12,
   color: "#FFFFFF",
-  padding: 16,
-  fontSize: 16,
+  padding: "12px 16px",
+  fontSize: 15,
+  fontWeight: 600,
   boxSizing: "border-box" as const,
+  outline: "none",
+  transition: "border-color 0.2s",
 };
 
 const textareaStyle = {
@@ -443,28 +350,30 @@ const textareaStyle = {
 };
 
 const cardStyle = {
-  background: "#1E2A4A",
-  border: "1px solid #31456E",
-  borderRadius: 18,
-  padding: 18,
+  background: "rgba(30, 41, 59, 0.5)",
+  border: "1px solid #334155",
+  borderRadius: 16,
+  padding: 16,
 };
 
 const tokenButton = {
   flex: 1,
-  height: 48,
-  borderRadius: 14,
-  border: "1px solid #31456E",
-  background: "#1E2A4A",
+  height: 40,
+  borderRadius: 10,
+  border: "1px solid #334155",
   color: "#FFFFFF",
   cursor: "pointer",
   fontWeight: 700,
+  fontSize: 13,
+  transition: "all 0.2s",
 };
 
 const rowStyle = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  marginBottom: 12,
-  color: "#FFFFFF",
-  fontSize: 16,
+  marginBottom: 8,
+  color: "#94A3B8",
+  fontSize: 13,
+  fontWeight: 500,
 } as const;

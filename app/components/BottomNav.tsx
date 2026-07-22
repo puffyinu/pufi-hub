@@ -52,8 +52,8 @@ export default function BottomNav({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-[#0B101B]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-[720px] items-center justify-between px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-[#0B101B]/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl">
+      <div className="mx-auto flex h-20 max-w-[600px] items-center justify-around px-4">
         {navItems.map((item) => {
           const isActive = active === item.key;
 
@@ -62,14 +62,13 @@ export default function BottomNav({
               key={item.key}
               onClick={() => router.push(item.href)}
               className={`
+                relative
                 flex
-                flex-1
-                min-h-[44px]
                 flex-col
                 items-center
                 justify-center
-                gap-1
-                py-2
+                gap-1.5
+                px-2
                 transition-all
                 active:scale-90
                 ${
@@ -79,11 +78,15 @@ export default function BottomNav({
                 }
               `}
             >
-              <span className="text-xl leading-none">
+              {isActive && (
+                <div className="absolute -top-3 h-1 w-6 rounded-full bg-[#FFC857] blur-[2px]" />
+              )}
+
+              <span className={`text-xl leading-none transition-transform ${isActive ? "scale-110 -translate-y-0.5" : ""}`}>
                 {item.icon}
               </span>
 
-              <span className="text-[9px] font-black uppercase tracking-tight">
+              <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${isActive ? "opacity-100" : "opacity-60"}`}>
                 {item.label}
               </span>
             </button>
