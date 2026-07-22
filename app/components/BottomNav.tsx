@@ -17,6 +17,7 @@ export default function BottomNav({
   active = "dashboard",
 }: BottomNavProps) {
   const router = useRouter();
+  const HOLDSTATION_URL = "https://worldcoin.org/mini-app?app_id=app_0d4b759921490adc1f2bd569fda9b53a&app_mode=mini-app";
 
   const navItems = [
     {
@@ -41,7 +42,7 @@ export default function BottomNav({
       key: "wallet" as NavKey,
       label: "Wallet",
       icon: "👛",
-      href: "/wallet",
+      href: "#",
     },
     {
       key: "creator" as NavKey,
@@ -50,6 +51,14 @@ export default function BottomNav({
       href: "/creator",
     },
   ];
+
+  const handleNavigation = (item: typeof navItems[0]) => {
+    if (item.key === "wallet") {
+      window.open(HOLDSTATION_URL, "_blank");
+      return;
+    }
+    router.push(item.href);
+  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-[#0B101B]/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl">
@@ -60,7 +69,7 @@ export default function BottomNav({
           return (
             <button
               key={item.key}
-              onClick={() => router.push(item.href)}
+              onClick={() => handleNavigation(item)}
               className={`
                 relative
                 flex
