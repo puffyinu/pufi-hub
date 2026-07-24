@@ -2,6 +2,7 @@ import {
   getCampaigns,
   saveCampaigns,
   resetCampaigns,
+  addCampaign as addCampaignToSession,
 } from "@/app/services/campaignSession";
 
 import { addReward } from "@/app/services/reward";
@@ -14,6 +15,21 @@ export function getCampaignList(): Campaign[] {
   return getCampaigns();
 }
 
+export function createCampaign(
+  campaign: Omit<Campaign, "id" | "status" | "createdAt" | "remainingClicks">
+): Campaign {
+  const newCampaign: Campaign = {
+    ...campaign,
+    id: `campaign-${Date.now()}`,
+    status: "ACTIVE",
+    remainingClicks: campaign.totalClicks,
+    createdAt: new Date().toISOString(),
+  };
+
+  addCampaignToSession(newCampaign);
+  return newCampaign;
+}
+
 export function completeCampaign(
   id: string
 ): boolean {
@@ -23,28 +39,29 @@ export function completeCampaign(
     (item) => item.id === id
   );
 
-  if (!campaign || campaign.status !== "ACTIVE") {
-  return false;
-}
+  if (!campaign || campaign.status !== "ACTIVE" || campaign.remainingClicks <= 0) {
+    return false;
+  }
 
   const updated: Campaign[] = campaigns.map((item) =>
-  item.id === id
-    ? {
-        ...item,
-        status: "CLAIMED" as const,
-      }
-    : item
-);
+    item.id === id
+      ? {
+          ...item,
+          remainingClicks: item.remainingClicks - 1,
+          status: item.remainingClicks - 1 <= 0 ? ("COMPLETED" as const) : ("ACTIVE" as const),
+        }
+      : item
+  );
 
   saveCampaigns(updated);
 
-  addReward(campaign.reward);
+  addReward(campaign.rewardAmount);
 
   recordActivity(
     "campaign",
     campaign.title,
     campaign.description,
-    campaign.reward
+    campaign.rewardAmount
   );
 
   unlockAchievement("first-campaign");

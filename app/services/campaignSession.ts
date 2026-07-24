@@ -16,15 +16,31 @@ const DEFAULT_STATE: CampaignState = {
       id: "daily-checkin",
       title: "Daily Check-In",
       description: "Complete today's daily check-in.",
-      reward: 1,
+      logo: "",
+      rewardToken: "PUFI",
+      rewardAmount: 1,
+      miniAppUrl: "https://worldcoin.org",
+      budget: 1000,
+      totalClicks: 1000,
+      remainingClicks: 1000,
       status: "ACTIVE",
+      createdAt: new Date().toISOString(),
+      createdBy: "system",
     },
     {
       id: "first-reward",
       title: "First Reward",
       description: "Claim your first reward.",
-      reward: 20,
+      logo: "",
+      rewardToken: "PUFI",
+      rewardAmount: 20,
+      miniAppUrl: "https://worldcoin.org",
+      budget: 2000,
+      totalClicks: 100,
+      remainingClicks: 100,
       status: "ACTIVE",
+      createdAt: new Date().toISOString(),
+      createdBy: "system",
     },
   ],
 };
@@ -51,6 +67,33 @@ function ensureState(): CampaignState {
       storage().load<CampaignState>(
         STORAGE_KEY
       ) ?? DEFAULT_STATE;
+
+    // Lightweight migration for legacy campaigns
+    let migrated = false;
+    session.campaigns = (session.campaigns as unknown[]).map((item) => {
+      let updated = false;
+      const campaign = { ...(item as Record<string, unknown>) };
+
+      if (campaign.remainingClicks === undefined) {
+        campaign.remainingClicks = campaign.totalClicks ?? 0;
+        updated = true;
+      }
+
+      if (campaign.logo === undefined) {
+        campaign.logo = "";
+        updated = true;
+      }
+
+      if (updated) {
+        migrated = true;
+        return campaign as unknown as Campaign;
+      }
+      return item as Campaign;
+    });
+
+    if (migrated) {
+      storage().save(STORAGE_KEY, session);
+    }
   }
 
   return session;
@@ -74,6 +117,12 @@ export function saveCampaigns(
   storage().save(STORAGE_KEY, session);
 
   notify();
+}
+
+export function addCampaign(campaign: Campaign): void {
+  const state = ensureState();
+  const updated = [...state.campaigns, campaign];
+  saveCampaigns(updated);
 }
 
 export function resetCampaigns(): void {

@@ -1,32 +1,37 @@
-import Link from "next/link";
-
 import RewardsClaimsCard from "@/app/components/RewardsClaimsCard";
 import AdminAnnouncementCard from "@/app/components/AdminAnnouncementCard";
 import CampaignCard from "@/app/components/CampaignCard";
+import BottomNav from "@/app/components/BottomNav";
 
 export default function CampaignPage() {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-28">
-      <div className="mb-6 flex items-center gap-4">
-        <Link
-  href="/dashboard"
-  className="flex h-10 w-10 items-center justify-center rounded-full text-3xl font-semibold text-white transition hover:opacity-80"
->
-  ←
-</Link>
-
-        <h1 className="text-4xl font-bold text-white">
-          Campaign
-        </h1>
+    <div className="relative min-h-screen text-white font-sans selection:bg-[#FFC857]/30">
+      
+      {/* Background Layers */}
+      <div className="fixed inset-0 z-[-1]">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#2A1757] via-[#181633] to-[#0D1125]" />
+        <div className="pointer-events-none absolute -top-40 -left-32 h-[420px] w-[420px] rounded-full bg-purple-600/20 blur-[140px]" />
+        <div className="pointer-events-none absolute top-0 right-[-80px] h-[260px] w-[260px] rounded-full bg-[#FFC857]/10 blur-[120px]" />
       </div>
 
-      <div className="space-y-8">
-        <RewardsClaimsCard />
+      <div className="relative z-0 mx-auto flex max-w-[480px] flex-col px-2">
+        <main className="flex-1 pt-3 pb-16 px-4">
+          <div className="mb-2.5 flex items-center justify-between">
+            <h1 className="text-xl font-black tracking-tighter text-white uppercase">
+              Campaign
+            </h1>
+            <div className="h-1 w-10 bg-[#FFC857] rounded-full blur-[1px]" />
+          </div>
 
-        <AdminAnnouncementCard />
+          <div className="space-y-3.5">
+            <RewardsClaimsCard />
+            <AdminAnnouncementCard />
+            <CampaignCard />
+          </div>
+        </main>
 
-        <CampaignCard />
+        <BottomNav active="campaign" />
       </div>
-    </main>
+    </div>
   );
 }

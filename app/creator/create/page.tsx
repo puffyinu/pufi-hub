@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useCampaign } from "@/app/hooks/useCampaign";
 
 export default function CreateCampaignPage() {
+  const router = useRouter();
+  const { createCampaign } = useCampaign();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form State
+  const [logo, setLogo] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [miniAppUrl, setMiniAppUrl] = useState("");
   const [rewardToken, setRewardToken] = useState("PUFI");
   const [poolAmount, setPoolAmount] = useState("");
   const [rewardPerClick, setRewardPerClick] = useState("");
@@ -18,6 +29,40 @@ export default function CreateCampaignPage() {
 
     return Math.floor(pool / reward);
   }, [poolAmount, rewardPerClick]);
+
+  const handleCreate = async () => {
+    if (!title || !description || !miniAppUrl || !poolAmount || !rewardPerClick) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Mock Wallet Transaction
+    try {
+      // Simulate transaction delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      
+      createCampaign({
+        title,
+        description,
+        logo,
+        miniAppUrl,
+        rewardToken,
+        rewardAmount: Number(rewardPerClick),
+        budget: Number(poolAmount),
+        totalClicks: maximumClicks,
+        createdBy: "advertiser-1", // Mock user id
+      });
+
+      router.push("/creator");
+    } catch (error) {
+      console.error("Transaction failed", error);
+      alert("Transaction failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const formatAmount = (value: number) => {
     if (rewardToken === "PUFI") {
@@ -85,7 +130,13 @@ export default function CreateCampaignPage() {
         {/* LOGO URL */}
         <div>
           <label style={labelStyle}>LOGO URL (OPTIONAL)</label>
-          <input type="text" placeholder="https://..." style={inputStyle} />
+          <input 
+            type="text" 
+            placeholder="https://..." 
+            style={inputStyle} 
+            value={logo}
+            onChange={(e) => setLogo(e.target.value)}
+          />
           <p
             style={{
               marginTop: 6,
@@ -103,7 +154,13 @@ export default function CreateCampaignPage() {
         {/* TITLE */}
         <div>
           <label style={labelStyle}>TITLE (APP NAME)</label>
-          <input type="text" placeholder="My Awesome App" style={inputStyle} />
+          <input 
+            type="text" 
+            placeholder="My Awesome App" 
+            style={inputStyle} 
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
         </div>
 
         {/* DESCRIPTION */}
@@ -113,13 +170,21 @@ export default function CreateCampaignPage() {
             rows={3}
             style={textareaStyle}
             placeholder="What is your app about?"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
         </div>
 
         {/* MINI APP URL */}
         <div>
           <label style={labelStyle}>MINI APP URL</label>
-          <input type="text" placeholder="https://..." style={inputStyle} />
+          <input 
+            type="text" 
+            placeholder="https://..." 
+            style={inputStyle} 
+            value={miniAppUrl}
+            onChange={(e) => setMiniAppUrl(e.target.value)}
+          />
         </div>
 
         {/* Reward Token */}
@@ -291,20 +356,23 @@ export default function CreateCampaignPage() {
 
         {/* Button */}
         <button
+          disabled={isSubmitting}
+          onClick={handleCreate}
           style={{
             height: 52,
             border: "none",
             borderRadius: 14,
-            background: "linear-gradient(90deg, #7C3AED, #9333EA)",
+            background: isSubmitting ? "#475569" : "linear-gradient(90deg, #7C3AED, #9333EA)",
             color: "#FFFFFF",
             fontWeight: 800,
             fontSize: 16,
-            cursor: "pointer",
+            cursor: isSubmitting ? "default" : "pointer",
             marginTop: 8,
-            boxShadow: "0 4px 15px rgba(124, 58, 237, 0.3)",
+            boxShadow: isSubmitting ? "none" : "0 4px 15px rgba(124, 58, 237, 0.3)",
+            opacity: isSubmitting ? 0.7 : 1,
           }}
         >
-          CONFIRM & PAY
+          {isSubmitting ? "PROCESSING TRANSACTION..." : "CONFIRM & PAY"}
         </button>
       </div>
     </main>

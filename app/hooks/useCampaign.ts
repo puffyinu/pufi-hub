@@ -10,6 +10,7 @@ import {
   getCampaignList,
   completeCampaign,
   resetCampaigns,
+  createCampaign,
 } from "@/app/services/campaignEngine";
 
 export function useCampaign() {
@@ -42,5 +43,6 @@ export function useCampaign() {
     campaigns,
     completeCampaign,
     resetCampaigns,
+    createCampaign,
   };
 }

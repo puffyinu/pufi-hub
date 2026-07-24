@@ -20,91 +20,35 @@ const rewards = [
 
 export default function RewardsClaimsCard() {
   return (
-    <>
-      <h2
-        style={{
-          color: "#FFFFFF",
-          fontSize: 11,
-          fontWeight: 700,
-          marginBottom: 12,
-        }}
-      >
-        🎁 REWARDS CLAIMS
+    <section>
+      <h2 className="mb-1.5 text-[7.5px] font-black uppercase tracking-[0.4em] text-slate-500">
+        🎁 Rewards Claims
       </h2>
 
-      <section
-        style={{
-          display: "flex",
-          gap: 12,
-        }}
-      >
+      <div className="flex gap-2">
         {rewards.map((reward) => (
           <div
             key={reward.token}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              boxSizing: "border-box",
-              background: "#1E2A4A",
-              border: "1px solid #31456E",
-              borderRadius: 20,
-              padding: 10,
-            }}
+            className="flex flex-1 flex-col items-center rounded-[16px] border border-white/10 bg-white/5 p-1.5 backdrop-blur-xl transition-all hover:bg-white/10"
           >
-            <div
-              style={{
-                fontSize: 20,
-                textAlign: "center",
-                marginBottom: 5,
-              }}
-            >
+            <div className="mb-0.5 text-lg">
               {reward.icon}
             </div>
 
-            <div
-              style={{
-                textAlign: "center",
-                fontSize: 14,
-                fontWeight: 700,
-                color: "#FFFFFF",
-              }}
-            >
+            <div className="text-[7.5px] font-black tracking-widest text-white uppercase">
               {reward.token}
             </div>
 
-            <div
-              style={{
-                textAlign: "center",
-                fontSize: 13,
-                lineHeight: 1.2,
-                color: "#B8C4E0",
-                marginTop: 4,
-                minHeight: 26,
-              }}
-            >
+            <div className="mt-0.5 mb-2 text-[8px] font-bold text-slate-400">
               {reward.amount}
             </div>
 
-            <button
-              style={{
-                width: "100%",
-                marginTop: 5,
-                height: 32,
-                border: "none",
-                borderRadius: 10,
-                background:
-                  "linear-gradient(90deg,#7C3AED 0%,#9333EA 100%)",
-                color: "#FFFFFF",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
+            <button className="w-full rounded-lg bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400] py-0.5 text-[6.5px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110">
               CLAIM
             </button>
           </div>
         ))}
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

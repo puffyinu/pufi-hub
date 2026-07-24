@@ -7,14 +7,18 @@ export type CampaignStatus =
 
 export interface Campaign {
   id: string;
-
   title: string;
-
   description: string;
-
-  reward: number;
-
+  logo: string;
+  miniAppUrl: string;
+  rewardToken: string;
+  rewardAmount: number;
+  budget: number;
+  totalClicks: number;
+  remainingClicks: number;
   status: CampaignStatus;
+  createdAt: string;
+  createdBy: string;
 }
 
 export interface CampaignState {
