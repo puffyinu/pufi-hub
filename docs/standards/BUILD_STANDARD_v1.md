@@ -12,6 +12,20 @@ Every implementation must follow this standard before making any code changes.
 
 ---
 
+# Execution Environment
+
+Validation requirements depend on the execution environment.
+
+When the AI has direct access to the project repository
+(e.g. Gemini CLI, Codex CLI, Cloud Shell, or another repository-connected agent),
+all validation steps defined in this document MUST be executed before the BUILD is considered complete.
+
+If the AI does not have direct repository access,
+it MUST NOT claim that validation has been executed.
+Instead, it should provide the required validation commands for the developer to run.
+
+---
+
 # Core Principles
 
 - Reuse Before Rebuild
@@ -22,6 +36,20 @@ Every implementation must follow this standard before making any code changes.
 - Production Ready
 - Validation Required
 - Git Baseline Before Major Changes
+
+---
+
+# Architecture Preservation
+
+Unless explicitly requested:
+
+- Do NOT rename existing modules.
+- Do NOT relocate existing modules.
+- Do NOT replace stable implementations.
+- Prefer extending existing functionality over replacing it.
+- Preserve the established project architecture.
+
+Architecture changes require explicit approval.
 
 ---
 
@@ -132,6 +160,96 @@ Reuse:
 - Utilities
 
 Avoid duplication.
+
+---
+
+# File Creation Policy
+
+Before creating any new file:
+
+- Search for an existing implementation.
+- Reuse existing modules whenever possible.
+- Extend existing components instead of duplicating them.
+- Create a new file only when no suitable implementation exists.
+
+Every new file should have a clear justification.
+
+---
+
+# Dependency Policy
+
+Do NOT introduce new dependencies unless explicitly approved.
+
+Prefer existing project dependencies.
+
+Before installing a package:
+
+- Verify that equivalent functionality does not already exist.
+- Verify that the package is production-ready.
+- Verify compatibility with the current project stack.
+
+Avoid unnecessary dependency growth.
+
+---
+
+# Performance Guidelines
+
+Every implementation should preserve or improve performance.
+
+Avoid:
+
+- unnecessary re-renders
+- duplicate API requests
+- duplicate state
+- unnecessary effects
+- excessive client-side rendering
+
+Prefer:
+
+- memoization when appropriate
+- reusable utilities
+- efficient rendering
+- Mobile First optimization
+
+Performance regressions should be avoided.
+
+---
+
+# Security Requirements
+
+Never expose:
+
+- private keys
+- secret keys
+- wallet credentials
+- access tokens
+- API secrets
+- environment secrets
+
+Never:
+
+- bypass authentication
+- bypass authorization
+- disable security validation
+
+Security should never be sacrificed for convenience.
+
+---
+
+# World App Compatibility
+
+PUFI HUB targets the World App ecosystem.
+
+Every implementation should remain compatible with:
+
+- World App WebView
+- MiniKit
+- World Chain
+- Mobile browsers
+
+Avoid desktop-only interactions unless explicitly requested.
+
+Maintain Mobile First behavior.
 
 ---
 
@@ -261,12 +379,68 @@ Only after all checks pass may the BUILD REPORT be generated.
 
 Every BUILD must provide:
 
-- Files Modified
-- Root Cause (if applicable)
-- Fix Applied
-- Remaining Warnings
-- Validation Result
-- Build Result
+## Files Modified
+
+List every modified file.
+
+## Root Cause
+
+If applicable, describe the underlying issue.
+
+## Fix Applied
+
+Summarize the implementation.
+
+## Remaining Warnings
+
+Document any remaining non-blocking warnings.
+
+## Validation Result
+
+- ESLint
+- TypeScript
+- Build
+
+## Build Result
+
+PASS / FAIL
+
+## BUILD CHECKLIST
+
+- [ ] Objective completed
+- [ ] Business flow preserved
+- [ ] Architecture preserved
+- [ ] No duplicate implementation
+- [ ] No duplicate services
+- [ ] No duplicate hooks
+- [ ] No duplicate components
+- [ ] No duplicate types
+- [ ] Lint passed
+- [ ] Build passed
+- [ ] TypeScript passed
+- [ ] Existing functionality verified
+- [ ] Ready for commit
+- [ ] Ready for push
+
+---
+
+# Commit Message Convention
+
+Use consistent commit messages.
+
+Examples:
+
+feat(build-007): implement campaign timer
+
+fix(build-007): resolve claim validation issue
+
+refactor(build-007): simplify reward service
+
+docs(build-007): update development standard
+
+style(build-007): improve dashboard layout
+
+chore(build-007): cleanup project structure
 
 ---
 
@@ -274,44 +448,35 @@ Every BUILD must provide:
 
 Before major development:
 
-- Ensure a clean Git baseline.
+- Ensure the repository is clean.
+- Verify the active branch.
+- Verify the Git baseline.
+- Confirm there are no uncommitted changes.
 
 After implementation:
 
 - Run lint.
 - Run build.
-- Review changes.
-- Commit.
-- Push.
-- Treat the commit as the new baseline.
+- Review all changes.
+- Commit using the standard commit convention.
+- Push to the remote repository.
+- Treat the pushed commit as the new development baseline.
+
+Never begin a major BUILD from a dirty working tree.
 
 ---
 
-# Environment Setup
+# AI Execution Policy
 
-For a new development environment:
+The AI must not declare a BUILD complete unless all required validation steps have been successfully completed within the available execution environment.
 
-```bash
-cp .env.example .env.local
-npm install
-npm run dev
-```
+If repository access is unavailable:
 
-Ensure:
+- Do not claim validation has been executed.
+- Do not fabricate build results.
+- Clearly distinguish between completed actions and recommended actions.
 
-```env
-NEXT_PUBLIC_RUNTIME_MODE=development
-```
-
-is configured before running the application.
-
----
-
-# Build Instruction
-
-Every new BUILD prompt should begin with:
-
-> Follow PUFI HUB Development Standard v1.0 before implementing this task.
+All implementation reports must accurately reflect the work that has actually been performed.
 
 ---
 

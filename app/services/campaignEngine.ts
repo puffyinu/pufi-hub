@@ -101,7 +101,8 @@ export function addPool(id: string, additionalClaims: number, additionalBudget: 
   const updatedCampaign: Campaign = {
     ...campaign,
     maxClaims: campaign.maxClaims + additionalClaims,
-    budget: campaign.budget + additionalBudget,
+    // Stabilize budget arithmetic
+    budget: Number((campaign.budget + additionalBudget).toFixed(6)),
     status: "LIVE", // Reactivate if it was completed
   };
 
@@ -153,8 +154,19 @@ export function recordClaim(id: string): boolean {
   if (success) {
     // Add reward to pending pool
     const rewardState = getRewardState();
+    const currentTokenAmount = rewardState.pendingByToken[campaign.rewardToken] || 0;
+    
+    // Stabilize arithmetic to prevent floating point drift (e.g. 0.1 + 0.2 = 0.30000000000000004)
+    // We use a precision of 6 decimals which is sufficient for PUFI/USDC/WLD business logic
+    const nextPending = Number(((rewardState.pending || 0) + campaign.rewardAmount).toFixed(6));
+    const nextTokenAmount = Number((currentTokenAmount + campaign.rewardAmount).toFixed(6));
+
     setRewardState({
-      pending: (rewardState.pending || 0) + campaign.rewardAmount
+      pending: nextPending,
+      pendingByToken: {
+        ...rewardState.pendingByToken,
+        [campaign.rewardToken]: nextTokenAmount
+      }
     });
 
     addReward(campaign.rewardAmount);

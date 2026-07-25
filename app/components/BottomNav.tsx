@@ -92,12 +92,12 @@ export default function BottomNav({
                 <div className="absolute -top-3 h-1 w-6 rounded-full bg-[#FFC857] blur-[2px]" />
               )}
 
-              <div className={`relative h-7 w-7 transition-all duration-300 ${isActive ? "scale-110 -translate-y-0.5" : "opacity-70 brightness-75 scale-[0.98]"}`}>
+              <div className={`relative h-9 w-9 transition-all duration-300 ${isActive ? "scale-110 -translate-y-0.5" : "opacity-70 brightness-75 scale-[0.98]"}`}>
                 <Image
                   src={item.icon}
                   alt={item.label}
-                  width={28}
-                  height={28}
+                  width={36}
+                  height={36}
                   className="object-contain"
                   priority={isActive}
                 />

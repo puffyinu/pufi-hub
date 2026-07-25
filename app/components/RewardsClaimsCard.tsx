@@ -1,34 +1,41 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { useReward } from "@/app/hooks/useReward";
 import { prepareRewardClaim } from "@/app/services/rewardClaimEngine";
+import UIFeedback from "./UIFeedback";
 
 export default function RewardsClaimsCard() {
   const { reward } = useReward();
-  const pending = reward.pending;
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const handleClaim = () => {
     const success = prepareRewardClaim();
     if (success) {
-      alert("Claim prepared! Proceeding to wallet transfer (Build #008)...");
+      setAlertOpen(true);
     }
+  };
+
+  const formatAmount = (val: number) => {
+    return Number.isInteger(val) ? val.toString() : val.toFixed(3);
   };
 
   const rewardItems = [
     {
       token: "PUFI",
-      icon: "🟣",
-      amount: pending || 0,
+      icon: "/images/brand/pufi-coin.png",
+      amount: reward.pendingByToken?.["PUFI"] || 0,
     },
     {
       token: "USDC",
-      icon: "💵",
-      amount: 0,
+      icon: "💵", // Official USDC icon unavailable
+      amount: reward.pendingByToken?.["USDC"] || 0,
     },
     {
       token: "WLD",
-      icon: "🌐",
-      amount: 0,
+      icon: "🌐", // Official WLD icon unavailable
+      amount: reward.pendingByToken?.["WLD"] || 0,
     },
   ];
 
@@ -39,28 +46,37 @@ export default function RewardsClaimsCard() {
       </h2>
 
       <div className="flex gap-2">
-        {rewardItems.map((reward) => (
+        {rewardItems.map((item) => (
           <div
-            key={reward.token}
+            key={item.token}
             className="flex flex-1 flex-col items-center rounded-[16px] border border-white/10 bg-white/5 p-1.5 backdrop-blur-xl transition-all hover:bg-white/10"
           >
-            <div className="mb-0.5 text-lg">
-              {reward.icon}
+            <div className="mb-0.5 relative h-5 w-5 flex items-center justify-center">
+              {item.icon.startsWith("/") ? (
+                <Image 
+                  src={item.icon} 
+                  alt={item.token} 
+                  fill 
+                  className="object-contain" 
+                />
+              ) : (
+                <span className="text-lg">{item.icon}</span>
+              )}
             </div>
 
             <div className="text-[10px] font-black text-white mb-0.5">
-              {reward.amount}
+              {formatAmount(item.amount)}
             </div>
 
             <div className="mb-2 text-[7.5px] font-black tracking-widest text-slate-400 uppercase">
-              {reward.token}
+              {item.token}
             </div>
 
             <button 
-              disabled={reward.amount === 0}
+              disabled={item.amount === 0}
               onClick={handleClaim}
               className={`w-full rounded-lg py-0.5 text-[6.5px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110 ${
-                reward.amount > 0 
+                item.amount > 0 
                 ? "bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400]" 
                 : "bg-white/10 text-white/30 cursor-not-allowed"
               }`}
@@ -70,6 +86,15 @@ export default function RewardsClaimsCard() {
           </div>
         ))}
       </div>
+
+      <UIFeedback
+        isOpen={alertOpen}
+        type="alert"
+        title="Claim Prepared"
+        message="Claim prepared! Proceeding to wallet transfer (Build #008)..."
+        onConfirm={() => setAlertOpen(false)}
+      />
     </section>
   );
 }
+

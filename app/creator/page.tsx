@@ -8,6 +8,7 @@ import { useCampaign } from "@/app/hooks/useCampaign";
 import { Campaign } from "@/app/types/campaign";
 import { updateCampaign, deleteCampaign, addPool } from "@/app/services/campaignEngine";
 import EditCampaignModal from "@/app/components/EditCampaignModal";
+import UIFeedback from "@/app/components/UIFeedback";
 
 const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
 
@@ -114,6 +115,21 @@ function EmptySlot() {
 function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  // Feedback State
+  const [feedback, setFeedback] = useState<{
+    isOpen: boolean;
+    type: "alert" | "confirm";
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    type: "alert",
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const handleSaveEdit = (values: Partial<Campaign>) => {
     updateCampaign({ 
@@ -123,22 +139,31 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   };
 
   const handleAddPool = () => {
-    const amount = prompt("Enter additional claims count:", "100");
-    if (amount) {
-      const claims = parseInt(amount);
-      if (!isNaN(claims) && claims > 0) {
-        addPool(campaign.id, claims, claims * campaign.rewardAmount);
-        alert(`Successfully added ${claims} claims to the pool!`);
-      }
-    }
+    // Simplified: Always add 100 claims for now to avoid prompt()
+    const claims = 100;
+    addPool(campaign.id, claims, claims * campaign.rewardAmount);
+    setFeedback({
+      isOpen: true,
+      type: "alert",
+      title: "Pool Updated",
+      message: `Successfully added ${claims} claims to the pool!`,
+      onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
+    });
   };
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${campaign.title}"?`)) {
-      setIsDeleting(true);
-      const success = deleteCampaign(campaign.id);
-      if (!success) setIsDeleting(false);
-    }
+    setFeedback({
+      isOpen: true,
+      type: "confirm",
+      title: "Delete Campaign",
+      message: `Are you sure you want to delete "${campaign.title}"?`,
+      onConfirm: () => {
+        setIsDeleting(true);
+        const success = deleteCampaign(campaign.id);
+        if (!success) setIsDeleting(false);
+        setFeedback(f => ({ ...f, isOpen: false }));
+      },
+    });
   };
 
   if (isDeleting) return null;
@@ -174,7 +199,9 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
         <div className="grid grid-cols-3 gap-2 text-center">
           <div>
             <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Budget</div>
-            <div className="text-sm font-bold text-white">{campaign.budget.toLocaleString()} {campaign.rewardToken}</div>
+            <div className="text-sm font-bold text-white">
+              {Number.isInteger(campaign.budget || 0) ? (campaign.budget || 0).toLocaleString() : Number((campaign.budget || 0).toFixed(3)).toLocaleString()} {campaign.rewardToken || "PUFI"}
+            </div>
           </div>
           <div className="border-x border-white/5">
             <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Progress</div>
@@ -182,7 +209,9 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
           </div>
           <div>
             <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Reward</div>
-            <div className="text-sm font-bold text-white">{campaign.rewardAmount} {campaign.rewardToken}</div>
+            <div className="text-sm font-bold text-white">
+              {Number.isInteger(campaign.rewardAmount || 0) ? (campaign.rewardAmount || 0) : Number((campaign.rewardAmount || 0).toFixed(3))} {campaign.rewardToken || "PUFI"}
+            </div>
           </div>
         </div>
 
@@ -217,28 +246,74 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
           onSave={handleSaveEdit}
         />
       )}
+
+      <UIFeedback
+        isOpen={feedback.isOpen}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onConfirm={feedback.onConfirm}
+        onCancel={() => setFeedback(f => ({ ...f, isOpen: false }))}
+      />
     </>
   );
 }
 
 function LockedSlot({ price }: { price: string }) {
+  const [feedback, setFeedback] = useState<{
+    isOpen: boolean;
+    type: "alert" | "confirm";
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    type: "alert",
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
   const handleUnlock = () => {
-    if (confirm(`Unlock premium slot for ${price}?`)) {
-      alert("Mock Transaction Success! Premium slot unlocked.");
-    }
+    setFeedback({
+      isOpen: true,
+      type: "confirm",
+      title: "Unlock Slot",
+      message: `Unlock premium slot for ${price}?`,
+      onConfirm: () => {
+        setFeedback({
+          isOpen: true,
+          type: "alert",
+          title: "Success",
+          message: "Mock Transaction Success! Premium slot unlocked.",
+          onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
+        });
+      },
+    });
   };
 
   return (
-    <div 
-      onClick={handleUnlock}
-      className="mb-4 flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] py-8 shadow-inner transition-all hover:bg-white/[0.05]"
-    >
-      <div className="mb-3 text-3xl opacity-40 grayscale">🔒</div>
-      <h3 className="text-sm font-bold text-white/60">Unlock Slot</h3>
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">One-Time Payment</p>
-      <div className="mt-4 rounded-full bg-violet-600/10 px-4 py-1 text-sm font-black text-violet-400">
-        {price}
+    <>
+      <div 
+        onClick={handleUnlock}
+        className="mb-4 flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] py-8 shadow-inner transition-all hover:bg-white/[0.05]"
+      >
+        <div className="mb-3 text-3xl opacity-40 grayscale">🔒</div>
+        <h3 className="text-sm font-bold text-white/60">Unlock Slot</h3>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">One-Time Payment</p>
+        <div className="mt-4 rounded-full bg-violet-600/10 px-4 py-1 text-sm font-black text-violet-400">
+          {price}
+        </div>
       </div>
-    </div>
+
+      <UIFeedback
+        isOpen={feedback.isOpen}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onConfirm={feedback.onConfirm}
+        onCancel={() => setFeedback(f => ({ ...f, isOpen: false }))}
+      />
+    </>
   );
 }

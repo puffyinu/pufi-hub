@@ -182,7 +182,10 @@ export function expireVisit(campaignId: string): boolean {
 /**
  * Detects return to PUFI HUB and attempts to complete the active visit.
  */
-export function handleReturnToApp(onComplete?: (campaignId: string) => void): void {
+export function handleReturnToApp(
+  onComplete?: (campaignId: string) => void,
+  onError?: (message: string) => void
+): void {
   const campaigns = getCampaigns();
   
   // Find campaign in VISITING state
@@ -193,8 +196,10 @@ export function handleReturnToApp(onComplete?: (campaignId: string) => void): vo
     if (result.success && onComplete) {
       onComplete(activeVisit.id);
     } else if (!result.success && result.message) {
-        // Show alert for invalid/expired visit if it was active
-        alert(result.message);
+        // Show feedback for invalid/expired visit if it was active
+        if (onError) {
+          onError(result.message);
+        }
     }
   }
 }

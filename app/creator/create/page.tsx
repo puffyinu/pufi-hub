@@ -7,12 +7,28 @@ import { useCampaign } from "@/app/hooks/useCampaign";
 import { canCreateCampaign } from "@/app/services/campaignEngine";
 import CampaignForm from "@/app/components/CampaignForm";
 import { Campaign } from "@/app/types/campaign";
+import UIFeedback from "@/app/components/UIFeedback";
 
 export default function CreateCampaignPage() {
   const router = useRouter();
   const { createCampaign } = useCampaign();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLimitPopup, setShowLimitPopup] = useState(false);
+  
+  // Feedback State
+  const [feedback, setFeedback] = useState<{
+    isOpen: boolean;
+    type: "alert" | "confirm";
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    type: "alert",
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const ADVERTISER_ID = "advertiser-1";
 
@@ -45,7 +61,13 @@ export default function CreateCampaignPage() {
       router.push("/creator");
     } catch (error) {
       console.error("Transaction failed", error);
-      alert("Transaction failed. Please try again.");
+      setFeedback({
+        isOpen: true,
+        type: "alert",
+        title: "Transaction Failed",
+        message: "Transaction failed. Please try again.",
+        onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -80,7 +102,18 @@ export default function CreateCampaignPage() {
                 Cancel
               </button>
               <button 
-                onClick={() => { alert("Mock Transaction: Premium slot unlocked!"); setShowLimitPopup(false); }}
+                onClick={() => {
+                  setFeedback({
+                    isOpen: true,
+                    type: "alert",
+                    title: "Slot Unlocked",
+                    message: "Mock Transaction: Premium slot unlocked!",
+                    onConfirm: () => {
+                      setFeedback(f => ({ ...f, isOpen: false }));
+                      setShowLimitPopup(false);
+                    },
+                  });
+                }}
                 className="h-12 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-[11px] font-black uppercase tracking-widest text-white shadow-lg"
               >
                 Unlock Premium
@@ -123,6 +156,15 @@ export default function CreateCampaignPage() {
         mode="create"
         isSubmitting={isSubmitting}
         onSubmit={handleCreate}
+      />
+
+      <UIFeedback
+        isOpen={feedback.isOpen}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onConfirm={feedback.onConfirm}
+        onCancel={() => setFeedback(f => ({ ...f, isOpen: false }))}
       />
     </main>
   );

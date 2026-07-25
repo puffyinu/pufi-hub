@@ -77,6 +77,27 @@ function ensureState(): CampaignState {
         }
       }
 
+      // Normalize reward model
+      const legacyItem = campaign as Record<string, unknown>;
+      if (campaign.rewardAmount === undefined) {
+        campaign.rewardAmount = (legacyItem.reward as number) ?? 0;
+        updated = true;
+      }
+      if (campaign.rewardToken === undefined) {
+        campaign.rewardToken = (legacyItem.token as string) ?? "PUFI";
+        updated = true;
+      }
+
+      // Cleanup legacy reward fields
+      if (legacyItem.reward !== undefined) {
+        delete legacyItem.reward;
+        updated = true;
+      }
+      if (legacyItem.token !== undefined) {
+        delete legacyItem.token;
+        updated = true;
+      }
+
       if (updated) {
         migrated = true;
         return campaign as unknown as Campaign;

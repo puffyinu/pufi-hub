@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Campaign } from "@/app/types/campaign";
+import UIFeedback from "./UIFeedback";
 
 interface CampaignFormProps {
   initialValues?: Campaign;
@@ -27,6 +28,8 @@ export default function CampaignForm({
   const [poolAmount, setPoolAmount] = useState(initialValues?.budget?.toString() || "");
   const [rewardPerClick, setRewardPerClick] = useState(initialValues?.rewardAmount?.toString() || "");
 
+  const [alertOpen, setAlertOpen] = useState(false);
+
   const maximumClaims = useMemo(() => {
     const pool = Number(poolAmount);
     const reward = Number(rewardPerClick);
@@ -40,9 +43,13 @@ export default function CampaignForm({
 
   const handleSubmit = () => {
     if (!title || !description || !miniAppUrl || !poolAmount || !rewardPerClick) {
-      alert("Please fill in all required fields.");
+      setAlertOpen(true);
       return;
     }
+
+    // Stabilize arithmetic values before submission to avoid precision drift
+    const stabilizedReward = Number(Number(rewardPerClick).toFixed(6));
+    const stabilizedBudget = Number(Number(poolAmount).toFixed(6));
 
     onSubmit({
       title,
@@ -50,8 +57,8 @@ export default function CampaignForm({
       logo,
       miniAppUrl,
       rewardToken,
-      rewardAmount: Number(rewardPerClick),
-      budget: Number(poolAmount),
+      rewardAmount: stabilizedReward,
+      budget: stabilizedBudget,
       maxClaims: mode === "create" ? maximumClaims : initialValues?.maxClaims,
     });
   };
@@ -60,18 +67,19 @@ export default function CampaignForm({
     if (rewardToken === "PUFI") {
       return Number.isInteger(value) ? value.toString() : value.toFixed(2);
     }
-    return value.toFixed(3);
+    // Use 3 decimals for other tokens but only if they are not integers
+    return Number.isInteger(value) ? value.toString() : value.toFixed(3);
   };
 
   const platformFee = useMemo(() => {
     const pool = Number(poolAmount);
     if (!pool) return 0;
-    return pool * 0.3;
+    return Number((pool * 0.3).toFixed(6));
   }, [poolAmount]);
 
   const totalPayment = useMemo(() => {
     const pool = Number(poolAmount);
-    return pool + platformFee;
+    return Number((pool + platformFee).toFixed(6));
   }, [poolAmount, platformFee]);
 
   return (
@@ -357,6 +365,14 @@ export default function CampaignForm({
               : "SAVE CHANGES"}
         </button>
       </div>
+
+      <UIFeedback
+        isOpen={alertOpen}
+        type="alert"
+        title="Form Incomplete"
+        message="Please fill in all required fields."
+        onConfirm={() => setAlertOpen(false)}
+      />
     </div>
   );
 }

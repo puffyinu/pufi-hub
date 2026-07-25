@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useCampaign } from "@/app/hooks/useCampaign";
 import { recordClaim } from "@/app/services/campaignEngine";
 import { startVisit, handleReturnToApp, checkTimeouts, cancelVisit } from "@/app/services/visitEngine";
+import UIFeedback from "./UIFeedback";
 
 const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
 
@@ -15,16 +16,47 @@ export default function CampaignCard() {
   const showOverlay = !!activeVisitId;
 
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+  
+  // Feedback State
+  const [feedback, setFeedback] = useState<{
+    isOpen: boolean;
+    type: "alert" | "confirm";
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    type: "alert",
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     const onFocus = () => {
-      handleReturnToApp();
+      handleReturnToApp(undefined, (message) => {
+        setFeedback({
+          isOpen: true,
+          type: "alert",
+          title: "Visit Incomplete",
+          message,
+          onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
+        });
+      });
     };
 
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
-        handleReturnToApp();
+        handleReturnToApp(undefined, (message) => {
+          setFeedback({
+            isOpen: true,
+            type: "alert",
+            title: "Visit Incomplete",
+            message,
+            onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
+          });
+        });
       }
     });
 
@@ -81,14 +113,26 @@ export default function CampaignCard() {
   const handleVisitAction = (id: string) => {
     const result = startVisit(id);
     if (!result.success && result.message) {
-      alert(result.message);
+      setFeedback({
+        isOpen: true,
+        type: "alert",
+        title: "Visit Error",
+        message: result.message,
+        onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
+      });
     }
   };
 
   const handleClaim = (id: string) => {
     const success = recordClaim(id);
     if (success) {
-      alert("Reward claimed successfully! View it in Rewards Claims.");
+      setFeedback({
+        isOpen: true,
+        type: "alert",
+        title: "Claim Success",
+        message: "Reward claimed successfully! View it in Rewards Claims.",
+        onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
+      });
     }
   };
 
@@ -159,7 +203,7 @@ export default function CampaignCard() {
                   Reward
                 </p>
                 <p className="text-[13px] font-black text-[#FFC857] tracking-tight">
-                  {campaign.rewardAmount} <span className="text-[7.5px]">{campaign.rewardToken}</span>
+                  {Number.isInteger(campaign.rewardAmount || 0) ? (campaign.rewardAmount || 0) : Number((campaign.rewardAmount || 0).toFixed(3))} <span className="text-[7.5px]">{campaign.rewardToken || "PUFI"}</span>
                 </p>
                 <p className="text-[6px] font-bold text-slate-400">
                   PROGRESS {campaign.claimedCount} / {campaign.maxClaims}
@@ -211,9 +255,16 @@ export default function CampaignCard() {
           <div className="flex flex-col w-full gap-3 max-w-[280px]">
             <button 
               onClick={() => {
-                if (confirm("Leave Campaign? Leaving now will cancel this visit. You will NOT receive rewards.")) {
-                  handleLeaveAnyway();
-                }
+                setFeedback({
+                  isOpen: true,
+                  type: "confirm",
+                  title: "Leave Campaign?",
+                  message: "Leaving now will cancel this visit. You will NOT receive rewards.",
+                  onConfirm: () => {
+                    handleLeaveAnyway();
+                    setFeedback(f => ({ ...f, isOpen: false }));
+                  },
+                });
               }}
               className="w-full py-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all"
             >
@@ -260,6 +311,15 @@ export default function CampaignCard() {
           </section>
         )}
       </div>
+
+      <UIFeedback
+        isOpen={feedback.isOpen}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+        onConfirm={feedback.onConfirm}
+        onCancel={() => setFeedback(f => ({ ...f, isOpen: false }))}
+      />
     </>
   );
 }
