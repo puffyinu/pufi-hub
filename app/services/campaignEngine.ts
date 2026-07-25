@@ -9,6 +9,7 @@ import {
 
 import { addReward } from "@/app/services/reward";
 import { recordActivity } from "@/app/services/activityEngine";
+import { setRewardState, getRewardState } from "@/app/services/rewardSession";
 
 import type { Campaign, CampaignStatus } from "@/app/types/campaign";
 
@@ -35,7 +36,7 @@ export function getMyCampaigns(userId: string): Campaign[] {
  */
 export function getReadyCampaigns(): Campaign[] {
   return getSessionCampaigns().filter(
-    (c) => c.status === "LIVE" && c.claimedCount < c.maxClaims
+    (c) => (c.status === "LIVE" || c.status === "CLAIM_READY") && c.claimedCount < c.maxClaims
   );
 }
 
@@ -121,20 +122,41 @@ export function recordClaim(id: string): boolean {
   const campaigns = getSessionCampaigns();
   const campaign = campaigns.find((c) => c.id === id);
 
-  if (!campaign || campaign.status !== "LIVE") return false;
+  // Requirement: Must be CLAIM_READY to claim
+  if (!campaign || campaign.status !== "CLAIM_READY") return false;
+
+  // Transition to CLAIMING
+  const claimingCampaign: Campaign = {
+    ...campaign,
+    status: "CLAIMING",
+  };
+  updateCampaignInSession(claimingCampaign);
 
   const updatedCount = campaign.claimedCount + 1;
-  const updatedStatus = updatedCount >= campaign.maxClaims ? "COMPLETED" : "LIVE";
+  // Flow: CLAIMING -> CLAIMED -> COMPLETED (if pool empty)
+  const finalStatus = updatedCount >= campaign.maxClaims ? "COMPLETED" : "CLAIMED";
 
   const updatedCampaign: Campaign = {
     ...campaign,
     claimedCount: updatedCount,
-    status: updatedStatus,
+    status: finalStatus,
+    visitId: undefined,
+    visitStartedAt: undefined,
+    visitCompletedAt: undefined,
+    visitCompleted: false,
+    claimReady: false,
+    visitExpired: false,
   };
 
   const success = updateCampaignInSession(updatedCampaign);
 
   if (success) {
+    // Add reward to pending pool
+    const rewardState = getRewardState();
+    setRewardState({
+      pending: (rewardState.pending || 0) + campaign.rewardAmount
+    });
+
     addReward(campaign.rewardAmount);
     recordActivity(
       "campaign",
@@ -143,7 +165,7 @@ export function recordClaim(id: string): boolean {
       campaign.rewardAmount
     );
 
-    if (updatedStatus === "COMPLETED") {
+    if (finalStatus === "COMPLETED") {
       recordActivity(
         "campaign",
         `Completed: ${campaign.title}`,
@@ -159,18 +181,43 @@ export function recordClaim(id: string): boolean {
 /**
  * Daily Reset Logic:
  * Campaigns with remaining claims should become active again.
- * (In our model, they stay LIVE if claimedCount < maxClaims).
- * This function could be used to clear per-user daily claim flags if implemented.
  */
 export function dailyResetCampaigns(): void {
   const campaigns = getSessionCampaigns();
   const updated = campaigns.map((c) => {
-    // If it was CLAIMED today (local user state), it should become LIVE again for them.
-    // However, the requirement says "Campaigns with no remaining claims must never reactivate."
-    // This is handled by our status logic: COMPLETED stays COMPLETED.
-    if (c.status === "CLAIMED" && c.claimedCount < c.maxClaims) {
-      return { ...c, status: "LIVE" as const };
+    // Reset active visit states to LIVE
+    if (
+      c.status === "VISITING" ||
+      c.status === "VISITED" ||
+      c.status === "CLAIM_READY" ||
+      c.status === "CLAIMING"
+    ) {
+      return {
+        ...c,
+        status: "LIVE" as const,
+        visitId: undefined,
+        visitStartedAt: undefined,
+        visitCompletedAt: undefined,
+        visitCompleted: false,
+        claimReady: false,
+        visitExpired: false,
+      };
     }
+
+    // CLAIMED campaigns return to LIVE if pool has space
+    if (c.status === "CLAIMED") {
+      if (c.claimedCount < c.maxClaims) {
+        return { ...c, status: "LIVE" as const };
+      }
+    }
+
+    // COMPLETED campaigns only return to LIVE if remainingPool > 0
+    if (c.status === "COMPLETED") {
+      if (c.claimedCount < c.maxClaims) {
+        return { ...c, status: "LIVE" as const };
+      }
+    }
+
     return c;
   });
   saveCampaigns(updated);

@@ -1,10 +1,14 @@
 export type CampaignStatus =
   | "LIVE"
+  | "VISITING"
+  | "VISITED"
+  | "CLAIM_READY"
+  | "CLAIMING"
   | "CLAIMED"
   | "COMPLETED"
   | "PAUSED"
   | "ENDED"
-  | "ACTIVE"; // Keep ACTIVE for backward compatibility during migration
+  | "ACTIVE";
 
 export interface Campaign {
   id: string;
@@ -20,6 +24,13 @@ export interface Campaign {
   status: CampaignStatus;
   createdAt: string;
   createdBy: string;
+  // Visit Session Data
+  visitId?: string;
+  visitStartedAt?: string;
+  visitCompletedAt?: string;
+  visitCompleted?: boolean;
+  claimReady?: boolean;
+  visitExpired?: boolean;
 }
 
 export interface CampaignState {
