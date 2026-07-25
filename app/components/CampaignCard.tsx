@@ -1,29 +1,49 @@
 "use client";
 
+import { useState } from "react";
 import { useCampaign } from "@/app/hooks/useCampaign";
+import { recordClaim } from "@/app/services/campaignEngine";
 
-const icons = ["📅", "🎁", "🚀"];
+const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
 
 export default function CampaignCard() {
-  const { campaigns, completeCampaign } = useCampaign();
+  const { campaigns } = useCampaign();
+  const [visiting, setVisiting] = useState<Record<string, boolean>>({});
 
   const readyToEarn = campaigns.filter(
-    (c) => c.status === "ACTIVE"
+    (c) => c.status === "LIVE" && c.claimedCount < c.maxClaims
   );
 
   const available = campaigns.filter(
     (c) =>
       c.status === "CLAIMED" ||
-      c.status === "COMPLETED"
+      c.status === "COMPLETED" ||
+      (c.status === "LIVE" && c.claimedCount >= c.maxClaims)
   );
 
+  const handleVisit = (id: string, url: string) => {
+    window.open(url, "_blank");
+    setVisiting((prev) => ({ ...prev, [id]: true }));
+  };
+
+  const handleClaim = (id: string) => {
+    const success = recordClaim(id);
+    if (success) {
+      alert("Reward claimed successfully! Redirecting to portfolio...");
+      setVisiting((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
+  };
+
   const renderCard = (
-    campaign: (typeof campaigns)[number],
-    index: number
+    campaign: (typeof campaigns)[number]
   ) => {
-    const isClaimed =
-      campaign.status === "CLAIMED" ||
-      campaign.status === "COMPLETED";
+    const isCompleted = campaign.claimedCount >= campaign.maxClaims || campaign.status === "COMPLETED";
+    const isClaimed = campaign.status === "CLAIMED";
+    const hasVisited = visiting[campaign.id];
 
     return (
       <div
@@ -35,11 +55,12 @@ export default function CampaignCard() {
         <div className="flex gap-2.5">
           {/* Logo */}
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-violet-500/10 text-xl shadow-inner overflow-hidden">
-            {campaign.logo ? (
-              <img src={campaign.logo} alt="" className="w-full h-full object-cover" />
-            ) : (
-              icons[index % icons.length]
-            )}
+            <img 
+              src={campaign.logo || DEFAULT_LOGO} 
+              alt="" 
+              className="w-full h-full object-cover" 
+              onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_LOGO; }}
+            />
           </div>
 
           {/* Content */}
@@ -56,12 +77,12 @@ export default function CampaignCard() {
 
               <span
                 className={`shrink-0 rounded-full px-1 py-0.5 text-[6px] font-black uppercase tracking-widest ${
-                  isClaimed
+                  isCompleted || isClaimed
                     ? "bg-green-500/20 text-green-400 border border-green-500/20"
                     : "bg-blue-500/20 text-blue-400 border border-blue-500/20"
                 }`}
               >
-                {campaign.status}
+                {isCompleted ? "COMPLETED" : campaign.status}
               </span>
             </div>
 
@@ -74,25 +95,26 @@ export default function CampaignCard() {
                   {campaign.rewardAmount} <span className="text-[7.5px]">{campaign.rewardToken}</span>
                 </p>
                 <p className="text-[6px] font-bold text-slate-400">
-                  {campaign.remainingClicks.toLocaleString()} CLICKS LEFT
+                  PROGRESS {campaign.claimedCount} / {campaign.maxClaims}
                 </p>
               </div>
 
               <button
-                disabled={isClaimed || campaign.remainingClicks <= 0}
+                disabled={isCompleted || isClaimed}
                 onClick={() => {
-                  const success = completeCampaign(campaign.id);
-                  if (success) {
-                    alert(`Claimed ${campaign.rewardAmount} ${campaign.rewardToken} successfully!`);
+                  if (hasVisited) {
+                    handleClaim(campaign.id);
+                  } else {
+                    handleVisit(campaign.id, campaign.miniAppUrl);
                   }
                 }}
                 className={`h-7 px-3.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${
-                  isClaimed || campaign.remainingClicks <= 0
+                  isCompleted || isClaimed
                     ? "cursor-default bg-green-500/10 text-green-400 border border-green-500/10"
                     : "bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400] text-[#171717] shadow-lg hover:brightness-110"
                 }`}
               >
-                {isClaimed ? "DONE" : campaign.remainingClicks <= 0 ? "ENDED" : "GO"}
+                {isCompleted ? "DONE" : hasVisited ? "CLAIM NOW" : "CLAIM"}
               </button>
             </div>
           </div>
@@ -113,23 +135,31 @@ export default function CampaignCard() {
         </div>
 
         <div className="space-y-2">
-          {readyToEarn.map(renderCard)}
+          {readyToEarn.length > 0 ? (
+            readyToEarn.map(renderCard)
+          ) : (
+            <div className="py-8 text-center border border-dashed border-white/5 rounded-2xl">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">No active campaigns</p>
+            </div>
+          )}
         </div>
       </section>
 
       {/* AVAILABLE */}
-      <section>
-        <div className="mb-2.5 flex items-center gap-2 px-1">
-          <div className="h-1.5 w-1.5 rounded-full bg-slate-500" />
-          <h2 className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-500">
-            Available Soon
-          </h2>
-        </div>
+      {available.length > 0 && (
+        <section>
+          <div className="mb-2.5 flex items-center gap-2 px-1">
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-500" />
+            <h2 className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-500">
+              Completed
+            </h2>
+          </div>
 
-        <div className="space-y-2">
-          {available.map(renderCard)}
-        </div>
-      </section>
+          <div className="space-y-2">
+            {available.map(renderCard)}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

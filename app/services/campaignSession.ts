@@ -11,38 +11,7 @@ export const CAMPAIGN_SESSION_EVENT =
   "pufi-campaign-session-changed";
 
 const DEFAULT_STATE: CampaignState = {
-  campaigns: [
-    {
-      id: "daily-checkin",
-      title: "Daily Check-In",
-      description: "Complete today's daily check-in.",
-      logo: "",
-      rewardToken: "PUFI",
-      rewardAmount: 1,
-      miniAppUrl: "https://worldcoin.org",
-      budget: 1000,
-      totalClicks: 1000,
-      remainingClicks: 1000,
-      status: "ACTIVE",
-      createdAt: new Date().toISOString(),
-      createdBy: "system",
-    },
-    {
-      id: "first-reward",
-      title: "First Reward",
-      description: "Claim your first reward.",
-      logo: "",
-      rewardToken: "PUFI",
-      rewardAmount: 20,
-      miniAppUrl: "https://worldcoin.org",
-      budget: 2000,
-      totalClicks: 100,
-      remainingClicks: 100,
-      status: "ACTIVE",
-      createdAt: new Date().toISOString(),
-      createdBy: "system",
-    },
-  ],
+  campaigns: [],
 };
 
 let session: CampaignState | null = null;
@@ -68,27 +37,51 @@ function ensureState(): CampaignState {
         STORAGE_KEY
       ) ?? DEFAULT_STATE;
 
-    // Lightweight migration for legacy campaigns
+    // Migration logic
     let migrated = false;
-    session.campaigns = (session.campaigns as unknown[]).map((item) => {
+    session.campaigns = (session.campaigns as unknown as Record<string, unknown>[]).map((item) => {
       let updated = false;
-      const campaign = { ...(item as Record<string, unknown>) };
+      const campaign = { ...item };
 
-      if (campaign.remainingClicks === undefined) {
-        campaign.remainingClicks = campaign.totalClicks ?? 0;
+      // Migrate totalClicks/remainingClicks to maxClaims/claimedCount
+      if (campaign.maxClaims === undefined) {
+        campaign.maxClaims = campaign.totalClicks ?? 0;
+        updated = true;
+      }
+      if (campaign.claimedCount === undefined) {
+        const remaining = (campaign.remainingClicks as number) ?? (campaign.totalClicks as number) ?? 0;
+        campaign.claimedCount = ((campaign.totalClicks as number) ?? 0) - remaining;
         updated = true;
       }
 
-      if (campaign.logo === undefined) {
-        campaign.logo = "";
+      // Cleanup old fields
+      if (campaign.totalClicks !== undefined) {
+        delete campaign.totalClicks;
         updated = true;
+      }
+      if (campaign.remainingClicks !== undefined) {
+        delete campaign.remainingClicks;
+        updated = true;
+      }
+
+      // Update Status to LIVE/COMPLETED
+      if ((campaign.claimedCount as number) >= (campaign.maxClaims as number)) {
+        if (campaign.status !== "COMPLETED") {
+          campaign.status = "COMPLETED";
+          updated = true;
+        }
+      } else {
+        if (campaign.status !== "LIVE" && campaign.status !== "PAUSED" && campaign.status !== "ENDED") {
+          campaign.status = "LIVE";
+          updated = true;
+        }
       }
 
       if (updated) {
         migrated = true;
         return campaign as unknown as Campaign;
       }
-      return item as Campaign;
+      return item as unknown as Campaign;
     });
 
     if (migrated) {
@@ -123,6 +116,28 @@ export function addCampaign(campaign: Campaign): void {
   const state = ensureState();
   const updated = [...state.campaigns, campaign];
   saveCampaigns(updated);
+}
+
+export function updateCampaign(campaign: Campaign): boolean {
+  const state = ensureState();
+  const exists = state.campaigns.some((c) => c.id === campaign.id);
+  if (!exists) return false;
+
+  const updated = state.campaigns.map((c) =>
+    c.id === campaign.id ? campaign : c
+  );
+  saveCampaigns(updated);
+  return true;
+}
+
+export function deleteCampaign(id: string): boolean {
+  const state = ensureState();
+  const exists = state.campaigns.some((c) => c.id === id);
+  if (!exists) return false;
+
+  const updated = state.campaigns.filter((c) => c.id !== id);
+  saveCampaigns(updated);
+  return true;
 }
 
 export function resetCampaigns(): void {

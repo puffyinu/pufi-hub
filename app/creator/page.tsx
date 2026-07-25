@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
 import { useCampaign } from "@/app/hooks/useCampaign";
 import { Campaign } from "@/app/types/campaign";
+import { updateCampaign, deleteCampaign, addPool } from "@/app/services/campaignEngine";
+import EditCampaignModal from "@/app/components/EditCampaignModal";
+
+const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
 
 export default function CreatorPage() {
   const { campaigns } = useCampaign();
@@ -97,70 +102,137 @@ function SectionTitle({ title }: { title: string }) {
 
 function EmptySlot() {
   return (
-    <div className="mb-4 flex h-[200px] flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] shadow-inner">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">Available Slot</p>
+    <div className="mb-4 flex h-[200px] flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] shadow-inner transition-all hover:bg-white/[0.05]">
+      <Link href="/creator/create" className="flex flex-col items-center justify-center">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Available Slot</p>
+        <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-violet-500">Create Campaign →</p>
+      </Link>
     </div>
   );
 }
 
 function CampaignCard({ campaign }: { campaign: Campaign }) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const handleSaveEdit = (values: Partial<Campaign>) => {
+    updateCampaign({ 
+      ...campaign, 
+      ...values 
+    });
+  };
+
+  const handleAddPool = () => {
+    const amount = prompt("Enter additional claims count:", "100");
+    if (amount) {
+      const claims = parseInt(amount);
+      if (!isNaN(claims) && claims > 0) {
+        addPool(campaign.id, claims, claims * campaign.rewardAmount);
+        alert(`Successfully added ${claims} claims to the pool!`);
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    if (confirm(`Are you sure you want to delete "${campaign.title}"?`)) {
+      setIsDeleting(true);
+      const success = deleteCampaign(campaign.id);
+      if (!success) setIsDeleting(false);
+    }
+  };
+
+  if (isDeleting) return null;
+
   return (
-    <div className="mb-4 rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl shadow-xl">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20 text-2xl">
-          {campaign.logo ? <img src={campaign.logo} alt="" className="w-full h-full object-cover rounded-xl" /> : "🚀"}
-        </div>
-
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-white text-sm line-clamp-1">{campaign.title}</h3>
-            <span className={`rounded-md px-2 py-0.5 text-[9px] font-black tracking-widest ${campaign.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-slate-500/10 text-slate-400'}`}>
-              {campaign.status === 'ACTIVE' ? '🟢 LIVE' : '⚪️ ENDED'}
-            </span>
+    <>
+      <div className="mb-4 rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20 text-2xl overflow-hidden">
+            <img 
+              src={campaign.logo || DEFAULT_LOGO} 
+              alt="" 
+              className="w-full h-full object-cover rounded-xl" 
+              onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_LOGO; }}
+            />
           </div>
-          <p className="mt-1 text-xs text-slate-400 line-clamp-1">
-            {campaign.description}
-          </p>
+
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white text-sm line-clamp-1">{campaign.title}</h3>
+              <span className={`rounded-md px-2 py-0.5 text-[9px] font-black tracking-widest ${campaign.status === 'LIVE' ? 'bg-green-500/10 text-green-400' : 'bg-slate-500/10 text-slate-400'}`}>
+                {campaign.status === 'LIVE' ? '🟢 LIVE' : `⚪️ ${campaign.status}`}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-400 line-clamp-1">
+              {campaign.description}
+            </p>
+          </div>
+        </div>
+
+        <div className="my-4 h-px bg-white/5" />
+
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Budget</div>
+            <div className="text-sm font-bold text-white">{campaign.budget.toLocaleString()} {campaign.rewardToken}</div>
+          </div>
+          <div className="border-x border-white/5">
+            <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Progress</div>
+            <div className="text-sm font-bold text-white">{campaign.claimedCount} / {campaign.maxClaims}</div>
+          </div>
+          <div>
+            <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Reward</div>
+            <div className="text-sm font-bold text-white">{campaign.rewardAmount} {campaign.rewardToken}</div>
+          </div>
+        </div>
+
+        <div className="my-4 h-px bg-white/5" />
+
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setShowEditModal(true)}
+            className="flex-1 rounded-xl bg-white/5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all hover:bg-white/10 active:scale-95"
+          >
+            EDIT
+          </button>
+          <button 
+            onClick={handleAddPool}
+            className="flex-1 rounded-xl bg-violet-600/20 py-2 text-[10px] font-black uppercase tracking-widest text-violet-400 transition-all hover:bg-violet-600/30 active:scale-95"
+          >
+            ADD POOL
+          </button>
+          <button 
+            onClick={handleDelete}
+            className="flex-1 rounded-xl bg-red-500/10 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/20 active:scale-95"
+          >
+            DELETE
+          </button>
         </div>
       </div>
 
-      <div className="my-4 h-px bg-white/5" />
-
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div>
-          <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Budget</div>
-          <div className="text-sm font-bold text-white">{campaign.budget} {campaign.rewardToken}</div>
-        </div>
-        <div className="border-x border-white/5">
-          <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Left</div>
-          <div className="text-sm font-bold text-white">{campaign.remainingClicks}</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Reward</div>
-          <div className="text-sm font-bold text-white">{campaign.rewardAmount} {campaign.rewardToken}</div>
-        </div>
-      </div>
-
-      <div className="my-4 h-px bg-white/5" />
-
-      <div className="flex gap-2">
-        <button className="flex-1 rounded-xl bg-white/5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all opacity-50 cursor-not-allowed">
-          EDIT
-        </button>
-        <button className="flex-1 rounded-xl bg-violet-600/20 py-2 text-[10px] font-black uppercase tracking-widest text-violet-400 transition-all opacity-50 cursor-not-allowed">
-          ADD POOL
-        </button>
-        <button className="flex-1 rounded-xl bg-red-500/10 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 transition-all opacity-50 cursor-not-allowed">
-          DELETE
-        </button>
-      </div>
-    </div>
+      {showEditModal && (
+        <EditCampaignModal
+          campaign={campaign}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleSaveEdit}
+        />
+      )}
+    </>
   );
 }
 
 function LockedSlot({ price }: { price: string }) {
+  const handleUnlock = () => {
+    if (confirm(`Unlock premium slot for ${price}?`)) {
+      alert("Mock Transaction Success! Premium slot unlocked.");
+    }
+  };
+
   return (
-    <div className="mb-4 flex flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] py-8 shadow-inner">
+    <div 
+      onClick={handleUnlock}
+      className="mb-4 flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] py-8 shadow-inner transition-all hover:bg-white/[0.05]"
+    >
       <div className="mb-3 text-3xl opacity-40 grayscale">🔒</div>
       <h3 className="text-sm font-bold text-white/60">Unlock Slot</h3>
       <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">One-Time Payment</p>

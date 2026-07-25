@@ -1,9 +1,10 @@
 export type CampaignStatus =
-  | "ACTIVE"
+  | "LIVE"
   | "CLAIMED"
   | "COMPLETED"
   | "PAUSED"
-  | "ENDED";
+  | "ENDED"
+  | "ACTIVE"; // Keep ACTIVE for backward compatibility during migration
 
 export interface Campaign {
   id: string;
@@ -14,8 +15,8 @@ export interface Campaign {
   rewardToken: string;
   rewardAmount: number;
   budget: number;
-  totalClicks: number;
-  remainingClicks: number;
+  maxClaims: number;
+  claimedCount: number;
   status: CampaignStatus;
   createdAt: string;
   createdBy: string;

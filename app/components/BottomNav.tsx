@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type NavKey =
   | "campaign"
@@ -23,31 +24,31 @@ export default function BottomNav({
     {
       key: "campaign" as NavKey,
       label: "Campaign",
-      icon: "📢",
+      icon: "/icons/navigation/campaign.png",
       href: "/campaign",
     },
     {
       key: "claim" as NavKey,
       label: "Claim",
-      icon: "🎁",
+      icon: "/icons/navigation/dailyclaim.png",
       href: "/claim",
     },
     {
       key: "dashboard" as NavKey,
       label: "Dashboard",
-      icon: "🏠",
+      icon: "/icons/navigation/dashboard.png",
       href: "/dashboard",
     },
     {
       key: "wallet" as NavKey,
       label: "Wallet",
-      icon: "👛",
+      icon: "/icons/navigation/wallet.png",
       href: "#",
     },
     {
       key: "creator" as NavKey,
       label: "Creator",
-      icon: "🛠",
+      icon: "/icons/navigation/creator.png",
       href: "/creator",
     },
   ];
@@ -91,9 +92,16 @@ export default function BottomNav({
                 <div className="absolute -top-3 h-1 w-6 rounded-full bg-[#FFC857] blur-[2px]" />
               )}
 
-              <span className={`text-xl leading-none transition-transform ${isActive ? "scale-110 -translate-y-0.5" : ""}`}>
-                {item.icon}
-              </span>
+              <div className={`relative h-7 w-7 transition-all duration-300 ${isActive ? "scale-110 -translate-y-0.5" : "opacity-70 brightness-75 scale-[0.98]"}`}>
+                <Image
+                  src={item.icon}
+                  alt={item.label}
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                  priority={isActive}
+                />
+              </div>
 
               <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${isActive ? "opacity-100" : "opacity-60"}`}>
                 {item.label}

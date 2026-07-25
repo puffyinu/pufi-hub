@@ -3,17 +3,14 @@
 const rewards = [
   {
     token: "PUFI",
-    amount: "10 PUFI",
     icon: "🟣",
   },
   {
     token: "USDC",
-    amount: "2.50 USDC",
     icon: "💵",
   },
   {
     token: "WLD",
-    amount: "0.15 WLD",
     icon: "🌐",
   },
 ];
@@ -35,12 +32,8 @@ export default function RewardsClaimsCard() {
               {reward.icon}
             </div>
 
-            <div className="text-[7.5px] font-black tracking-widest text-white uppercase">
+            <div className="mb-2 text-[7.5px] font-black tracking-widest text-white uppercase">
               {reward.token}
-            </div>
-
-            <div className="mt-0.5 mb-2 text-[8px] font-bold text-slate-400">
-              {reward.amount}
             </div>
 
             <button className="w-full rounded-lg bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400] py-0.5 text-[6.5px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110">

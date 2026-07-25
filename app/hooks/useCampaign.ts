@@ -7,20 +7,20 @@ import {
 } from "@/app/services/campaignSession";
 
 import {
-  getCampaignList,
-  completeCampaign,
+  getCampaigns,
+  recordClaim,
   resetCampaigns,
   createCampaign,
 } from "@/app/services/campaignEngine";
 
 export function useCampaign() {
   const [campaigns, setCampaigns] =
-    useState(getCampaignList());
+    useState(getCampaigns());
 
   useEffect(() => {
     const sync = () => {
       setCampaigns(
-        getCampaignList()
+        getCampaigns()
       );
     };
 
@@ -41,7 +41,7 @@ export function useCampaign() {
 
   return {
     campaigns,
-    completeCampaign,
+    recordClaim,
     resetCampaigns,
     createCampaign,
   };
