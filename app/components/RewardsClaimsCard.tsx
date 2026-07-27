@@ -29,12 +29,12 @@ export default function RewardsClaimsCard() {
     },
     {
       token: "USDC",
-      icon: "💵", // Official USDC icon unavailable
+      icon: "/images/iconusd/iconusd.png",
       amount: reward.pendingByToken?.["USDC"] || 0,
     },
     {
       token: "WLD",
-      icon: "🌐", // Official WLD icon unavailable
+      icon: "/images/iconwld/iconwld.png",
       amount: reward.pendingByToken?.["WLD"] || 0,
     },
   ];
