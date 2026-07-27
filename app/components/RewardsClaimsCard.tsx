@@ -18,7 +18,13 @@ export default function RewardsClaimsCard() {
   };
 
   const formatAmount = (val: number) => {
-    return Number.isInteger(val) ? val.toString() : val.toFixed(3);
+    // Round to 6 decimals to remove floating point errors before formatting
+    const rounded = Math.round(val * 1e6) / 1e6;
+    if (Number.isInteger(rounded)) {
+      return rounded.toString();
+    }
+    // For non-integers, use 3 decimals
+    return rounded.toFixed(3);
   };
 
   const rewardItems = [

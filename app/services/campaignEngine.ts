@@ -102,7 +102,7 @@ export function addPool(id: string, additionalClaims: number, additionalBudget: 
     ...campaign,
     maxClaims: campaign.maxClaims + additionalClaims,
     // Stabilize budget arithmetic
-    budget: Number((campaign.budget + additionalBudget).toFixed(6)),
+    budget: Math.round((campaign.budget + additionalBudget) * 1e6) / 1e6,
     status: "LIVE", // Reactivate if it was completed
   };
 
@@ -158,8 +158,8 @@ export function recordClaim(id: string): boolean {
     
     // Stabilize arithmetic to prevent floating point drift (e.g. 0.1 + 0.2 = 0.30000000000000004)
     // We use a precision of 6 decimals which is sufficient for PUFI/USDC/WLD business logic
-    const nextPending = Number(((rewardState.pending || 0) + campaign.rewardAmount).toFixed(6));
-    const nextTokenAmount = Number((currentTokenAmount + campaign.rewardAmount).toFixed(6));
+    const nextPending = Math.round(((rewardState.pending || 0) + campaign.rewardAmount) * 1e6) / 1e6;
+    const nextTokenAmount = Math.round((currentTokenAmount + campaign.rewardAmount) * 1e6) / 1e6;
 
     setRewardState({
       pending: nextPending,

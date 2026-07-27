@@ -131,6 +131,16 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
     onConfirm: () => {},
   });
 
+  const formatAmount = (value: number) => {
+    // Round to 6 decimals to remove floating point errors before formatting
+    const rounded = Math.round(value * 1e6) / 1e6;
+    if (Number.isInteger(rounded)) {
+      return rounded.toLocaleString();
+    }
+    // For non-integers, use 3 decimals
+    return rounded.toFixed(3);
+  };
+
   const handleSaveEdit = (values: Partial<Campaign>) => {
     updateCampaign({ 
       ...campaign, 
@@ -141,7 +151,9 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   const handleAddPool = () => {
     // Simplified: Always add 100 claims for now to avoid prompt()
     const claims = 100;
-    addPool(campaign.id, claims, claims * campaign.rewardAmount);
+    // Stabilize arithmetic
+    const additionalBudget = Math.round((claims * campaign.rewardAmount) * 1e6) / 1e6;
+    addPool(campaign.id, claims, additionalBudget);
     setFeedback({
       isOpen: true,
       type: "alert",
@@ -200,7 +212,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
           <div>
             <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Budget</div>
             <div className="text-sm font-bold text-white">
-              {Number.isInteger(campaign.budget || 0) ? (campaign.budget || 0).toLocaleString() : Number((campaign.budget || 0).toFixed(3)).toLocaleString()} {campaign.rewardToken || "PUFI"}
+              {formatAmount(campaign.budget || 0)} {campaign.rewardToken || "PUFI"}
             </div>
           </div>
           <div className="border-x border-white/5">
@@ -210,7 +222,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
           <div>
             <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Reward</div>
             <div className="text-sm font-bold text-white">
-              {Number.isInteger(campaign.rewardAmount || 0) ? (campaign.rewardAmount || 0) : Number((campaign.rewardAmount || 0).toFixed(3))} {campaign.rewardToken || "PUFI"}
+              {formatAmount(campaign.rewardAmount || 0)} {campaign.rewardToken || "PUFI"}
             </div>
           </div>
         </div>

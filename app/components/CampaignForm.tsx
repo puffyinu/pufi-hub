@@ -48,8 +48,8 @@ export default function CampaignForm({
     }
 
     // Stabilize arithmetic values before submission to avoid precision drift
-    const stabilizedReward = Number(Number(rewardPerClick).toFixed(6));
-    const stabilizedBudget = Number(Number(poolAmount).toFixed(6));
+    const stabilizedReward = Math.round(Number(rewardPerClick) * 1e6) / 1e6;
+    const stabilizedBudget = Math.round(Number(poolAmount) * 1e6) / 1e6;
 
     onSubmit({
       title,
@@ -64,22 +64,27 @@ export default function CampaignForm({
   };
 
   const formatAmount = (value: number) => {
+    // Round to 6 decimals to remove floating point errors before formatting
+    const rounded = Math.round(value * 1e6) / 1e6;
+    if (Number.isInteger(rounded)) {
+      return rounded.toString();
+    }
     if (rewardToken === "PUFI") {
-      return Number.isInteger(value) ? value.toString() : value.toFixed(2);
+      return rounded.toFixed(2);
     }
     // Use 3 decimals for other tokens but only if they are not integers
-    return Number.isInteger(value) ? value.toString() : value.toFixed(3);
+    return rounded.toFixed(3);
   };
 
   const platformFee = useMemo(() => {
     const pool = Number(poolAmount);
     if (!pool) return 0;
-    return Number((pool * 0.3).toFixed(6));
+    return Math.round((pool * 0.3) * 1e6) / 1e6;
   }, [poolAmount]);
 
   const totalPayment = useMemo(() => {
     const pool = Number(poolAmount);
-    return Number((pool + platformFee).toFixed(6));
+    return Math.round((pool + platformFee) * 1e6) / 1e6;
   }, [poolAmount, platformFee]);
 
   return (
@@ -186,11 +191,16 @@ export default function CampaignForm({
           <div>
             <label style={labelStyle}>POOL AMOUNT (MIN 1)</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={poolAmount}
-              onChange={(e) => setPoolAmount(e.target.value)}
+              onChange={(e) => {
+                // Allow only digits
+                const val = e.target.value.replace(/[^0-9]/g, "");
+                setPoolAmount(val);
+              }}
               style={inputStyle}
-              placeholder="0.00"
+              placeholder="0"
             />
           </div>
 
@@ -202,10 +212,16 @@ export default function CampaignForm({
               {rewardToken === "PUFI" ? "1" : "0.001"})
             </div>
             <input
-              type="number"
-              step={rewardToken === "PUFI" ? "1" : "0.001"}
+              type="text"
+              inputMode="decimal"
               value={rewardPerClick}
-              onChange={(e) => setRewardPerClick(e.target.value)}
+              onChange={(e) => {
+                // Allow digits and one dot
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                const parts = val.split(".");
+                if (parts.length > 2) return; // Ignore if more than one dot
+                setRewardPerClick(val);
+              }}
               style={inputStyle}
               placeholder="0.00"
             />

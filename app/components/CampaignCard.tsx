@@ -142,6 +142,16 @@ export default function CampaignCard() {
     }
   };
 
+  const formatAmount = (value: number) => {
+    // Round to 6 decimals to remove floating point errors before formatting
+    const rounded = Math.round(value * 1e6) / 1e6;
+    if (Number.isInteger(rounded)) {
+      return rounded.toString();
+    }
+    // For non-integers, use 3 decimals
+    return rounded.toFixed(3);
+  };
+
   const renderCard = (
     campaign: (typeof campaigns)[number]
   ) => {
@@ -203,7 +213,7 @@ export default function CampaignCard() {
                   Reward
                 </p>
                 <p className="text-[13px] font-black text-[#FFC857] tracking-tight">
-                  {Number.isInteger(campaign.rewardAmount || 0) ? (campaign.rewardAmount || 0) : Number((campaign.rewardAmount || 0).toFixed(3))} <span className="text-[7.5px]">{campaign.rewardToken || "PUFI"}</span>
+                  {formatAmount(campaign.rewardAmount || 0)} <span className="text-[7.5px]">{campaign.rewardToken || "PUFI"}</span>
                 </p>
                 <p className="text-[6px] font-bold text-slate-400">
                   PROGRESS {campaign.claimedCount} / {campaign.maxClaims}
