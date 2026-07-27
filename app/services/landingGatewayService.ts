@@ -2,6 +2,8 @@ import { isMiniKitReady } from "@/app/runtime/minikitManager";
 import { login } from "@/app/runtime/auth";
 import { isDevelopmentRuntime } from "@/app/runtime/runtimeMode";
 import { createDevelopmentSession } from "@/app/runtime/development";
+import { WORLD_CONFIG } from "@/app/config/world";
+import { getRuntimeHealth } from "@/app/services/runtimeHealth";
 
 export interface LandingGatewayResult {
   success: boolean;
@@ -22,6 +24,24 @@ export async function executeLandingGateway(): Promise<LandingGatewayResult> {
       await createDevelopmentSession();
       return {
         success: true,
+      };
+    }
+
+    if (!WORLD_CONFIG.appId || WORLD_CONFIG.appId.trim() === "") {
+      console.error("[TRACE] Missing NEXT_PUBLIC_WORLD_APP_ID");
+      return {
+        success: false,
+        error: "World App is not configured. Missing NEXT_PUBLIC_WORLD_APP_ID.",
+      };
+    }
+
+    const health = getRuntimeHealth();
+    console.log("[RUNTIME HEALTH]", health);
+
+    if (health.initialized === true && health.miniKitReady === false) {
+      return {
+        success: false,
+        error: "MiniKit runtime is not available.",
       };
     }
 
