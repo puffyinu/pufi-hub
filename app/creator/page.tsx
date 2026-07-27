@@ -8,6 +8,7 @@ import { useCampaign } from "@/app/hooks/useCampaign";
 import { Campaign } from "@/app/types/campaign";
 import { updateCampaign, deleteCampaign, addPool } from "@/app/services/campaignEngine";
 import EditCampaignModal from "@/app/components/EditCampaignModal";
+import AddPoolModal from "@/app/components/AddPoolModal";
 import UIFeedback from "@/app/components/UIFeedback";
 
 const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
@@ -115,6 +116,7 @@ function EmptySlot() {
 function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddPoolModal, setShowAddPoolModal] = useState(false);
   
   // Feedback State
   const [feedback, setFeedback] = useState<{
@@ -148,17 +150,13 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
     });
   };
 
-  const handleAddPool = () => {
-    // Simplified: Always add 100 claims for now to avoid prompt()
-    const claims = 100;
-    // Stabilize arithmetic
-    const additionalBudget = Math.round((claims * campaign.rewardAmount) * 1e6) / 1e6;
-    addPool(campaign.id, claims, additionalBudget);
+  const handleConfirmAddPool = (token: string, amount: number, clicks: number) => {
+    addPool(campaign.id, clicks, amount, token);
     setFeedback({
       isOpen: true,
       type: "alert",
       title: "Pool Updated",
-      message: `Successfully added ${claims} claims to the pool!`,
+      message: `Successfully added ${clicks} claims to the pool!`,
       onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
     });
   };
@@ -179,6 +177,9 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   };
 
   if (isDeleting) return null;
+
+  const remainingClicks = campaign.maxClaims - campaign.claimedCount;
+  const isActive = campaign.status === "LIVE" && remainingClicks > 0;
 
   return (
     <>
@@ -227,28 +228,32 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
           </div>
         </div>
 
-        <div className="my-4 h-px bg-white/5" />
+        {!isActive && (
+          <>
+            <div className="my-4 h-px bg-white/5" />
 
-        <div className="flex gap-2">
-          <button 
-            onClick={() => setShowEditModal(true)}
-            className="flex-1 rounded-xl bg-white/5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all hover:bg-white/10 active:scale-95"
-          >
-            EDIT
-          </button>
-          <button 
-            onClick={handleAddPool}
-            className="flex-1 rounded-xl bg-violet-600/20 py-2 text-[10px] font-black uppercase tracking-widest text-violet-400 transition-all hover:bg-violet-600/30 active:scale-95"
-          >
-            ADD POOL
-          </button>
-          <button 
-            onClick={handleDelete}
-            className="flex-1 rounded-xl bg-red-500/10 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/20 active:scale-95"
-          >
-            DELETE
-          </button>
-        </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowEditModal(true)}
+                className="flex-1 rounded-xl bg-white/5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all hover:bg-white/10 active:scale-95"
+              >
+                EDIT
+              </button>
+              <button 
+                onClick={() => setShowAddPoolModal(true)}
+                className="flex-1 rounded-xl bg-violet-600/20 py-2 text-[10px] font-black uppercase tracking-widest text-violet-400 transition-all hover:bg-violet-600/30 active:scale-95"
+              >
+                ADD POOL
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="flex-1 rounded-xl bg-red-500/10 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/20 active:scale-95"
+              >
+                DELETE
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {showEditModal && (
@@ -256,6 +261,14 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
           campaign={campaign}
           onClose={() => setShowEditModal(false)}
           onSave={handleSaveEdit}
+        />
+      )}
+
+      {showAddPoolModal && (
+        <AddPoolModal
+          campaign={campaign}
+          onClose={() => setShowAddPoolModal(false)}
+          onConfirm={handleConfirmAddPool}
         />
       )}
 

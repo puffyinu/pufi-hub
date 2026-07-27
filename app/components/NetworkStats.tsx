@@ -1,33 +1,37 @@
 "use client";
 
-const STATS = [
-  {
-    label: "Campaigns Joined",
-    value: "0",
-    icon: "🎯",
-  },
-  {
-    label: "Claims",
-    value: "0",
-    icon: "🎁",
-  },
-  {
-    label: "Total Rewards",
-    value: "0 PUFI",
-    icon: "💰",
-  },
-  {
-    label: "Activity Log",
-    value: "0",
-    icon: "📈",
-  },
-];
+import { useLanguage } from "@/app/context/LanguageContext";
 
 export default function NetworkStats() {
+  const { t } = useLanguage();
+
+  const STATS = [
+    {
+      label: t("campaigns_joined"),
+      value: "0",
+      icon: "🎯",
+    },
+    {
+      label: t("claim"),
+      value: "0",
+      icon: "🎁",
+    },
+    {
+      label: t("total_rewards"),
+      value: "0 PUFI",
+      icon: "💰",
+    },
+    {
+      label: t("activity_log"),
+      value: "0",
+      icon: "📈",
+    },
+  ];
+
   return (
     <div className="mx-4 mb-4">
       <h3 className="text-[#FFC857]/40 text-[9px] font-black uppercase tracking-[0.4em] mb-3 px-2">
-        Performance Hub
+        {t("performance_hub")}
       </h3>
 
       <div className="grid grid-cols-2 gap-2.5">

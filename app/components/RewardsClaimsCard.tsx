@@ -92,7 +92,7 @@ export default function RewardsClaimsCard() {
             key={item.token}
             className="flex flex-1 flex-col items-center rounded-[16px] border border-white/10 bg-white/5 p-1.5 backdrop-blur-xl transition-all hover:bg-white/10"
           >
-            <div className="mb-0.5 relative h-5 w-5 flex items-center justify-center">
+            <div className="mb-0.5 relative h-6 w-6 flex items-center justify-center">
               {item.icon.startsWith("/") ? (
                 <Image 
                   src={item.icon} 
@@ -101,22 +101,22 @@ export default function RewardsClaimsCard() {
                   className="object-contain" 
                 />
               ) : (
-                <span className="text-lg">{item.icon}</span>
+                <span className="text-xl">{item.icon}</span>
               )}
             </div>
 
-            <div className="text-[10px] font-black text-white mb-0.5">
+            <div className="text-[11px] font-black text-white mb-0.5">
               {formatAmount(item.amount)}
             </div>
 
-            <div className="mb-2 text-[7.5px] font-black tracking-widest text-slate-400 uppercase">
+            <div className="mb-2 text-[8px] font-black tracking-widest text-slate-400 uppercase">
               {item.token}
             </div>
 
             <button 
               disabled={item.amount === 0 || transactionLoading}
               onClick={() => handleClaim(item.token, item.amount)}
-              className={`w-full rounded-lg py-0.5 text-[6.5px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110 ${
+              className={`w-full rounded-lg py-1 text-[7px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110 ${
                 item.amount > 0 && !transactionLoading
                 ? "bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400]" 
                 : "bg-white/10 text-white/30 cursor-not-allowed"

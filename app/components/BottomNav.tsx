@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useLanguage } from "@/app/context/LanguageContext";
 
 type NavKey =
   | "campaign"
@@ -18,36 +19,37 @@ export default function BottomNav({
   active = "dashboard",
 }: BottomNavProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const HOLDSTATION_URL = "https://worldcoin.org/mini-app?app_id=app_0d4b759921490adc1f2bd569fda9b53a&app_mode=mini-app";
 
   const navItems = [
     {
       key: "campaign" as NavKey,
-      label: "Campaign",
+      label: t("campaign"),
       icon: "/icons/navigation/campaign.png",
       href: "/campaign",
     },
     {
       key: "claim" as NavKey,
-      label: "Claim",
+      label: t("claim"),
       icon: "/icons/navigation/dailyclaim.png",
       href: "/claim",
     },
     {
       key: "dashboard" as NavKey,
-      label: "Dashboard",
+      label: t("dashboard"),
       icon: "/icons/navigation/dashboard.png",
       href: "/dashboard",
     },
     {
       key: "wallet" as NavKey,
-      label: "Wallet",
+      label: t("wallet"),
       icon: "/icons/navigation/wallet.png",
       href: "#",
     },
     {
       key: "creator" as NavKey,
-      label: "Creator",
+      label: t("creator"),
       icon: "/icons/navigation/creator.png",
       href: "/creator",
     },

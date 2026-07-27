@@ -15,8 +15,8 @@ export default function EditCampaignModal({
   onSave,
 }: EditCampaignModalProps) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md">
-      <div className="w-full max-w-[500px] max-h-[90vh] overflow-y-auto rounded-[32px] border border-white/10 bg-[#0D1125] p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex justify-center bg-black/80 px-4 py-8 backdrop-blur-md overflow-y-auto">
+      <div className="h-fit w-full max-w-[500px] rounded-[32px] border border-white/10 bg-[#0D1125] p-6 shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-black uppercase tracking-tight text-white">
             Edit Campaign

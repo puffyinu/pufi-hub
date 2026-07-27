@@ -3,11 +3,13 @@
 import { useSyncExternalStore } from "react";
 import Image from "next/image";
 import { useWallet } from "@/app/hooks/useWallet";
+import { useLanguage } from "@/app/context/LanguageContext";
 
 const subscribe = () => () => {};
 
 export default function IdentityCard() {
   const { wallet } = useWallet();
+  const { t } = useLanguage();
   const isMounted = useSyncExternalStore(
     subscribe,
     () => true,
@@ -41,7 +43,7 @@ export default function IdentityCard() {
                   <span className="text-[8px]">🟢</span>
                 </div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-                  Verified
+                  {t("verified")}
                 </span>
               </div>
 
@@ -58,8 +60,8 @@ export default function IdentityCard() {
                   }`}
                 >
                   {isMounted && wallet.connected
-                    ? "Connected"
-                    : "Disconnected"}
+                    ? t("connected")
+                    : t("disconnected")}
                 </span>
               </div>
             </div>
@@ -68,7 +70,7 @@ export default function IdentityCard() {
 
         {/* Right */}
         <div className="rounded-xl bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/20">
-          Human
+          {t("human")}
         </div>
       </div>
     </section>

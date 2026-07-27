@@ -93,13 +93,14 @@ export function updateCampaign(campaign: Campaign): boolean {
 /**
  * Adds more claims to the pool (ADD POOL).
  */
-export function addPool(id: string, additionalClaims: number, additionalBudget: number): boolean {
+export function addPool(id: string, additionalClaims: number, additionalBudget: number, rewardToken?: string): boolean {
   const campaigns = getSessionCampaigns();
   const campaign = campaigns.find((c) => c.id === id);
   if (!campaign) return false;
 
   const updatedCampaign: Campaign = {
     ...campaign,
+    rewardToken: rewardToken || campaign.rewardToken,
     maxClaims: campaign.maxClaims + additionalClaims,
     // Stabilize budget arithmetic
     budget: Math.round((campaign.budget + additionalBudget) * 1e6) / 1e6,

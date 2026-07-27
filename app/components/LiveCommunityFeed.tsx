@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/app/context/LanguageContext";
+
 const MOCK_DATA = [
   {
     icon: "🪙",
@@ -19,16 +21,18 @@ const MOCK_DATA = [
 ];
 
 export default function LiveCommunityFeed() {
+  const { t } = useLanguage();
+
   return (
     <div className="mx-4 mb-5">
       <div className="flex justify-between items-center mb-3 px-2">
         <h3 className="text-[#FFC857]/40 text-[9px] font-black uppercase tracking-[0.4em]">
-          Community Stream
+          {t("community_stream")}
         </h3>
 
         <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/20">
           <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">
-            Live
+            {t("live")}
           </span>
 
           <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
