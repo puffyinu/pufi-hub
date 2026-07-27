@@ -7,6 +7,7 @@ import BottomNav from "@/app/components/BottomNav";
 import { executeDailyClaim } from "@/app/services/dailyClaimService";
 import { useTransaction } from "@/app/hooks/useTransaction";
 import UIFeedback from "@/app/components/UIFeedback";
+import { encodeFunctionData } from "viem";
 
 type ClaimState = "idle" | "loading" | "claimed";
 
@@ -32,20 +33,23 @@ export default function ClaimPage() {
       await send({
         transactions: [
           {
-            address: "0x0000000000000000000000000000000000000000",
-            abi: [
-              {
-                name: "claimDailyReward",
-                type: "function",
-                stateMutability: "nonpayable",
-                inputs: [],
-                outputs: [],
-              },
-            ],
-            functionName: "claimDailyReward",
-            args: [],
+            to: "0x0000000000000000000000000000000000000000",
+            data: encodeFunctionData({
+              abi: [
+                {
+                  name: "claimDailyReward",
+                  type: "function",
+                  stateMutability: "nonpayable",
+                  inputs: [],
+                  outputs: [],
+                },
+              ],
+              functionName: "claimDailyReward",
+              args: [],
+            }),
           },
         ],
+        chainId: 480, // World Chain Mainnet
       });
 
       setCountdown("23:59:59");

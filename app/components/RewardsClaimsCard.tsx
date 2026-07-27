@@ -6,6 +6,7 @@ import { useReward } from "@/app/hooks/useReward";
 import { useTransaction } from "@/app/hooks/useTransaction";
 import { prepareRewardClaim } from "@/app/services/rewardClaimEngine";
 import UIFeedback from "./UIFeedback";
+import { encodeFunctionData } from "viem";
 
 export default function RewardsClaimsCard() {
   const { reward } = useReward();
@@ -23,23 +24,26 @@ export default function RewardsClaimsCard() {
       await send({
         transactions: [
           {
-            address: "0x0000000000000000000000000000000000000000",
-            abi: [
-              {
-                name: "withdrawReward",
-                type: "function",
-                stateMutability: "nonpayable",
-                inputs: [
-                  { name: "token", type: "string" },
-                  { name: "amount", type: "uint256" },
-                ],
-                outputs: [],
-              },
-            ],
-            functionName: "withdrawReward",
-            args: [token, BigInt(Math.floor(amount * 1e6))], // Simplified decimals handling
+            to: "0x0000000000000000000000000000000000000000",
+            data: encodeFunctionData({
+              abi: [
+                {
+                  name: "withdrawReward",
+                  type: "function",
+                  stateMutability: "nonpayable",
+                  inputs: [
+                    { name: "token", type: "string" },
+                    { name: "amount", type: "uint256" },
+                  ],
+                  outputs: [],
+                },
+              ],
+              functionName: "withdrawReward",
+              args: [token, BigInt(Math.floor(amount * 1e6))], // Simplified decimals handling
+            }),
           },
         ],
+        chainId: 480, // World Chain Mainnet
       });
 
       setAlertOpen(true);
@@ -144,5 +148,3 @@ export default function RewardsClaimsCard() {
     </section>
   );
 }
-
-

@@ -9,6 +9,7 @@ import { canCreateCampaign } from "@/app/services/campaignEngine";
 import CampaignForm from "@/app/components/CampaignForm";
 import { Campaign } from "@/app/types/campaign";
 import UIFeedback from "@/app/components/UIFeedback";
+import { encodeFunctionData } from "viem";
 
 export default function CreateCampaignPage() {
   const router = useRouter();
@@ -49,20 +50,23 @@ export default function CreateCampaignPage() {
       await send({
         transactions: [
           {
-            address: "0x0000000000000000000000000000000000000000",
-            abi: [
-              {
-                name: "createCampaign",
-                type: "function",
-                stateMutability: "payable",
-                inputs: [],
-                outputs: [],
-              },
-            ],
-            functionName: "createCampaign",
-            args: [],
+            to: "0x0000000000000000000000000000000000000000",
+            data: encodeFunctionData({
+              abi: [
+                {
+                  name: "createCampaign",
+                  type: "function",
+                  stateMutability: "payable",
+                  inputs: [],
+                  outputs: [],
+                },
+              ],
+              functionName: "createCampaign",
+              args: [],
+            }),
           },
         ],
+        chainId: 480, // World Chain Mainnet
       });
 
       // We proceed with internal engine update if MiniKit didn't throw
@@ -129,20 +133,23 @@ export default function CreateCampaignPage() {
                   await send({
                     transactions: [
                       {
-                        address: "0x0000000000000000000000000000000000000000",
-                        abi: [
-                          {
-                            name: "unlockPremium",
-                            type: "function",
-                            stateMutability: "payable",
-                            inputs: [],
-                            outputs: [],
-                          },
-                        ],
-                        functionName: "unlockPremium",
-                        args: [],
+                        to: "0x0000000000000000000000000000000000000000",
+                        data: encodeFunctionData({
+                          abi: [
+                            {
+                              name: "unlockPremium",
+                              type: "function",
+                              stateMutability: "payable",
+                              inputs: [],
+                              outputs: [],
+                            },
+                          ],
+                          functionName: "unlockPremium",
+                          args: [],
+                        }),
                       },
                     ],
+                    chainId: 480, // World Chain Mainnet
                   });
                   
                   setFeedback({
