@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useCampaign } from "@/app/hooks/useCampaign";
+import { useTransaction } from "@/app/hooks/useTransaction";
 import { canCreateCampaign } from "@/app/services/campaignEngine";
 import CampaignForm from "@/app/components/CampaignForm";
 import { Campaign } from "@/app/types/campaign";
@@ -12,6 +13,7 @@ import UIFeedback from "@/app/components/UIFeedback";
 export default function CreateCampaignPage() {
   const router = useRouter();
   const { createCampaign } = useCampaign();
+  const { send, loading: transactionLoading, transaction } = useTransaction();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLimitPopup, setShowLimitPopup] = useState(false);
   
@@ -41,10 +43,30 @@ export default function CreateCampaignPage() {
   const handleCreate = async (values: Partial<Campaign>) => {
     setIsSubmitting(true);
 
-    // Mock Wallet Transaction
     try {
-      // Simulate transaction delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // BUILD-007.4: Integration with World MiniKit Transaction
+      // We use a placeholder for the contract call to pay for the campaign
+      await send({
+        transactions: [
+          {
+            address: "0x0000000000000000000000000000000000000000",
+            abi: [
+              {
+                name: "createCampaign",
+                type: "function",
+                stateMutability: "payable",
+                inputs: [],
+                outputs: [],
+              },
+            ],
+            functionName: "createCampaign",
+            args: [],
+          },
+        ],
+      });
+
+      // We proceed with internal engine update if MiniKit didn't throw
+      // In a production app, we would wait for confirmation or verify transactionId
       
       createCampaign({
         title: values.title!,
@@ -102,12 +124,32 @@ export default function CreateCampaignPage() {
                 Cancel
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
+                  // BUILD-007.4: Unlock Premium also uses MiniKit
+                  await send({
+                    transactions: [
+                      {
+                        address: "0x0000000000000000000000000000000000000000",
+                        abi: [
+                          {
+                            name: "unlockPremium",
+                            type: "function",
+                            stateMutability: "payable",
+                            inputs: [],
+                            outputs: [],
+                          },
+                        ],
+                        functionName: "unlockPremium",
+                        args: [],
+                      },
+                    ],
+                  });
+                  
                   setFeedback({
                     isOpen: true,
                     type: "alert",
                     title: "Slot Unlocked",
-                    message: "Mock Transaction: Premium slot unlocked!",
+                    message: "Premium slot unlocked via World MiniKit!",
                     onConfirm: () => {
                       setFeedback(f => ({ ...f, isOpen: false }));
                       setShowLimitPopup(false);
@@ -154,9 +196,19 @@ export default function CreateCampaignPage() {
 
       <CampaignForm 
         mode="create"
-        isSubmitting={isSubmitting}
+        isSubmitting={isSubmitting || transactionLoading}
         onSubmit={handleCreate}
       />
+
+      {transaction.error && (
+        <UIFeedback
+          isOpen={true}
+          type="alert"
+          title="Transaction Error"
+          message={transaction.error}
+          onConfirm={() => setFeedback(f => ({ ...f, isOpen: false }))}
+        />
+      )}
 
       <UIFeedback
         isOpen={feedback.isOpen}

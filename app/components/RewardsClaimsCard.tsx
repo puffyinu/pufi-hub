@@ -3,17 +3,48 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useReward } from "@/app/hooks/useReward";
+import { useTransaction } from "@/app/hooks/useTransaction";
 import { prepareRewardClaim } from "@/app/services/rewardClaimEngine";
 import UIFeedback from "./UIFeedback";
 
 export default function RewardsClaimsCard() {
   const { reward } = useReward();
+  const { send, loading: transactionLoading, transaction } = useTransaction();
   const [alertOpen, setAlertOpen] = useState(false);
 
-  const handleClaim = () => {
+  const handleClaim = async (token: string, amount: number) => {
     const success = prepareRewardClaim();
-    if (success) {
+    if (!success) return;
+
+    try {
+      // BUILD-007.4: Integration with World MiniKit Transaction
+      // This is the "Future Withdraw entry point"
+      // We use a placeholder for the contract call to transfer reward to wallet
+      await send({
+        transactions: [
+          {
+            address: "0x0000000000000000000000000000000000000000",
+            abi: [
+              {
+                name: "withdrawReward",
+                type: "function",
+                stateMutability: "nonpayable",
+                inputs: [
+                  { name: "token", type: "string" },
+                  { name: "amount", type: "uint256" },
+                ],
+                outputs: [],
+              },
+            ],
+            functionName: "withdrawReward",
+            args: [token, BigInt(Math.floor(amount * 1e6))], // Simplified decimals handling
+          },
+        ],
+      });
+
       setAlertOpen(true);
+    } catch (error) {
+      console.error("Withdrawal failed", error);
     }
   };
 
@@ -79,28 +110,39 @@ export default function RewardsClaimsCard() {
             </div>
 
             <button 
-              disabled={item.amount === 0}
-              onClick={handleClaim}
+              disabled={item.amount === 0 || transactionLoading}
+              onClick={() => handleClaim(item.token, item.amount)}
               className={`w-full rounded-lg py-0.5 text-[6.5px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110 ${
-                item.amount > 0 
+                item.amount > 0 && !transactionLoading
                 ? "bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400]" 
                 : "bg-white/10 text-white/30 cursor-not-allowed"
               }`}
             >
-              CLAIM
+              {transactionLoading ? "..." : "CLAIM"}
             </button>
           </div>
         ))}
       </div>
 
+      {transaction.error && (
+        <UIFeedback
+          isOpen={true}
+          type="alert"
+          title="Transaction Error"
+          message={transaction.error}
+          onConfirm={() => {}}
+        />
+      )}
+
       <UIFeedback
         isOpen={alertOpen}
         type="alert"
         title="Claim Prepared"
-        message="Claim prepared! Proceeding to wallet transfer (Build #008)..."
+        message="Claim processed via World MiniKit! Reward is being transferred to your wallet."
         onConfirm={() => setAlertOpen(false)}
       />
     </section>
   );
 }
+
 

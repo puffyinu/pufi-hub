@@ -5,59 +5,80 @@ import { useEffect, useState } from "react";
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
 import { executeDailyClaim } from "@/app/services/dailyClaimService";
+import { useTransaction } from "@/app/hooks/useTransaction";
+import UIFeedback from "@/app/components/UIFeedback";
 
 type ClaimState = "idle" | "loading" | "claimed";
 
 export default function ClaimPage() {
   const [claimState, setClaimState] = useState<ClaimState>("idle");
   const [countdown, setCountdown] = useState("23:59:59");
+  const { send, loading: transactionLoading, transaction } = useTransaction();
 
   const handleClaimStart = async () => {
-  setClaimState("loading");
+    setClaimState("loading");
 
-  const result = await executeDailyClaim();
+    const result = await executeDailyClaim();
 
-  if (!result.success) {
-    console.warn(result.error);
-    setClaimState("idle");
-    return;
-  }
-
-  // BUILD #009
-  // Placeholder integrasi World MiniKit.
-  // Nantinya proses ini diganti dengan:
-  // await verifyWithIDKit();
-  // await sendTransaction();
-
-  setTimeout(() => {
-  setCountdown("23:59:59");
-  setClaimState("claimed");
-}, 1000);
-};
-
-useEffect(() => {
-  if (claimState !== "claimed") return;
-
-  let remaining = 24 * 60 * 60 - 1;
-
-  const timer = setInterval(() => {
-    remaining--;
-
-    const hours = String(Math.floor(remaining / 3600)).padStart(2, "0");
-    const minutes = String(Math.floor((remaining % 3600) / 60)).padStart(2, "0");
-    const seconds = String(remaining % 60).padStart(2, "0");
-
-    setCountdown(`${hours}:${minutes}:${seconds}`);
-
-    if (remaining <= 0) {
-      clearInterval(timer);
+    if (!result.success) {
+      console.warn(result.error);
       setClaimState("idle");
-      setCountdown("23:59:59");
+      return;
     }
-  }, 1000);
 
-  return () => clearInterval(timer);
-}, [claimState]);
+    try {
+      // BUILD-007.4: Integration with World MiniKit Transaction
+      // We use a placeholder for the contract call to claim reward
+      await send({
+        transactions: [
+          {
+            address: "0x0000000000000000000000000000000000000000",
+            abi: [
+              {
+                name: "claimDailyReward",
+                type: "function",
+                stateMutability: "nonpayable",
+                inputs: [],
+                outputs: [],
+              },
+            ],
+            functionName: "claimDailyReward",
+            args: [],
+          },
+        ],
+      });
+
+      setCountdown("23:59:59");
+      setClaimState("claimed");
+    } catch (error) {
+      console.error("Transaction failed", error);
+      setClaimState("idle");
+    }
+  };
+
+  useEffect(() => {
+    if (claimState !== "claimed") return;
+
+    let remaining = 24 * 60 * 60 - 1;
+
+    const timer = setInterval(() => {
+      remaining--;
+
+      const hours = String(Math.floor(remaining / 3600)).padStart(2, "0");
+      const minutes = String(Math.floor((remaining % 3600) / 60)).padStart(2, "0");
+      const seconds = String(remaining % 60).padStart(2, "0");
+
+      setCountdown(`${hours}:${minutes}:${seconds}`);
+
+      if (remaining <= 0) {
+        clearInterval(timer);
+        setClaimState("idle");
+        setCountdown("23:59:59");
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [claimState]);
 
   return (
     <div className="relative h-dvh w-full overflow-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30">
@@ -119,7 +140,7 @@ useEffect(() => {
 
           {/* Hero Section (Centered Mascot) */}
           <div className="flex-none flex items-center justify-center relative w-full">
-            
+
             <div className="relative flex items-center justify-center">
                 {/* Layer 1: Large Purple Radial Glow */}
                 <div className="absolute h-[300px] w-[300px] rounded-full bg-purple-600/10 blur-[100px] animate-aura-pulse" />
@@ -164,7 +185,7 @@ useEffect(() => {
           {/* CTA Button Section */}
           <div className="flex-none">
             <button
-              disabled={claimState !== "idle"}
+              disabled={claimState !== "idle" || transactionLoading}
               onClick={handleClaimStart}
               className={`
                 w-full rounded-[24px] 
@@ -172,12 +193,12 @@ useEffect(() => {
                 py-5 text-xl font-black text-[#171717]
                 shadow-[0_8px_32px_rgba(255,200,87,0.25)] ring-1 ring-yellow-400/30 
                 transition-all duration-200 
-                ${claimState === "idle" ? "hover:scale-[1.02] hover:shadow-[0_8px_40px_rgba(255,200,87,0.4)] active:scale-[0.98]" : "opacity-50 grayscale-[0.5]"}
+                ${claimState === "idle" && !transactionLoading ? "hover:scale-[1.02] hover:shadow-[0_8px_40px_rgba(255,200,87,0.4)] active:scale-[0.98]" : "opacity-50 grayscale-[0.5]"}
               `}
             >
               {
-  claimState === "loading" ? (
-    "CHECKING..."
+  claimState === "loading" || transactionLoading ? (
+    "CLAIMING..."
   ) : claimState === "claimed" ? (
     <div className="flex flex-col items-center leading-tight">
       <span>✓ CLAIMED TODAY</span>
@@ -194,11 +215,19 @@ useEffect(() => {
           </div>
 
         </main>
-        
+
         <BottomNav active="claim" />
 
         {/* Overlays */}
-
+        {transaction.error && (
+          <UIFeedback
+            isOpen={true}
+            type="alert"
+            title="Transaction Error"
+            message={transaction.error}
+            onConfirm={() => {}}
+          />
+        )}
       </div>
     </div>
   );
