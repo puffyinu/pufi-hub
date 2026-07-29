@@ -15,3 +15,4 @@ export const WORLD_CONFIG = {
 
   contractAddress: process.env.NEXT_PUBLIC_PUFI_CONTRACT ?? "",
 } as const;
+console.log("[WORLD CONFIG]", WORLD_CONFIG);

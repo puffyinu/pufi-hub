@@ -1,24 +1,39 @@
-import { walletAuth } from "@/app/runtime/minikitManager";
+import type { WalletAuthPayload } from "@/app/runtime/minikitManager";
 import { clearSession, hasSession, setSession } from "@/app/services/session";
 import type { WorldSession } from "@/app/types/world";
-import { setWalletState, resetWalletState } from "@/app/services/walletSession";
+import { resetWalletState, setWalletState } from "@/app/services/walletSession";
+import { walletAuth, isMiniKitInstalled } from "@/app/runtime/minikitManager";
 
-export async function login() {
+export async function login(): Promise<{
+  address: string;
+  result: WalletAuthPayload;
+} | null> {
   const nonce = crypto.randomUUID();
 
+  console.log("[AUTH-1] login()");
+  console.log("[AUTH-2] nonce =", nonce);
+
+  if (!isMiniKitInstalled()) {
+    console.warn("[AUTH] MiniKit not installed — skipping walletAuth");
+    console.warn("[AUTH] Are you running inside World App?");
+    return null;
+  }
+
   try {
-    console.log("[AUTH-1] login()");
-    console.log("[AUTH-2] before walletAuth");
+    console.log("[AUTH-3] BEFORE walletAuth");
 
     const result = await walletAuth(nonce);
-    console.log("[AUTH-3] walletAuth returned", result);
 
-    if (result?.data?.address) {
-      console.log("[AUTH-4] login success");
+    console.log("[AUTH-4] AFTER walletAuth");
+    console.log("[AUTH-5] result =", result);
+
+    if (result.status === "success" && result.address) {
+      console.log("[AUTH-6] SUCCESS");
+
       const session: WorldSession = {
         isAuthenticated: true,
         user: {
-          walletAddress: result.data.address,
+          walletAddress: result.address,
           verified: true,
         },
       };
@@ -27,23 +42,25 @@ export async function login() {
 
       setWalletState({
         connected: true,
-        address: result.data.address,
+        address: result.address,
         isVerified: true,
         loading: false,
         error: null,
       });
 
       return {
-        address: result.data.address,
+        address: result.address,
         result,
       };
     }
+
+    console.log("[AUTH-7] No address returned — status:", result.status);
+    return null;
+
   } catch (error) {
-    console.error("[AUTH-ERROR] Wallet authentication failed:", error);
+    console.error("[AUTH-ERROR]", error);
     return null;
   }
-
-return null;
 }
 
 export function logout() {

@@ -2,31 +2,42 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { executeLandingGateway } from "@/app/services/landingGatewayService";
 
 const APP_NAME = "PUFI HUB";
 
 export default function LandingPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleConnectWallet = async () => {
+    if (loading) return;
+
     console.log("[PAGE-1] Button Clicked");
+    setLoading(true);
+    setError(null);
 
-const result = await executeLandingGateway();
+    try {
+      const result = await executeLandingGateway();
 
-console.log("[PAGE-2] Gateway Result =", result);
+      console.log("[PAGE-2] Gateway Result =", result);
 
-if (!result.success) {
-    console.log("[PAGE-3] Gateway Failed");
+      if (!result.success) {
+        console.log("[PAGE-3] Gateway Failed");
+        setError(result.error ?? "Connection failed");
+        setLoading(false);
+        return;
+      }
 
-    console.warn(result.error);
-
-    return;
-}
-
-console.log("[PAGE-4] router.push('/dashboard')");
-
-router.push("/dashboard");
+      console.log("[PAGE-4] router.push('/dashboard')");
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("[PAGE-ERROR]", err);
+      setError("An unexpected error occurred");
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,8 +82,15 @@ router.push("/dashboard");
           </span>
         </div>
 
+        {error && (
+          <div className="mt-4 w-full rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-center text-xs text-red-400">
+            {error}
+          </div>
+        )}
+
         <button
           onClick={handleConnectWallet}
+          disabled={loading}
           className="
             mt-6
             w-full
@@ -87,9 +105,11 @@ router.push("/dashboard");
             duration-300
             hover:bg-blue-500
             active:scale-[0.98]
+            disabled:opacity-70
+            disabled:cursor-not-allowed
           "
         >
-          Connect World Wallet
+          {loading ? "Connecting..." : "Connect World Wallet"}
         </button>
       </section>
 

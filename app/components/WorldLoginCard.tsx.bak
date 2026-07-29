@@ -3,32 +3,15 @@
 import { useState } from "react";
 import { useWalletContext } from "@/app/context/WalletProvider";
 import { login } from "@/app/runtime/auth";
-import { isMiniKitInstalled } from "@/app/runtime/minikitManager";
 
 export default function WorldLoginCard() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { wallet } = useWalletContext();
 
   async function handleLogin() {
-    setError(null);
-
-    // Guard: must be inside World App
-    if (!isMiniKitInstalled()) {
-      setError("Please open this app inside World App");
-      console.warn("[WorldLoginCard] MiniKit not installed");
-      return;
-    }
-
     setLoading(true);
     try {
-      const result = await login();
-      if (!result) {
-        setError("Connection cancelled or failed. Please try again.");
-      }
-    } catch (err) {
-      console.error("[WorldLoginCard] handleLogin error:", err);
-      setError("Unexpected error. Please try again.");
+      await login();
     } finally {
       setLoading(false);
     }
@@ -36,27 +19,26 @@ export default function WorldLoginCard() {
 
   return (
     <div className="rounded-lg border p-6">
-      <h2 className="text-xl font-bold">World Login</h2>
+      <h2 className="text-xl font-bold">
+        World Login
+      </h2>
+
       <p className="mt-2 text-sm text-gray-500">
         Connect your World App to continue.
       </p>
 
       <button
-        className="mt-4 w-full rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+        className="mt-4 w-full rounded bg-black px-4 py-2 text-white"
         onClick={handleLogin}
         disabled={loading}
       >
         {loading ? "Connecting..." : "Login with World ID"}
       </button>
 
-      {error && (
-        <p className="mt-2 text-sm text-red-500">{error}</p>
-      )}
-
       <div className="mt-4 text-sm text-gray-600">
         {wallet.connected ? (
           <>
-            <p>Status: Connected ✅</p>
+            <p>Status: Connected</p>
             <p>Wallet: {wallet.address}</p>
           </>
         ) : (

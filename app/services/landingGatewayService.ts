@@ -4,6 +4,7 @@ import { isDevelopmentRuntime } from "@/app/runtime/runtimeMode";
 import { createDevelopmentSession } from "@/app/runtime/development";
 import { WORLD_CONFIG } from "@/app/config/world";
 import { getRuntimeHealth } from "@/app/services/runtimeHealth";
+import { refreshRuntimeState } from "@/app/services/runtimeSession";
 
 export interface LandingGatewayResult {
   success: boolean;
@@ -35,20 +36,25 @@ export async function executeLandingGateway(): Promise<LandingGatewayResult> {
       };
     }
 
+    // Refresh state to handle potential race condition between MiniKitProvider and RuntimeBootstrap
+    console.log("[TRACE-2] Refreshing Runtime State");
+    refreshRuntimeState();
+
     const health = getRuntimeHealth();
     console.log("[RUNTIME HEALTH]", health);
 
     if (health.initialized === true && health.miniKitReady === false) {
+      console.warn("[TRACE-3] MiniKit NOT Ready in state");
       return {
         success: false,
         error: "MiniKit runtime is not available.",
       };
     }
 
-    console.log("[TRACE-2] isMiniKitReady =", isMiniKitReady());
+    console.log("[TRACE-4] isMiniKitReady =", isMiniKitReady());
 
     if (!isMiniKitReady()) {
-      console.log("[TRACE-3] MiniKit NOT Ready");
+      console.log("[TRACE-5] MiniKit NOT Ready in bridge");
 
       return {
         success: false,
@@ -56,14 +62,14 @@ export async function executeLandingGateway(): Promise<LandingGatewayResult> {
       };
     }
 
-    console.log("[TRACE-4] Calling login()");
+    console.log("[TRACE-6] Calling login()");
 
     const loginResult = await login();
 
-    console.log("[TRACE-5] login() returned:", loginResult);
+    console.log("[TRACE-7] login() returned:", loginResult);
 
     if (!loginResult) {
-      console.log("[TRACE-6] loginResult = false");
+      console.log("[TRACE-8] loginResult = false");
 
       return {
         success: false,
@@ -71,7 +77,7 @@ export async function executeLandingGateway(): Promise<LandingGatewayResult> {
       };
     }
 
-    console.log("[TRACE-7] executeLandingGateway SUCCESS");
+    console.log("[TRACE-9] executeLandingGateway SUCCESS");
 
     return {
       success: true,

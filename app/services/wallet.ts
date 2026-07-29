@@ -2,7 +2,6 @@ import {
   walletAuth,
   isMiniKitReady,
 } from "@/app/runtime/minikitManager";
-
 import {
   resetWalletState,
   setWalletState,
@@ -16,27 +15,22 @@ export interface WalletResult {
 export async function connectWallet(): Promise<WalletResult> {
   if (!isMiniKitReady()) {
     resetWalletState();
-
     return {
       connected: false,
     };
   }
 
   try {
-    const result = await walletAuth(
-      crypto.randomUUID()
-    );
+    const result = await walletAuth(crypto.randomUUID());
+    const address = result.address;
 
-    const address = result.data.address;
-
-    if (address) {
+    if (result.status === "success" && address) {
       setWalletState({
         connected: true,
         address,
         loading: false,
         error: null,
       });
-
       return {
         connected: true,
         address,
@@ -44,19 +38,16 @@ export async function connectWallet(): Promise<WalletResult> {
     }
 
     resetWalletState();
-
     return {
       connected: false,
     };
   } catch (err) {
     console.error(err);
-
     setWalletState({
       connected: false,
       loading: false,
       error: "Wallet authentication failed.",
     });
-
     return {
       connected: false,
     };

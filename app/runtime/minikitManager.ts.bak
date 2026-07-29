@@ -1,0 +1,31 @@
+import { getMiniKit } from "./minikit";
+
+import type {
+  MiniKitSendTransactionOptions,
+} from "@worldcoin/minikit-js/commands";
+
+export async function walletAuth(
+  nonce: string
+) {
+  console.log("[MINIKIT-1] walletAuth()");
+  console.log("[MINIKIT-2] nonce =", nonce);
+
+  const result = await getMiniKit().walletAuth({
+    nonce,
+    statement: "Sign in to PUFI HUB",
+  });
+
+  console.log("[MINIKIT-3] result =", result);
+
+  return result;
+}
+
+export async function sendMiniKitTransaction(
+  options: MiniKitSendTransactionOptions
+) {
+  return getMiniKit().sendTransaction(options);
+}
+
+export function isMiniKitReady(): boolean {
+  return getMiniKit().isInstalled();
+}
