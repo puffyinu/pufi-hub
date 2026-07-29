@@ -10,7 +10,8 @@ export async function login(): Promise<{
 } | null> {
   const nonce = crypto.randomUUID();
 
-  console.log("[AUTH-1] login()");
+  console.log("========== BUILD 009 DEBUG ==========");
+    console.log("[AUTH-1] login()");
   console.log("[AUTH-2] nonce =", nonce);
 
   if (!isMiniKitInstalled()) {
