@@ -1,29 +1,118 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+interface LogEntry {
+  level: "log" | "warn" | "error";
+  message: string;
+  time: string;
+}
+
+function checkDebugEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("debug") === "1";
+}
 
 export default function DebugConsole() {
+  const [enabled] = useState<boolean>(checkDebugEnabled);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [visible, setVisible] = useState(true);
+
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_RUNTIME_MODE !== "development") {
-      return;
-    }
+    if (!enabled) return;
 
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/eruda";
+    const push = (level: LogEntry["level"], args: unknown[]) => {
+      const message = args
+        .map((a) => {
+          try {
+            return typeof a === "string" ? a : JSON.stringify(a);
+          } catch {
+            return String(a);
+          }
+        })
+        .join(" ");
 
-    script.onload = () => {
-      // @ts-ignore
-      window.eruda?.init();
+      const time = new Date().toLocaleTimeString();
 
-      console.log("[DEBUG] Eruda initialized");
+      setLogs((prev) => [...prev.slice(-49), { level, message, time }]);
     };
 
-    document.body.appendChild(script);
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+
+    console.log = (...args: unknown[]) => {
+      push("log", args);
+      originalLog(...args);
+    };
+    console.warn = (...args: unknown[]) => {
+      push("warn", args);
+      originalWarn(...args);
+    };
+    console.error = (...args: unknown[]) => {
+      push("error", args);
+      originalError(...args);
+    };
+
+    push("log", ["[DEBUG] Custom console panel initialized"]);
 
     return () => {
-      script.remove();
+      console.log = originalLog;
+      console.warn = originalWarn;
+      console.error = originalError;
     };
-  }, []);
+  }, [enabled]);
 
-  return null;
+  if (!enabled) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 999999,
+        maxHeight: visible ? "45vh" : "32px",
+        overflowY: "auto",
+        background: "rgba(0,0,0,0.92)",
+        color: "#0f0",
+        fontFamily: "monospace",
+        fontSize: "10px",
+        padding: "4px 8px",
+        borderTop: "2px solid #0f0",
+      }}
+    >
+      <div
+        onClick={() => setVisible((v) => !v)}
+        style={{
+          color: "#fff",
+          fontWeight: "bold",
+          cursor: "pointer",
+          marginBottom: "4px",
+        }}
+      >
+        DEBUG CONSOLE ({logs.length}) — tap to {visible ? "hide" : "show"}
+      </div>
+      {visible &&
+        logs.map((l, i) => (
+          <div
+            key={i}
+            style={{
+              color:
+                l.level === "error"
+                  ? "#f66"
+                  : l.level === "warn"
+                  ? "#fd0"
+                  : "#0f0",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-all",
+              marginBottom: "2px",
+            }}
+          >
+            [{l.time}] {l.message}
+          </div>
+        ))}
+    </div>
+  );
 }
