@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { MiniKitProvider } from "@worldcoin/minikit-js/minikit-provider";
-
 import "./globals.css";
 import { WORLD_CONFIG } from "./config/world";
 import { WalletProvider } from "./context/WalletProvider";
 import RuntimeBootstrap from "./runtime/RuntimeBootstrap";
 import { LanguageProvider } from "./context/LanguageContext";
+import DebugConsole from "./components/DebugConsole";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -34,6 +33,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <DebugConsole />
         <LanguageProvider>
           <MiniKitProvider
             props={{
