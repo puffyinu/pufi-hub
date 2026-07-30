@@ -29,32 +29,32 @@ export default function NetworkStats() {
   ];
 
   return (
-    <div className="mx-4 mb-4">
-      <h3 className="text-[#FFC857]/40 text-[9px] font-black uppercase tracking-[0.4em] mb-3 px-2">
+    <div className="w-full">
+      <h3 className="text-[#FFC857]/50 text-[10px] font-black uppercase tracking-widest mb-3 px-2">
         {t("performance_hub")}
       </h3>
 
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 gap-3">
         {STATS.map((stat) => (
           <div
             key={stat.label}
-            className="bg-[#1A1635]/40 backdrop-blur-xl rounded-[24px] p-5 border border-white/5 shadow-2xl relative overflow-hidden group"
+            className="bg-white/5 backdrop-blur-xl rounded-3xl p-5 border border-white/10 shadow-xl relative overflow-hidden group"
           >
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-               <span className="text-3xl grayscale">{stat.icon}</span>
+            <div className="absolute top-0 right-0 p-3 opacity-10 transition-opacity pointer-events-none">
+               <span className="text-4xl grayscale">{stat.icon}</span>
             </div>
 
             <div className="flex flex-col items-start justify-between min-h-[80px]">
-              <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#FFC857]/10 text-[#FFC857] text-lg border border-[#FFC857]/20">
+              <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-[#FFC857]/10 text-[#FFC857] text-xl border border-[#FFC857]/20 shrink-0">
                 {stat.icon}
               </div>
 
               <div className="mt-4">
-                <p className="text-slate-500 text-[8px] font-black uppercase tracking-[0.2em] mb-0.5">
+                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-1">
                   {stat.label}
                 </p>
 
-                <p className="text-white text-lg font-black tracking-tighter">
+                <p className="text-white text-lg font-black tracking-tight">
                   {stat.value}
                 </p>
               </div>
