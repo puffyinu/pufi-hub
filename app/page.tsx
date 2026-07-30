@@ -42,42 +42,59 @@ export default function LandingPage() {
 
   return (
     <main
-      className="
-        min-h-[100dvh]
-        bg-[#0F172A]
-        text-white
-        flex
-        flex-col
-        justify-between
-        px-6
-        pt-[max(env(safe-area-inset-top),1rem)]
-        pb-[max(env(safe-area-inset-bottom),2.5rem)]
-      "
-    >
+  className="
+    relative
+    h-[100dvh]
+    overflow-hidden
+    bg-[#070B1A]
+    text-white
+    flex
+    flex-col
+    justify-between
+    px-6
+    pt-[max(env(safe-area-inset-top),1rem)]
+    pb-[max(env(safe-area-inset-bottom),2rem)]
+  "
+>
+
+{/* Cosmic Background */}
+
+<div className="absolute inset-0 overflow-hidden">
+
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#4F46E530,transparent_60%)]" />
+
+  <div className="absolute left-1/2 top-1/3 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/15 blur-[140px]" />
+
+  <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-violet-500/10 blur-[120px]" />
+
+  <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-[120px]" />
+
+</div>
+
       {/* HERO */}
 
       <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center pt-4 pb-10 text-center">
-        <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-5xl font-black tracking-tight text-transparent">
+        <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-6xl font-black tracking-tight text-transparent">
           {APP_NAME}
         </h1>
 
         <div className="relative mb-2 pufi-float">
-          <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500/30 via-fuchsia-500/20 to-blue-500/30 blur-[80px]" />
 
           <Image
             src="/images/mascot/pufi-mascot.png"
             alt="PUFI Mascot"
-            width={220}
-            height={220}
+            width={270}
+            height={270}
             priority
             className="relative rounded-full pufi-sway pufi-glow"
           />
         </div>
 
-        <div className="mt-2 flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2">
+        <div className="mt-2 flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2">
           <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
 
-          <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-violet-300">
             Human Verified
           </span>
         </div>
@@ -95,7 +112,7 @@ export default function LandingPage() {
             mt-6
             w-full
             rounded-2xl
-            bg-blue-600
+            bg-gradient-to-r from-violet-600 to-blue-600
             py-4
             text-lg
             font-bold
@@ -103,7 +120,7 @@ export default function LandingPage() {
             shadow-blue-600/30
             transition
             duration-300
-            hover:bg-blue-500
+            hover:from-violet-500 hover:to-blue-500
             active:scale-[0.98]
             disabled:opacity-70
             disabled:cursor-not-allowed
