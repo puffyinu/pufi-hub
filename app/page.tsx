@@ -59,27 +59,45 @@ export default function LandingPage() {
 
 {/* Cosmic Background */}
 
-<div className="absolute inset-0 overflow-hidden">
+<div className="absolute inset-0 overflow-hidden pointer-events-none">
 
-  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#4F46E530,transparent_60%)]" />
+  {/* Nebula */}
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#6D28D955,transparent_55%)]" />
 
-  <div className="absolute left-1/2 top-1/3 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/15 blur-[140px]" />
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,#2563EB33,transparent_60%)]" />
 
-  <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-violet-500/10 blur-[120px]" />
+  {/* Aurora */}
+  <div className="absolute left-1/2 top-1/3 h-[560px] w-[560px] -translate-x-1/2 rounded-full bg-violet-600/20 blur-[150px]" />
 
-  <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-[120px]" />
+  <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-[120px]" />
+
+  <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-blue-500/15 blur-[120px]" />
+
+  {/* Floating Particles */}
+  <div className="absolute left-[12%] top-[18%] h-1 w-1 rounded-full bg-white/70 animate-pulse" />
+  <div className="absolute left-[28%] top-[65%] h-1 w-1 rounded-full bg-violet-300/70 animate-pulse" />
+  <div className="absolute left-[72%] top-[22%] h-1.5 w-1.5 rounded-full bg-white/60 animate-pulse" />
+  <div className="absolute left-[82%] top-[60%] h-1 w-1 rounded-full bg-blue-300/70 animate-pulse" />
+  <div className="absolute left-[50%] top-[12%] h-1 w-1 rounded-full bg-fuchsia-300/70 animate-pulse" />
+  <div className="absolute left-[60%] top-[78%] h-1.5 w-1.5 rounded-full bg-white/60 animate-pulse" />
+  <div className="absolute left-[18%] top-[84%] h-1 w-1 rounded-full bg-violet-300/70 animate-pulse" />
+  <div className="absolute left-[88%] top-[38%] h-1 w-1 rounded-full bg-white/70 animate-pulse" />
 
 </div>
 
-      {/* HERO */}
+      
+<div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
+
+
+{/* HERO */}
 
       <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center pt-4 pb-10 text-center">
-        <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-6xl font-black tracking-tight text-transparent">
+        <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-6xl font-black tracking-tight text-transparent drop-shadow-[0_0_25px_rgba(167,139,250,.45)]">
           {APP_NAME}
         </h1>
 
         <div className="relative mb-2 pufi-float">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500/30 via-fuchsia-500/20 to-blue-500/30 blur-[80px]" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500/40 via-fuchsia-500/30 to-blue-500/40 blur-[120px] scale-125" />
 
           <Image
             src="/images/mascot/pufi-mascot.png"
@@ -91,7 +109,7 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="mt-2 flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2">
+        <div className="mt-2 flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-xl shadow-lg shadow-violet-500/20 px-5 py-2">
           <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
 
           <span className="text-[11px] font-bold uppercase tracking-widest text-violet-300">
@@ -117,7 +135,7 @@ export default function LandingPage() {
             text-lg
             font-bold
             shadow-2xl
-            shadow-blue-600/30
+            shadow-violet-600/40
             transition
             duration-300
             hover:from-violet-500 hover:to-blue-500
@@ -129,24 +147,6 @@ export default function LandingPage() {
           {loading ? "Connecting..." : "Connect World Wallet"}
         </button>
       </section>
-
-      {/* FOOTER */}
-
-      <footer className="mx-auto w-full max-w-md border-t border-white/10 pt-4 text-center">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
-          Powered by
-        </p>
-
-        <div className="mt-4 flex justify-center gap-6 text-xs font-semibold text-slate-400">
-          <span>World App</span>
-          <span>MiniKit</span>
-          <span>World Chain</span>
-        </div>
-
-        <p className="mt-6 text-[11px] italic uppercase tracking-[0.2em] text-slate-600">
-          © 2026 PUFFY INU
-        </p>
-      </footer>
-    </main>
+</main>
   );
 }
