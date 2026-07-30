@@ -10,7 +10,6 @@ import CampaignForm from "@/app/components/CampaignForm";
 import { Campaign } from "@/app/types/campaign";
 import UIFeedback from "@/app/components/UIFeedback";
 import { encodeFunctionData } from "viem";
-import AppBackground from "@/app/components/layout/AppBackground";
 
 export default function CreateCampaignPage() {
   const router = useRouter();
@@ -102,7 +101,7 @@ export default function CreateCampaignPage() {
 
   return (
     <main
-      className="relative min-h-screen text-white"
+      className="relative"
       style={{
         maxWidth: 600,
         margin: "0 auto",
@@ -110,7 +109,6 @@ export default function CreateCampaignPage() {
         paddingBottom: 40,
       }}
     >
-      <AppBackground />
       {showLimitPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-6 backdrop-blur-sm">
           <div className="w-full max-w-[340px] overflow-hidden rounded-[32px] border border-white/10 bg-[#1A1D2E] p-8 text-center shadow-2xl">

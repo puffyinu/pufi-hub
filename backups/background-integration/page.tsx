@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { executeLandingGateway } from "@/app/services/landingGatewayService";
-import AppBackground from "@/app/components/layout/AppBackground";
 
 const APP_NAME = "PUFI HUB";
 
@@ -58,7 +57,36 @@ export default function LandingPage() {
   "
 >
 
-<AppBackground />
+{/* Cosmic Background */}
+
+<div className="absolute inset-0 overflow-hidden pointer-events-none">
+
+  {/* Nebula */}
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#6D28D955,transparent_55%)]" />
+
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,#2563EB33,transparent_60%)]" />
+
+  {/* Aurora */}
+  <div className="absolute left-1/2 top-1/3 h-[560px] w-[560px] -translate-x-1/2 rounded-full bg-violet-600/20 blur-[150px]" />
+
+  <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-[120px]" />
+
+  <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-blue-500/15 blur-[120px]" />
+
+  {/* Floating Particles */}
+  <div className="absolute left-[12%] top-[18%] h-1 w-1 rounded-full bg-white/70 animate-pulse" />
+  <div className="absolute left-[28%] top-[65%] h-1 w-1 rounded-full bg-violet-300/70 animate-pulse" />
+  <div className="absolute left-[72%] top-[22%] h-1.5 w-1.5 rounded-full bg-white/60 animate-pulse" />
+  <div className="absolute left-[82%] top-[60%] h-1 w-1 rounded-full bg-blue-300/70 animate-pulse" />
+  <div className="absolute left-[50%] top-[12%] h-1 w-1 rounded-full bg-fuchsia-300/70 animate-pulse" />
+  <div className="absolute left-[60%] top-[78%] h-1.5 w-1.5 rounded-full bg-white/60 animate-pulse" />
+  <div className="absolute left-[18%] top-[84%] h-1 w-1 rounded-full bg-violet-300/70 animate-pulse" />
+  <div className="absolute left-[88%] top-[38%] h-1 w-1 rounded-full bg-white/70 animate-pulse" />
+
+</div>
+
+      
+<div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
 
 
 {/* HERO */}

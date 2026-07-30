@@ -1,9 +1,6 @@
-import AppBackground from "@/app/components/layout/AppBackground";
-
 export default function AchievementPage() {
   return (
-    <main className="relative min-h-screen p-6 text-white">
-      <AppBackground />
+    <main className="p-6">
       <h1 className="text-2xl font-bold">
         Achievement
       </h1>

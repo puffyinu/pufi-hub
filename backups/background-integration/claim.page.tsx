@@ -8,7 +8,6 @@ import { executeDailyClaim } from "@/app/services/dailyClaimService";
 import { useTransaction } from "@/app/hooks/useTransaction";
 import UIFeedback from "@/app/components/UIFeedback";
 import { encodeFunctionData } from "viem";
-import AppBackground from "@/app/components/layout/AppBackground";
 
 type ClaimState = "idle" | "loading" | "claimed";
 
@@ -108,7 +107,14 @@ export default function ClaimPage() {
         .animate-particle { animation: particle-drift 6s ease-in-out infinite; }
       `}} />
 
-      <AppBackground />
+      {/* ========================= */}
+      {/* BACKGROUND LAYERS         */}
+      {/* ========================= */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#2A1757] via-[#181633] to-[#0D1125]" />
+
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-purple-600/20 blur-[150px]" />
+
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-[260px] w-[260px] -translate-x-1/2 rounded-full bg-[#FFC857]/10 blur-[120px]" />
 
       {/* ========================= */}
       {/* VIEWPORT CONTENT WRAPPER  */}
