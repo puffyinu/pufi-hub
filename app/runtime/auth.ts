@@ -1,4 +1,5 @@
 import type { WalletAuthPayload } from "@/app/runtime/minikitManager";
+import { generateAlphanumericNonce } from "@/app/runtime/nonce";
 import { clearSession, hasSession, setSession } from "@/app/services/session";
 import type { WorldSession } from "@/app/types/world";
 import { resetWalletState, setWalletState } from "@/app/services/walletSession";
@@ -8,7 +9,7 @@ export async function login(): Promise<{
   address: string;
   result: WalletAuthPayload;
 } | null> {
-  const nonce = crypto.randomUUID();
+  const nonce = generateAlphanumericNonce();
 
   console.log("========== BUILD 009 DEBUG ==========");
     console.log("[AUTH-1] login()");
