@@ -30,7 +30,6 @@ export default function ClaimPage() {
 
     try {
       // BUILD-007.4: Integration with World MiniKit Transaction
-      // We use a placeholder for the contract call to claim reward
       await send({
         transactions: [
           {
@@ -86,7 +85,7 @@ export default function ClaimPage() {
   }, [claimState]);
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30">
+    <div className="relative min-h-screen w-full overflow-x-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30 select-none">
       {/* Custom Keyframes for Premium Polish */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes mascot-float {
@@ -110,25 +109,23 @@ export default function ClaimPage() {
 
       <AppBackground />
 
-      {/* ========================= */}
-      {/* VIEWPORT CONTENT WRAPPER  */}
-      {/* ========================= */}
-      <div className="relative mx-auto flex h-full w-full max-w-[480px] flex-col">
+      {/* VIEWPORT CONTENT WRAPPER */}
+      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-4">
 
-        {/* 1. Header (Fixed Height) */}
+        {/* 1. Header */}
         <div className="flex-none">
           <DashboardTopBar />
         </div>
 
-        {/* 2. Main Content (Flex-1) */}
-        <main className="flex-1 flex flex-col px-6 pb-24 overflow-hidden">
+        {/* 2. Main Content */}
+        <main className="flex-1 flex flex-col pt-2 pb-32 px-2 overflow-hidden">
 
           {/* Title Section */}
           <div className="text-center flex-none">
-            <h2 className="text-3xl font-black tracking-wide">
+            <h2 className="text-2xl font-black tracking-wide uppercase">
               Daily Claim
             </h2>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-1.5 text-xs text-slate-400 font-medium">
               Claim your daily PUFI reward
             </p>
           </div>
@@ -137,43 +134,31 @@ export default function ClaimPage() {
           <div className="flex-1" />
 
           {/* Hero Section (Centered Mascot) */}
-          <div className="flex-none flex items-center justify-center relative w-full">
-
+          <div className="flex-none flex items-center justify-center relative w-full my-4">
             <div className="relative flex items-center justify-center">
-                {/* Layer 1: Large Purple Radial Glow */}
-                <div className="absolute h-[300px] w-[300px] rounded-full bg-purple-600/10 blur-[100px] animate-aura-pulse" />
+              {/* Layer 1: Large Purple Radial Glow */}
+              <div className="absolute h-[260px] w-[260px] rounded-full bg-purple-600/10 blur-[90px] animate-aura-pulse pointer-events-none" />
 
-                {/* Layer 2: Thin Glowing Circle */}
-                <div className="absolute h-[260px] w-[260px] rounded-full border border-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.1)]" />
+              {/* Layer 2: Thin Glowing Circle */}
+              <div className="absolute h-[220px] w-[220px] rounded-full border border-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.1)] pointer-events-none" />
 
-                {/* Layer 3: Purple Energy Floor */}
-                <div className="absolute -bottom-2 h-12 w-40 rounded-[100%] bg-purple-500/20 blur-[30px]" />
+              {/* Layer 3: Purple Energy Floor */}
+              <div className="absolute -bottom-2 h-10 w-36 rounded-[100%] bg-purple-500/20 blur-[25px] pointer-events-none" />
 
-                {/* Premium Particles (Behind Mascot) */}
-                <div className="absolute top-[-20px] left-[-40px] w-1.5 h-1.5 rounded-full bg-purple-400/40 blur-[1px] animate-particle" style={{ animationDelay: '0s' }} />
-                <div className="absolute top-[40px] right-[-30px] w-1 h-1 rounded-full bg-white/30 blur-[0.5px] animate-particle" style={{ animationDelay: '1.2s' }} />
-                <div className="absolute bottom-[20px] left-[-50px] w-2 h-2 rounded-full bg-yellow-400/20 blur-[2px] animate-particle" style={{ animationDelay: '2.5s' }} />
-                <div className="absolute top-[-60px] right-[20px] w-1 h-1 rounded-full bg-purple-300/40 animate-particle" style={{ animationDelay: '0.8s' }} />
-                <div className="absolute bottom-[-10px] right-[-40px] w-1.5 h-1.5 rounded-full bg-white/20 blur-[1px] animate-particle" style={{ animationDelay: '3.1s' }} />
-                <div className="absolute top-[80px] left-[-20px] w-1 h-1 rounded-full bg-purple-500/30 animate-particle" style={{ animationDelay: '1.9s' }} />
-                <div className="absolute bottom-[60px] right-[-60px] w-2 h-2 rounded-full bg-yellow-200/10 blur-[3px] animate-particle" style={{ animationDelay: '4.2s' }} />
-                <div className="absolute top-[-10px] left-[60px] w-1 h-1 rounded-full bg-white/40 blur-[0.5px] animate-particle" style={{ animationDelay: '2.2s' }} />
+              {/* Premium Particles */}
+              <div className="absolute top-[-20px] left-[-30px] w-1.5 h-1.5 rounded-full bg-purple-400/40 blur-[1px] animate-particle" style={{ animationDelay: '0s' }} />
+              <div className="absolute top-[30px] right-[-20px] w-1 h-1 rounded-full bg-white/30 blur-[0.5px] animate-particle" style={{ animationDelay: '1.2s' }} />
+              <div className="absolute bottom-[10px] left-[-40px] w-2 h-2 rounded-full bg-yellow-400/20 blur-[2px] animate-particle" style={{ animationDelay: '2.5s' }} />
+              <div className="absolute top-[-40px] right-[20px] w-1 h-1 rounded-full bg-purple-300/40 animate-particle" style={{ animationDelay: '0.8s' }} />
 
-                {/* Premium Sparkles */}
-                <div className="absolute -top-10 -left-6 h-1 w-1 rounded-full bg-white opacity-40 blur-[0.5px]" />
-                <div className="absolute top-10 -right-4 h-1.5 w-1.5 rounded-full bg-purple-300 opacity-60 blur-[1px]" />
-                <div className="absolute bottom-16 -left-8 h-1 w-1 rounded-full bg-white opacity-30" />
-                <div className="absolute -bottom-2 right-12 h-1.5 w-1.5 rounded-full bg-purple-400 opacity-50 blur-[1px]" />
-                <div className="absolute top-0 right-1/4 h-1 w-1 rounded-full bg-white opacity-20" />
-
-                <Image
-                  src="/images/mascot/pufi-mascot.png"
-                  alt="Puffy Inu"
-                  width={240}
-                  height={240}
-                  priority
-                  className="relative z-10 animate-mascot-float"
-                />
+              <Image
+                src="/images/mascot/pufi-mascot.png"
+                alt="Puffy Inu"
+                width={200}
+                height={200}
+                priority
+                className="relative z-10 animate-mascot-float object-contain"
+              />
             </div>
           </div>
 
@@ -181,34 +166,31 @@ export default function ClaimPage() {
           <div className="flex-1" />
 
           {/* CTA Button Section */}
-          <div className="flex-none">
+          <div className="flex-none w-full">
             <button
               disabled={claimState !== "idle" || transactionLoading}
               onClick={handleClaimStart}
               className={`
-                w-full rounded-[24px] 
+                w-full min-h-[56px] rounded-2xl 
                 bg-gradient-to-b from-[#FFE580] via-[#FFB323] to-[#E59400] 
-                py-5 text-xl font-black text-[#171717]
+                py-4 text-base font-black text-[#171717]
                 shadow-[0_8px_32px_rgba(255,200,87,0.25)] ring-1 ring-yellow-400/30 
-                transition-all duration-200 
-                ${claimState === "idle" && !transactionLoading ? "hover:scale-[1.02] hover:shadow-[0_8px_40px_rgba(255,200,87,0.4)] active:scale-[0.98]" : "opacity-50 grayscale-[0.5]"}
+                transition-transform duration-150 touch-manipulation
+                ${claimState === "idle" && !transactionLoading ? "hover:scale-[1.01] active:scale-95" : "opacity-50 grayscale-[0.5]"}
               `}
             >
-              {
-  claimState === "loading" || transactionLoading ? (
-    "CLAIMING..."
-  ) : claimState === "claimed" ? (
-    <div className="flex flex-col items-center leading-tight">
-      <span>✓ CLAIMED TODAY</span>
-      <span className="mt-1 text-base font-bold tabular-nums text-[#171717]/80">
-  {countdown}
-
-      </span>
-    </div>
-  ) : (
-    "🎁 CLAIM REWARD"
-  )
-}
+              {claimState === "loading" || transactionLoading ? (
+                "CLAIMING..."
+              ) : claimState === "claimed" ? (
+                <div className="flex flex-col items-center leading-tight">
+                  <span className="text-xs">✓ CLAIMED TODAY</span>
+                  <span className="mt-0.5 text-sm font-bold tabular-nums text-[#171717]/80">
+                    {countdown}
+                  </span>
+                </div>
+              ) : (
+                "🎁 CLAIM REWARD"
+              )}
             </button>
           </div>
 
