@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
@@ -10,6 +11,7 @@ import { updateCampaign, deleteCampaign, addPool } from "@/app/services/campaign
 import EditCampaignModal from "@/app/components/EditCampaignModal";
 import AddPoolModal from "@/app/components/AddPoolModal";
 import UIFeedback from "@/app/components/UIFeedback";
+import AppBackground from "@/app/components/layout/AppBackground";
 
 const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
 
@@ -21,14 +23,9 @@ export default function CreatorPage() {
   return (
     <div className="relative min-h-screen bg-[#0D1125] text-white font-sans selection:bg-[#FFC857]/30">
       
-      {/* Background Layers */}
-      <div className="fixed inset-0 z-[-1]">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#2A1757] via-[#181633] to-[#0D1125]" />
-        <div className="pointer-events-none absolute -top-40 -left-32 h-[420px] w-[420px] rounded-full bg-purple-600/20 blur-[140px]" />
-        <div className="pointer-events-none absolute top-0 right-[-80px] h-[260px] w-[260px] rounded-full bg-[#FFC857]/10 blur-[120px]" />
-      </div>
+      <AppBackground />
 
-      <div className="relative z-0 mx-auto flex max-w-[480px] flex-col px-2">
+      <div className="relative z-0 mx-auto flex max-w-md flex-col px-2">
         <DashboardTopBar />
 
         <main className="flex-1 pt-4 pb-32 px-4">
@@ -48,9 +45,9 @@ export default function CreatorPage() {
                 </div>
               ))
             ) : (
-              <div className="py-12 text-center">
-                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">No active campaigns</p>
-                <p className="text-slate-400 text-xs mt-1">Start by adding your first ad campaign.</p>
+              <div className="py-12 text-center rounded-2xl border border-dashed border-white/10 bg-white/5">
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">No active campaigns</p>
+                <p className="text-slate-400 text-xs mt-2">Start by adding your first ad campaign.</p>
               </div>
             )}
 
@@ -80,9 +77,9 @@ export default function CreatorPage() {
         </main>
 
         {/* Floating Add Button */}
-        <div className="fixed bottom-24 left-1/2 w-full max-w-[440px] -translate-x-1/2 px-6 z-40">
-          <Link href="/creator/create">
-            <button className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black uppercase tracking-widest shadow-[0_8px_25px_rgba(124,58,237,0.4)] transition-all active:scale-95 hover:brightness-110">
+        <div className="fixed bottom-20 left-1/2 w-full max-w-md -translate-x-1/2 px-6 z-40 pb-[env(safe-area-inset-bottom)]">
+          <Link href="/creator/create" className="block w-full">
+            <button className="w-full min-h-[56px] rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-black uppercase tracking-widest shadow-[0_8px_25px_rgba(124,58,237,0.4)] transition-transform active:scale-95 touch-manipulation">
               ＋ ADD ADS
             </button>
           </Link>
@@ -104,12 +101,13 @@ function SectionTitle({ title }: { title: string }) {
 
 function EmptySlot() {
   return (
-    <div className="mb-4 flex h-[200px] flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] shadow-inner transition-all hover:bg-white/[0.05]">
-      <Link href="/creator/create" className="flex flex-col items-center justify-center">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Available Slot</p>
-        <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-violet-500">Create Campaign →</p>
-      </Link>
-    </div>
+    <Link 
+      href="/creator/create"
+      className="mb-4 flex min-h-[160px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] shadow-inner transition-all hover:bg-white/[0.05] active:scale-95 touch-manipulation"
+    >
+      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Available Slot</p>
+      <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-violet-500">Create Campaign →</p>
+    </Link>
   );
 }
 
@@ -118,7 +116,6 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddPoolModal, setShowAddPoolModal] = useState(false);
   
-  // Feedback State
   const [feedback, setFeedback] = useState<{
     isOpen: boolean;
     type: "alert" | "confirm";
@@ -134,12 +131,10 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   });
 
   const formatAmount = (value: number) => {
-    // Round to 6 decimals to remove floating point errors before formatting
     const rounded = Math.round(value * 1e6) / 1e6;
     if (Number.isInteger(rounded)) {
       return rounded.toLocaleString();
     }
-    // For non-integers, use 3 decimals
     return rounded.toFixed(3);
   };
 
@@ -183,21 +178,22 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
 
   return (
     <>
-      <div className="mb-4 rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl shadow-xl">
+      <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl shadow-xl transition-colors hover:bg-white/[0.07]">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20 text-2xl overflow-hidden">
-            <img 
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 shadow-inner overflow-hidden">
+            <Image 
               src={campaign.logo || DEFAULT_LOGO} 
-              alt="" 
-              className="w-full h-full object-cover rounded-xl" 
-              onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_LOGO; }}
+              alt={campaign.title || "Campaign Logo"} 
+              fill
+              unoptimized
+              className="object-cover"
             />
           </div>
 
           <div className="flex-1">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h3 className="font-bold text-white text-sm line-clamp-1">{campaign.title}</h3>
-              <span className={`rounded-md px-2 py-0.5 text-[9px] font-black tracking-widest ${campaign.status === 'LIVE' ? 'bg-green-500/10 text-green-400' : 'bg-slate-500/10 text-slate-400'}`}>
+              <span className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-widest ${campaign.status === 'LIVE' ? 'bg-green-500/10 text-green-400' : 'bg-slate-500/10 text-slate-400'}`}>
                 {campaign.status === 'LIVE' ? '🟢 LIVE' : `⚪️ ${campaign.status}`}
               </span>
             </div>
@@ -211,19 +207,19 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         <div className="grid grid-cols-3 gap-2 text-center">
           <div>
-            <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Budget</div>
-            <div className="text-sm font-bold text-white">
-              {formatAmount(campaign.budget || 0)} {campaign.rewardToken || "PUFI"}
+            <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">Budget</div>
+            <div className="text-sm font-bold text-white mt-1">
+              {formatAmount(campaign.budget || 0)} <span className="text-[10px]">{campaign.rewardToken || "PUFI"}</span>
             </div>
           </div>
           <div className="border-x border-white/5">
-            <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Progress</div>
-            <div className="text-sm font-bold text-white">{campaign.claimedCount} / {campaign.maxClaims}</div>
+            <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">Progress</div>
+            <div className="text-sm font-bold text-white mt-1">{campaign.claimedCount} / {campaign.maxClaims}</div>
           </div>
           <div>
-            <div className="text-[9px] font-black uppercase tracking-tighter text-slate-500">Reward</div>
-            <div className="text-sm font-bold text-white">
-              {formatAmount(campaign.rewardAmount || 0)} {campaign.rewardToken || "PUFI"}
+            <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">Reward</div>
+            <div className="text-sm font-bold text-white mt-1">
+              {formatAmount(campaign.rewardAmount || 0)} <span className="text-[10px]">{campaign.rewardToken || "PUFI"}</span>
             </div>
           </div>
         </div>
@@ -235,19 +231,19 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
             <div className="flex gap-2">
               <button 
                 onClick={() => setShowEditModal(true)}
-                className="flex-1 rounded-xl bg-white/5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all hover:bg-white/10 active:scale-95"
+                className="flex-1 flex items-center justify-center min-h-[44px] rounded-xl bg-white/5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all hover:bg-white/10 active:scale-95 touch-manipulation"
               >
                 EDIT
               </button>
               <button 
                 onClick={() => setShowAddPoolModal(true)}
-                className="flex-1 rounded-xl bg-violet-600/20 py-2 text-[10px] font-black uppercase tracking-widest text-violet-400 transition-all hover:bg-violet-600/30 active:scale-95"
+                className="flex-1 flex items-center justify-center min-h-[44px] rounded-xl bg-violet-600/20 px-2 text-[10px] font-black uppercase tracking-widest text-violet-400 transition-all hover:bg-violet-600/30 active:scale-95 touch-manipulation"
               >
                 ADD POOL
               </button>
               <button 
                 onClick={handleDelete}
-                className="flex-1 rounded-xl bg-red-500/10 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/20 active:scale-95"
+                className="flex-1 flex items-center justify-center min-h-[44px] rounded-xl bg-red-500/10 px-2 text-[10px] font-black uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/20 active:scale-95 touch-manipulation"
               >
                 DELETE
               </button>
@@ -319,17 +315,18 @@ function LockedSlot({ price }: { price: string }) {
 
   return (
     <>
-      <div 
+      <button 
         onClick={handleUnlock}
-        className="mb-4 flex cursor-pointer flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] py-8 shadow-inner transition-all hover:bg-white/[0.05]"
+        type="button"
+        className="w-full mb-4 flex min-h-[160px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-8 shadow-inner transition-all hover:bg-white/[0.05] active:scale-95 touch-manipulation"
       >
         <div className="mb-3 text-3xl opacity-40 grayscale">🔒</div>
         <h3 className="text-sm font-bold text-white/60">Unlock Slot</h3>
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">One-Time Payment</p>
-        <div className="mt-4 rounded-full bg-violet-600/10 px-4 py-1 text-sm font-black text-violet-400">
+        <div className="mt-4 rounded-full bg-violet-600/10 px-4 py-1.5 text-xs font-black text-violet-400">
           {price}
         </div>
-      </div>
+      </button>
 
       <UIFeedback
         isOpen={feedback.isOpen}

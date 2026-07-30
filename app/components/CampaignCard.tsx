@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useCampaign } from "@/app/hooks/useCampaign";
 import { recordClaim } from "@/app/services/campaignEngine";
 import { startVisit, handleReturnToApp, checkTimeouts, cancelVisit } from "@/app/services/visitEngine";
@@ -143,18 +144,14 @@ export default function CampaignCard() {
   };
 
   const formatAmount = (value: number) => {
-    // Round to 6 decimals to remove floating point errors before formatting
     const rounded = Math.round(value * 1e6) / 1e6;
     if (Number.isInteger(rounded)) {
       return rounded.toString();
     }
-    // For non-integers, use 3 decimals
     return rounded.toFixed(3);
   };
 
-  const renderCard = (
-    campaign: (typeof campaigns)[number]
-  ) => {
+  const renderCard = (campaign: (typeof campaigns)[number]) => {
     const isCompleted = campaign.claimedCount >= campaign.maxClaims || campaign.status === "COMPLETED";
     const isClaimed = campaign.status === "CLAIMED";
     const isClaimReady = campaign.status === "CLAIM_READY";
@@ -162,38 +159,43 @@ export default function CampaignCard() {
     const isClaiming = campaign.status === "CLAIMING";
     const isBusy = hasAnyVisiting && !isVisiting;
 
+    // Local state fallback untuk error gambar per kartu (menggunakan logo default jika URL rusak)
+    const logoSrc = campaign.logo || DEFAULT_LOGO;
+
     return (
       <div
         key={campaign.id}
-        className="relative overflow-hidden rounded-[20px] border border-white/10 bg-white/5 p-2.5 backdrop-blur-2xl shadow-xl transition-all hover:bg-white/[0.07]"
+        className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-2xl shadow-xl transition-all hover:bg-white/[0.07]"
       >
-        <div className="absolute -top-12 -right-12 h-24 w-24 rounded-full bg-violet-600/5 blur-2xl" />
+        {/* Dekorasi Background Glow */}
+        <div className="absolute -top-12 -right-12 h-24 w-24 rounded-full bg-violet-600/5 blur-2xl pointer-events-none" />
 
-        <div className="flex gap-2.5">
-          {/* Logo */}
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-violet-500/10 text-xl shadow-inner overflow-hidden">
-            <img 
-              src={campaign.logo || DEFAULT_LOGO} 
-              alt="" 
-              className="w-full h-full object-cover" 
-              onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_LOGO; }}
+        <div className="flex gap-4">
+          {/* Logo Section */}
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 shadow-inner overflow-hidden">
+            <Image 
+              src={logoSrc} 
+              alt={campaign.title || "Campaign Logo"} 
+              fill
+              unoptimized
+              className="object-cover"
             />
           </div>
 
-          {/* Content */}
-          <div className="flex flex-1 flex-col justify-between py-0.5">
+          {/* Content Section */}
+          <div className="flex flex-1 flex-col justify-between">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="text-[12px] font-black tracking-tight text-white leading-tight">
+                <h3 className="text-sm font-black tracking-tight text-white leading-tight">
                   {campaign.title}
                 </h3>
-                <p className="mt-0.5 text-[8.5px] font-bold text-slate-400 line-clamp-2 leading-tight">
+                <p className="mt-1 text-xs font-semibold text-slate-400 line-clamp-2 leading-snug">
                   {campaign.description}
                 </p>
               </div>
 
               <span
-                className={`shrink-0 rounded-full px-1 py-0.5 text-[6px] font-black uppercase tracking-widest ${
+                className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-widest ${
                   isCompleted || isClaimed
                     ? "bg-green-500/20 text-green-400 border border-green-500/20"
                     : isClaimReady
@@ -207,19 +209,21 @@ export default function CampaignCard() {
               </span>
             </div>
 
-            <div className="mt-2 flex items-center justify-between gap-3">
+            <div className="mt-3 flex items-center justify-between gap-3">
               <div>
-                <p className="text-[6.5px] font-black uppercase tracking-[0.2em] text-slate-500">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">
                   Reward
                 </p>
-                <p className="text-[13px] font-black text-[#FFC857] tracking-tight">
-                  {formatAmount(campaign.rewardAmount || 0)} <span className="text-[7.5px]">{campaign.rewardToken || "PUFI"}</span>
+                <p className="text-base font-black text-[#FFC857] tracking-tight">
+                  {formatAmount(campaign.rewardAmount || 0)}{" "}
+                  <span className="text-[10px]">{campaign.rewardToken || "PUFI"}</span>
                 </p>
-                <p className="text-[6px] font-bold text-slate-400">
+                <p className="text-[9px] font-bold text-slate-400 mt-0.5">
                   PROGRESS {campaign.claimedCount} / {campaign.maxClaims}
                 </p>
               </div>
 
+              {/* Action Button - Touch target dioptimalkan (min-h-[44px]) */}
               <button
                 disabled={isCompleted || isClaimed || isVisiting || isClaiming || isBusy}
                 onClick={() => {
@@ -229,7 +233,7 @@ export default function CampaignCard() {
                     handleVisitAction(campaign.id);
                   }
                 }}
-                className={`h-7 px-3.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                className={`min-h-[44px] min-w-[100px] px-4 flex items-center justify-center rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 touch-manipulation ${
                   isCompleted || isClaimed
                     ? "cursor-default bg-green-500/10 text-green-400 border border-green-500/10"
                     : isVisiting || isClaiming || isBusy
@@ -249,7 +253,7 @@ export default function CampaignCard() {
   return (
     <>
       {showOverlay && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0a]/95 backdrop-blur-2xl p-6 text-center">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-2xl p-6 text-center select-none">
           <div className="relative mb-8">
             <div className="h-32 w-32 rounded-full border-4 border-white/5 flex items-center justify-center">
                <span className="text-5xl font-black text-white">{countdown}</span>
@@ -257,8 +261,8 @@ export default function CampaignCard() {
             <div className="absolute inset-0 rounded-full border-4 border-violet-500 border-t-transparent animate-spin" style={{ animationDuration: '3s' }} />
           </div>
 
-          <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Visit Campaign</h3>
-          <p className="text-sm font-bold text-slate-400 mb-8 max-w-[240px]">
+          <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Visit Campaign</h3>
+          <p className="text-base font-bold text-slate-400 mb-8 max-w-[280px] leading-relaxed">
             Stay on the campaign page. Reward unlocks after 10 seconds.
           </p>
 
@@ -276,7 +280,7 @@ export default function CampaignCard() {
                   },
                 });
               }}
-              className="w-full py-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all"
+              className="w-full min-h-[44px] py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-sm font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all active:scale-95 touch-manipulation"
             >
               Leave Anyway
             </button>
@@ -284,38 +288,38 @@ export default function CampaignCard() {
         </div>
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         {/* READY TO EARN */}
         <section>
-          <div className="mb-2.5 flex items-center gap-2 px-1">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-            <h2 className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-500">
+          <div className="mb-3 flex items-center gap-2 px-1">
+            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
               Ready to Earn
             </h2>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {readyToEarn.length > 0 ? (
               readyToEarn.map(renderCard)
             ) : (
-              <div className="py-8 text-center border border-dashed border-white/5 rounded-2xl">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">No active campaigns</p>
+              <div className="py-10 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">No active campaigns</p>
               </div>
             )}
           </div>
         </section>
 
-        {/* AVAILABLE */}
+        {/* AVAILABLE / COMPLETED */}
         {available.length > 0 && (
           <section>
-            <div className="mb-2.5 flex items-center gap-2 px-1">
-              <div className="h-1.5 w-1.5 rounded-full bg-slate-500" />
-              <h2 className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-500">
+            <div className="mb-3 flex items-center gap-2 px-1">
+              <div className="h-2 w-2 rounded-full bg-slate-600" />
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">
                 Completed
               </h2>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {available.map(renderCard)}
             </div>
           </section>

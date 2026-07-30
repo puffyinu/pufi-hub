@@ -24,7 +24,6 @@ export default function BottomNav({ active }: BottomNavProps) {
   const HOLDSTATION_URL =
     "https://worldcoin.org/mini-app?app_id=app_0d4b759921490adc1f2bd569fda9b53a&app_mode=mini-app";
 
-  // Penentuan tab aktif berdasarkan prop atau lokasi URL
   const getActiveTab = (): NavKey => {
     if (active) return active;
     if (pathname.startsWith("/campaign")) return "campaign";
@@ -71,10 +70,9 @@ export default function BottomNav({ active }: BottomNavProps) {
 
   const handleNavigation = (item: (typeof navItems)[0]) => {
     if (item.key === "wallet") {
-      // Mengutamakan penanganan via MiniKit atau fallback lokasi aman WebView
       if (typeof window !== "undefined") {
         if (MiniKit.isInstalled()) {
-          window.location.href = HOLDSTATION_URL;
+          window.location.assign(HOLDSTATION_URL);
         } else {
           window.open(HOLDSTATION_URL, "_blank", "noopener,noreferrer");
         }
@@ -122,12 +120,10 @@ export default function BottomNav({ active }: BottomNavProps) {
                 }
               `}
             >
-              {/* Active Indicator Top Glow */}
               {isActive && (
                 <div className="absolute top-0 h-0.5 w-8 rounded-full bg-[#FFC857] shadow-[0_0_8px_#FFC857]" />
               )}
 
-              {/* Icon Wrapper */}
               <div
                 className={`relative h-6 w-6 transition-all duration-200 ${
                   isActive
@@ -145,7 +141,6 @@ export default function BottomNav({ active }: BottomNavProps) {
                 />
               </div>
 
-              {/* Text Label */}
               <span
                 className={`text-[9px] font-bold uppercase tracking-wider transition-opacity duration-200 ${
                   isActive ? "opacity-100" : "opacity-60"
