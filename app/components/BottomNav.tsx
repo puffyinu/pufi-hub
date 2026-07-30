@@ -1,10 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { MiniKit } from "@worldcoin/minikit-js";
 
-type NavKey =
+export type NavKey =
   | "campaign"
   | "claim"
   | "dashboard"
@@ -15,12 +16,25 @@ interface BottomNavProps {
   active?: NavKey;
 }
 
-export default function BottomNav({
-  active = "dashboard",
-}: BottomNavProps) {
+export default function BottomNav({ active }: BottomNavProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { t } = useLanguage();
-  const HOLDSTATION_URL = "https://worldcoin.org/mini-app?app_id=app_0d4b759921490adc1f2bd569fda9b53a&app_mode=mini-app";
+
+  const HOLDSTATION_URL =
+    "https://worldcoin.org/mini-app?app_id=app_0d4b759921490adc1f2bd569fda9b53a&app_mode=mini-app";
+
+  // Penentuan tab aktif berdasarkan prop atau lokasi URL
+  const getActiveTab = (): NavKey => {
+    if (active) return active;
+    if (pathname.startsWith("/campaign")) return "campaign";
+    if (pathname.startsWith("/claim")) return "claim";
+    if (pathname.startsWith("/creator")) return "creator";
+    if (pathname.startsWith("/dashboard")) return "dashboard";
+    return "dashboard";
+  };
+
+  const currentActive = getActiveTab();
 
   const navItems = [
     {
@@ -55,57 +69,88 @@ export default function BottomNav({
     },
   ];
 
-  const handleNavigation = (item: typeof navItems[0]) => {
+  const handleNavigation = (item: (typeof navItems)[0]) => {
     if (item.key === "wallet") {
-      window.open(HOLDSTATION_URL, "_blank");
+      // Mengutamakan penanganan via MiniKit atau fallback lokasi aman WebView
+      if (typeof window !== "undefined") {
+        if (MiniKit.isInstalled()) {
+          window.location.href = HOLDSTATION_URL;
+        } else {
+          window.open(HOLDSTATION_URL, "_blank", "noopener,noreferrer");
+        }
+      }
       return;
     }
-    router.push(item.href);
+
+    if (pathname !== item.href) {
+      router.push(item.href);
+    }
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-[#0B101B]/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl">
-      <div className="mx-auto flex h-20 max-w-[600px] items-center justify-around px-4">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-800/80 bg-[#0B101B]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl select-none">
+      <div className="mx-auto flex h-16 max-w-md items-center justify-between px-2">
         {navItems.map((item) => {
-          const isActive = active === item.key;
+          const isActive = currentActive === item.key;
 
           return (
             <button
               key={item.key}
+              type="button"
               onClick={() => handleNavigation(item)}
+              aria-label={item.label}
               className={`
                 relative
                 flex
+                min-h-[44px]
+                min-w-[44px]
+                flex-1
                 flex-col
                 items-center
                 justify-center
-                gap-1.5
-                px-2
-                transition-all
-                active:scale-90
+                gap-1
+                py-1
+                px-1
+                touch-manipulation
+                transition-transform
+                duration-150
+                active:scale-95
                 ${
                   isActive
                     ? "text-[#FFC857]"
-                    : "text-slate-500 hover:text-slate-300"
+                    : "text-slate-400 hover:text-slate-200"
                 }
               `}
             >
+              {/* Active Indicator Top Glow */}
               {isActive && (
-                <div className="absolute -top-3 h-1 w-6 rounded-full bg-[#FFC857] blur-[2px]" />
+                <div className="absolute top-0 h-0.5 w-8 rounded-full bg-[#FFC857] shadow-[0_0_8px_#FFC857]" />
               )}
 
-              <div className={`relative h-9 w-9 transition-all duration-300 ${isActive ? "scale-110 -translate-y-0.5" : "opacity-70 brightness-75 scale-[0.98]"}`}>
+              {/* Icon Wrapper */}
+              <div
+                className={`relative h-6 w-6 transition-all duration-200 ${
+                  isActive
+                    ? "scale-110 brightness-110"
+                    : "opacity-60 brightness-90"
+                }`}
+              >
                 <Image
                   src={item.icon}
                   alt={item.label}
-                  width={36}
-                  height={36}
+                  width={24}
+                  height={24}
                   className="object-contain"
                   priority={isActive}
                 />
               </div>
 
-              <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${isActive ? "opacity-100" : "opacity-60"}`}>
+              {/* Text Label */}
+              <span
+                className={`text-[9px] font-bold uppercase tracking-wider transition-opacity duration-200 ${
+                  isActive ? "opacity-100" : "opacity-60"
+                }`}
+              >
                 {item.label}
               </span>
             </button>
