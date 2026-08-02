@@ -4,58 +4,57 @@ import { useEffect, useState } from "react";
 
 import DashboardTopBar from "@/app/components/DashboardTopBar";
 import BottomNav from "@/app/components/BottomNav";
-import { executeDailyClaim } from "@/app/services/dailyClaimService";
-import { useTransaction } from "@/app/hooks/useTransaction";
 import UIFeedback from "@/app/components/UIFeedback";
-import { encodeFunctionData } from "viem";
 import AppBackground from "@/app/components/layout/AppBackground";
+import { useWalletContext } from "@/app/context/WalletProvider";
 
 type ClaimState = "idle" | "loading" | "claimed";
 
+interface DailyClaimApiResponse {
+  success: boolean;
+  txHash?: string;
+  error?: string;
+  nextClaimAt?: string;
+}
+
 export default function ClaimPage() {
+  const { wallet } = useWalletContext();
   const [claimState, setClaimState] = useState<ClaimState>("idle");
   const [countdown, setCountdown] = useState("23:59:59");
-  const { send, loading: transactionLoading, transaction } = useTransaction();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
 
   const handleClaimStart = async () => {
-    setClaimState("loading");
+    setErrorMessage(null);
 
-    const result = await executeDailyClaim();
-
-    if (!result.success) {
-      console.warn(result.error);
-      setClaimState("idle");
+    if (!wallet.connected || !wallet.address) {
+      setErrorMessage("Please connect your World Wallet first.");
       return;
     }
 
+    setClaimState("loading");
+
     try {
-      // BUILD-007.4: Integration with World MiniKit Transaction
-      await send({
-        transactions: [
-          {
-            to: "0x0000000000000000000000000000000000000000",
-            data: encodeFunctionData({
-              abi: [
-                {
-                  name: "claimDailyReward",
-                  type: "function",
-                  stateMutability: "nonpayable",
-                  inputs: [],
-                  outputs: [],
-                },
-              ],
-              functionName: "claimDailyReward",
-              args: [],
-            }),
-          },
-        ],
-        chainId: 480, // World Chain Mainnet
+      const response = await fetch("/api/claim/daily", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress: wallet.address }),
       });
 
+      const result: DailyClaimApiResponse = await response.json();
+
+      if (!result.success) {
+        setErrorMessage(result.error ?? "Claim failed. Please try again.");
+        setClaimState("idle");
+        return;
+      }
+
+      setTxHash(result.txHash ?? null);
       setCountdown("23:59:59");
       setClaimState("claimed");
     } catch (error) {
-      console.error("Transaction failed", error);
+      console.error("[CLAIM] Request failed", error);
+      setErrorMessage("Network error. Please try again.");
       setClaimState("idle");
     }
   };
@@ -86,7 +85,6 @@ export default function ClaimPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30 select-none">
-      {/* Custom Keyframes for Premium Polish */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes mascot-float {
           0%, 100% { transform: translateY(0px); }
@@ -109,18 +107,14 @@ export default function ClaimPage() {
 
       <AppBackground />
 
-      {/* VIEWPORT CONTENT WRAPPER */}
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-4">
 
-        {/* 1. Header */}
         <div className="flex-none">
           <DashboardTopBar />
         </div>
 
-        {/* 2. Main Content */}
         <main className="flex-1 flex flex-col pt-2 pb-32 px-2 overflow-hidden">
 
-          {/* Title Section */}
           <div className="text-center flex-none">
             <h2 className="text-2xl font-black tracking-wide uppercase">
               Daily Claim
@@ -130,22 +124,14 @@ export default function ClaimPage() {
             </p>
           </div>
 
-          {/* Dynamic Spacer */}
           <div className="flex-1" />
 
-          {/* Hero Section (Centered Mascot) */}
           <div className="flex-none flex items-center justify-center relative w-full my-4">
             <div className="relative flex items-center justify-center">
-              {/* Layer 1: Large Purple Radial Glow */}
               <div className="absolute h-[260px] w-[260px] rounded-full bg-purple-600/10 blur-[90px] animate-aura-pulse pointer-events-none" />
-
-              {/* Layer 2: Thin Glowing Circle */}
               <div className="absolute h-[220px] w-[220px] rounded-full border border-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.1)] pointer-events-none" />
-
-              {/* Layer 3: Purple Energy Floor */}
               <div className="absolute -bottom-2 h-10 w-36 rounded-[100%] bg-purple-500/20 blur-[25px] pointer-events-none" />
 
-              {/* Premium Particles */}
               <div className="absolute top-[-20px] left-[-30px] w-1.5 h-1.5 rounded-full bg-purple-400/40 blur-[1px] animate-particle" style={{ animationDelay: '0s' }} />
               <div className="absolute top-[30px] right-[-20px] w-1 h-1 rounded-full bg-white/30 blur-[0.5px] animate-particle" style={{ animationDelay: '1.2s' }} />
               <div className="absolute bottom-[10px] left-[-40px] w-2 h-2 rounded-full bg-yellow-400/20 blur-[2px] animate-particle" style={{ animationDelay: '2.5s' }} />
@@ -162,13 +148,17 @@ export default function ClaimPage() {
             </div>
           </div>
 
-          {/* Dynamic Spacer */}
           <div className="flex-1" />
 
-          {/* CTA Button Section */}
+          {txHash && claimState === "claimed" && (
+            <p className="text-center text-[10px] text-slate-500 mb-2 break-all">
+              Tx: {txHash}
+            </p>
+          )}
+
           <div className="flex-none w-full">
             <button
-              disabled={claimState !== "idle" || transactionLoading}
+              disabled={claimState !== "idle"}
               onClick={handleClaimStart}
               className={`
                 w-full min-h-[56px] rounded-2xl 
@@ -176,10 +166,10 @@ export default function ClaimPage() {
                 py-4 text-base font-black text-[#171717]
                 shadow-[0_8px_32px_rgba(255,200,87,0.25)] ring-1 ring-yellow-400/30 
                 transition-transform duration-150 touch-manipulation
-                ${claimState === "idle" && !transactionLoading ? "hover:scale-[1.01] active:scale-95" : "opacity-50 grayscale-[0.5]"}
+                ${claimState === "idle" ? "hover:scale-[1.01] active:scale-95" : "opacity-50 grayscale-[0.5]"}
               `}
             >
-              {claimState === "loading" || transactionLoading ? (
+              {claimState === "loading" ? (
                 "CLAIMING..."
               ) : claimState === "claimed" ? (
                 <div className="flex flex-col items-center leading-tight">
@@ -198,14 +188,13 @@ export default function ClaimPage() {
 
         <BottomNav active="claim" />
 
-        {/* Overlays */}
-        {transaction.error && (
+        {errorMessage && (
           <UIFeedback
             isOpen={true}
             type="alert"
-            title="Transaction Error"
-            message={transaction.error}
-            onConfirm={() => {}}
+            title="Claim Failed"
+            message={errorMessage}
+            onConfirm={() => setErrorMessage(null)}
           />
         )}
       </div>
