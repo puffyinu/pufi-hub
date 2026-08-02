@@ -50,7 +50,7 @@ export default function LandingPage() {
         text-white
         flex
         flex-col
-        justify-between
+        justify-center
         px-6
         pt-[max(env(safe-area-inset-top),1rem)]
         pb-[max(env(safe-area-inset-bottom),2rem)]
@@ -68,7 +68,7 @@ export default function LandingPage() {
       </div>
 
       {/* HERO */}
-      <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center pt-4 pb-10 text-center">
+      <section className="mx-auto flex w-full max-w-md flex-col items-center justify-center text-center">
         <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-5xl font-black tracking-tight text-transparent">
           {APP_NAME}
         </h1>
@@ -124,23 +124,6 @@ export default function LandingPage() {
           {loading ? "Connecting..." : "Connect World Wallet"}
         </button>
       </section>
-
-      {/* FOOTER */}
-      <footer className="mx-auto w-full max-w-md shrink-0 border-t border-white/10 pt-4 pb-2 text-center">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
-          Powered by
-        </p>
-
-        <div className="mt-4 flex justify-center gap-6 text-xs font-semibold text-slate-400">
-          <span>World App</span>
-          <span>MiniKit</span>
-          <span>World Chain</span>
-        </div>
-
-        <p className="mt-6 text-[11px] italic uppercase tracking-[0.2em] text-slate-600">
-          © 2026 PUFFY INU
-        </p>
-      </footer>
     </main>
   );
 }
