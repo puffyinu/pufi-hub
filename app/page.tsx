@@ -42,37 +42,32 @@ export default function LandingPage() {
 
   return (
     <main
-  className="
-    relative
-    h-[100dvh]
-    overflow-hidden
-    bg-[#070B1A]
-    text-white
-    flex
-    flex-col
-    justify-between
-    px-6
-    pt-[max(env(safe-area-inset-top),1rem)]
-    pb-[max(env(safe-area-inset-bottom),2rem)]
-  "
->
+      className="
+        relative
+        min-h-[100dvh]
+        overflow-y-auto
+        bg-[#070B1A]
+        text-white
+        flex
+        flex-col
+        justify-between
+        px-6
+        pt-[max(env(safe-area-inset-top),1rem)]
+        pb-[max(env(safe-area-inset-bottom),2rem)]
+      "
+    >
+      {/* Cosmic Background */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#4F46E530,transparent_60%)]" />
 
-{/* Cosmic Background */}
+        <div className="absolute left-1/2 top-1/3 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/15 blur-[140px]" />
 
-<div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-blue-500/10 blur-[120px]" />
 
-  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#4F46E530,transparent_60%)]" />
-
-  <div className="absolute left-1/2 top-1/3 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/15 blur-[140px]" />
-
-  <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-blue-500/10 blur-[120px]" />
-
-  <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-[120px]" />
-
-</div>
+        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-[120px]" />
+      </div>
 
       {/* HERO */}
-
       <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center pt-4 pb-10 text-center">
         <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-5xl font-black tracking-tight text-transparent">
           {APP_NAME}
@@ -131,8 +126,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-
-      <footer className="mx-auto w-full max-w-md border-t border-white/10 pt-4 text-center">
+      <footer className="mx-auto w-full max-w-md shrink-0 border-t border-white/10 pt-4 pb-2 text-center">
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
           Powered by
         </p>
