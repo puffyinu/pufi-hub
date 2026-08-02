@@ -1,134 +1,152 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import AppBackground from '@/app/components/layout/AppBackground';
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { executeLandingGateway } from "@/app/services/landingGatewayService";
 
-export default function HomePage() {
+const APP_NAME = "PUFI HUB";
+
+export default function LandingPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConnectWallet = async () => {
+    if (loading) return;
+
+    console.log("[PAGE-1] Button Clicked");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await executeLandingGateway();
+
+      console.log("[PAGE-2] Gateway Result =", result);
+
+      if (!result.success) {
+        console.log("[PAGE-3] Gateway Failed");
+        setError(result.error ?? "Connection failed");
+        setLoading(false);
+        return;
+      }
+
+      console.log("[PAGE-4] router.push('/dashboard')");
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("[PAGE-ERROR]", err);
+      setError("An unexpected error occurred");
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="relative min-h-screen bg-[#0D1125] text-slate-100 pb-32 overflow-hidden font-sans selection:bg-[#FFC857]/30 select-none">
-      
-      <AppBackground />
+    <main
+  className="
+    relative
+    h-[100dvh]
+    overflow-hidden
+    bg-[#070B1A]
+    text-white
+    flex
+    flex-col
+    justify-between
+    px-6
+    pt-[max(env(safe-area-inset-top),1rem)]
+    pb-[max(env(safe-area-inset-bottom),2rem)]
+  "
+>
 
-      {/* Main Container */}
-      <div className="relative z-10 max-w-md mx-auto px-4 pt-4 space-y-6">
-        
-        {/* Top Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="relative w-11 h-11 rounded-xl overflow-hidden ring-2 ring-indigo-500/30 bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-900/40">
-              <span className="text-white font-black text-base tracking-wider">PU</span>
-            </div>
-            <div>
-              <div className="flex items-center space-x-1.5">
-                <h1 className="text-base font-black tracking-tight text-white uppercase">PUFI HUB</h1>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1" />
-                  Live
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 font-medium">World Chain Ecosystem</p>
-            </div>
-          </div>
+{/* Cosmic Background */}
 
-          {/* Verified Badge */}
-          <div className="flex items-center space-x-1.5 bg-white/5 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 text-[11px] text-slate-300 shadow-sm">
-            <span className="text-xs">🛡️</span>
-            <span className="font-bold uppercase tracking-wider text-[10px]">Verified ID</span>
-          </div>
+<div className="absolute inset-0 overflow-hidden">
+
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#4F46E530,transparent_60%)]" />
+
+  <div className="absolute left-1/2 top-1/3 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/15 blur-[140px]" />
+
+  <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-blue-500/10 blur-[120px]" />
+
+  <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-[120px]" />
+
+</div>
+
+      {/* HERO */}
+
+      <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center pt-4 pb-10 text-center">
+        <h1 className="mb-4 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-5xl font-black tracking-tight text-transparent">
+          {APP_NAME}
+        </h1>
+
+        <div className="relative mb-2 pufi-float">
+          <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-3xl" />
+
+          <Image
+            src="/images/mascot/pufi-mascot.png"
+            alt="PUFI Mascot"
+            width={270}
+            height={270}
+            priority
+            className="relative rounded-full pufi-sway pufi-glow"
+          />
         </div>
 
-        {/* Hero Portfolio Card */}
-        <div className="relative rounded-3xl p-6 bg-white/5 border border-white/10 backdrop-blur-2xl shadow-2xl overflow-hidden">
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="mt-2 flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
 
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Total Portfolio Value</p>
-              <h2 className="text-3xl font-black text-white mt-1 tracking-tight">1,245.80 <span className="text-xs font-black text-[#FFC857] uppercase tracking-widest">PUFI</span></h2>
-            </div>
-            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shadow-inner">
-              <span className="text-xl">🪙</span>
-            </div>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+            Human Verified
+          </span>
+        </div>
+
+        {error && (
+          <div className="mt-4 w-full rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-center text-xs text-red-400">
+            {error}
           </div>
+        )}
 
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
-            <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Daily Yield</p>
-              <p className="text-xs font-bold text-emerald-400 mt-1 flex items-center">
-                📈 +14.2%
-              </p>
-            </div>
-            <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Staked Power</p>
-              <p className="text-xs font-bold text-white mt-1">500.00 PUFI</p>
-            </div>
-          </div>
+        <button
+          onClick={handleConnectWallet}
+          disabled={loading}
+          className="
+            mt-6
+            w-full
+            rounded-2xl
+            bg-blue-600
+            py-4
+            text-lg
+            font-bold
+            shadow-2xl
+            shadow-blue-600/30
+            transition
+            duration-300
+            hover:bg-blue-500
+            active:scale-[0.98]
+            disabled:opacity-70
+            disabled:cursor-not-allowed
+          "
+        >
+          {loading ? "Connecting..." : "Connect World Wallet"}
+        </button>
+      </section>
+
+      {/* FOOTER */}
+
+      <footer className="mx-auto w-full max-w-md border-t border-white/10 pt-4 text-center">
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
+          Powered by
+        </p>
+
+        <div className="mt-4 flex justify-center gap-6 text-xs font-semibold text-slate-400">
+          <span>World App</span>
+          <span>MiniKit</span>
+          <span>World Chain</span>
         </div>
 
-        {/* Quick Action Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <Link href="/claim" className="group p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl hover:border-indigo-500/50 transition-all shadow-xl flex flex-col justify-between active:scale-95 touch-manipulation">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-lg">
-                🔥
-              </div>
-              <span className="text-slate-500 group-hover:text-indigo-400 transition-colors text-xs font-bold">→</span>
-            </div>
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-white">Daily Claim</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Claim reward harian</p>
-            </div>
-          </Link>
-
-          <Link href="/campaign" className="group p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl hover:border-indigo-500/50 transition-all shadow-xl flex flex-col justify-between active:scale-95 touch-manipulation">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-lg">
-                ⚡
-              </div>
-              <span className="text-slate-500 group-hover:text-indigo-400 transition-colors text-xs font-bold">→</span>
-            </div>
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-white">Campaigns</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Jelajahi sponsor aktif</p>
-            </div>
-          </Link>
-        </div>
-
-        {/* Featured Campaign Card */}
-        <div className="rounded-3xl p-5 bg-white/5 border border-white/10 backdrop-blur-xl shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Featured Campaign</h3>
-            </div>
-            <Link href="/campaign" className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors">
-              View All →
-            </Link>
-          </div>
-
-          <Link href="/campaign" className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between space-x-3 group cursor-pointer hover:border-indigo-500/40 transition-all">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center text-lg shadow-md shrink-0">
-                🎁
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">World Chain Airdrop Pool</h4>
-                <p className="text-[10px] text-slate-400 font-medium">Reward Pool: 50,000 PUFI</p>
-              </div>
-            </div>
-            <span className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
-              Active
-            </span>
-          </Link>
-        </div>
-
-        {/* Footer info */}
-        <div className="text-center pt-2">
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">PUFI HUB Mini App • Secured by World ID</p>
-        </div>
-
-      </div>
-    </div>
+        <p className="mt-6 text-[11px] italic uppercase tracking-[0.2em] text-slate-600">
+          © 2026 PUFFY INU
+        </p>
+      </footer>
+    </main>
   );
 }
