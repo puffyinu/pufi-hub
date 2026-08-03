@@ -29,7 +29,11 @@ export async function sendTransaction(
   options: MiniKitSendTransactionOptions
 ): Promise<TransactionResult> {
   try {
+    console.log("[TX] Options:", options);
+
     const result = await sendMiniKitTransaction(options);
+
+    console.log("[TX] Result:", result);
 
     const data = result?.data as SendTransactionData | undefined;
 
@@ -41,6 +45,8 @@ export async function sendTransaction(
       timestamp: data?.timestamp,
     };
   } catch (error) {
+    console.error("[TX] Error:", error);
+
     return {
       success: false,
       error:
