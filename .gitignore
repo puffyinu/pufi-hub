@@ -46,3 +46,5 @@ next-env.d.ts
 *.save
 *.bak
 .env*
+litellm-config.yaml
+.env.litellm
