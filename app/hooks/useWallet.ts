@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
-import { login } from "../runtime/auth";
 import { useWalletContext } from "../context/WalletProvider";
-import { verifyHuman } from "../services/worldIdVerification";
+import { connectAndVerifyWallet } from "@/app/services/walletConnectFlow";
 
 export function useWallet() {
   const { wallet, setWallet } = useWalletContext();
@@ -12,32 +11,22 @@ export function useWallet() {
   async function connect() {
     setLoading(true);
     setError(null);
-
     try {
-      const verification = await verifyHuman();
-
-      if (!verification.success) {
-        setError(verification.error ?? "World ID verification failed.");
+      const result = await connectAndVerifyWallet();
+      if (!result.success || !result.address) {
+        setError(result.error ?? "Connection failed. Please try again.");
         setLoading(false);
         return;
       }
-
-      const result = await login(true);
-
-      if (result?.address) {
-        setWallet({
-          connected: true,
-          address: result.address,
-          balance: 0,
-        });
-      } else {
-        setError("Connection cancelled or failed. Please try again.");
-      }
+      setWallet({
+        connected: true,
+        address: result.address,
+        balance: 0,
+      });
     } catch (err) {
       console.error(err);
       setError("Unexpected error. Please try again.");
     }
-
     setLoading(false);
   }
 

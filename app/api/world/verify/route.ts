@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { WORLD_CONFIG } from "@/app/config/world";
-import { recordWorldIdVerification } from "@/app/services/worldIdNullifier";
+import {
+  recordWorldIdVerification,
+  recordVerifiedWallet,
+} from "@/app/services/worldIdNullifier";
 
 interface IDKitResponseItem {
   identifier?: string;
@@ -18,6 +21,7 @@ interface IDKitResultPayload {
 interface VerifyRequestBody {
   rp_id?: string;
   idkitResponse?: IDKitResultPayload;
+  address?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -26,13 +30,8 @@ export async function POST(request: NextRequest) {
 
     if (!body.idkitResponse) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Missing idkitResponse.",
-        },
-        {
-          status: 400,
-        }
+        { success: false, error: "Missing idkitResponse." },
+        { status: 400 }
       );
     }
 
@@ -51,13 +50,8 @@ export async function POST(request: NextRequest) {
       const errorText = await portalResponse.text().catch(() => "");
       console.error("[WORLD-VERIFY-ERROR]", portalResponse.status, errorText);
       return NextResponse.json(
-        {
-          success: false,
-          error: "World ID verification failed.",
-        },
-        {
-          status: 400,
-        }
+        { success: false, error: "World ID verification failed." },
+        { status: 400 }
       );
     }
 
@@ -72,31 +66,23 @@ export async function POST(request: NextRequest) {
 
     if (nullifiers.length === 0) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "No nullifier returned in proof.",
-        },
-        {
-          status: 400,
-        }
+        { success: false, error: "No nullifier returned in proof." },
+        { status: 400 }
       );
     }
 
     await recordWorldIdVerification(nullifiers, action);
 
-    return NextResponse.json({
-      success: true,
-    });
+    if (body.address) {
+      await recordVerifiedWallet(body.address, nullifiers[0]);
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[WORLD-VERIFY-EXCEPTION]", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Invalid request body.",
-      },
-      {
-        status: 400,
-      }
+      { success: false, error: "Invalid request body." },
+      { status: 400 }
     );
   }
 }

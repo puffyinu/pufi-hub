@@ -1,5 +1,4 @@
 "use client";
-
 import { IDKit, proofOfHuman, isInWorldApp } from "@worldcoin/idkit-core";
 import { WORLD_CONFIG } from "@/app/config/world";
 import type { RpContext } from "@/app/types/rpContext";
@@ -15,13 +14,10 @@ async function fetchRpContext(action: string): Promise<RpContext> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ action }),
   });
-
   const data = await response.json();
-
   if (!response.ok || !data.success) {
     throw new Error(data.error ?? "Failed to fetch RP context.");
   }
-
   return data.rpContext as RpContext;
 }
 
@@ -29,7 +25,9 @@ export function isWorldAppEnvironment(): boolean {
   return isInWorldApp();
 }
 
-export async function verifyHuman(): Promise<WorldIdVerificationResult> {
+export async function verifyHuman(
+  address?: string
+): Promise<WorldIdVerificationResult> {
   try {
     if (!isInWorldApp()) {
       return {
@@ -37,10 +35,8 @@ export async function verifyHuman(): Promise<WorldIdVerificationResult> {
         error: "Please open PUFI HUB inside the World App.",
       };
     }
-
     const action = WORLD_CONFIG.action || "verify-human";
     const rpContext = await fetchRpContext(action);
-
     const request = await IDKit.request({
       app_id: WORLD_CONFIG.appId as `app_${string}`,
       action,
@@ -49,34 +45,29 @@ export async function verifyHuman(): Promise<WorldIdVerificationResult> {
       allow_legacy_proofs: true,
       environment: "production",
     }).preset(proofOfHuman());
-
     const completion = await request.pollUntilCompletion();
-
     if (!completion.success) {
       return {
         success: false,
         error: `World ID verification failed: ${completion.error}`,
       };
     }
-
     const verifyResponse = await fetch("/api/world/verify", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         rp_id: rpContext.rp_id,
         idkitResponse: completion.result,
+        address,
       }),
     });
-
     const verifyData = await verifyResponse.json();
-
     if (!verifyResponse.ok || !verifyData.success) {
       return {
         success: false,
         error: verifyData.error ?? "Backend verification failed.",
       };
     }
-
     return { success: true };
   } catch (error) {
     console.error("[VERIFY-HUMAN-ERROR]", error);

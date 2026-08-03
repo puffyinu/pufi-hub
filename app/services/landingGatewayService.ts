@@ -1,11 +1,10 @@
 import { isMiniKitReady } from "@/app/runtime/minikitManager";
-import { login } from "@/app/runtime/auth";
 import { isDevelopmentRuntime } from "@/app/runtime/runtimeMode";
 import { createDevelopmentSession } from "@/app/runtime/development";
 import { WORLD_CONFIG } from "@/app/config/world";
 import { getRuntimeHealth } from "@/app/services/runtimeHealth";
 import { refreshRuntimeState } from "@/app/services/runtimeSession";
-import { verifyHuman } from "@/app/services/worldIdVerification";
+import { connectAndVerifyWallet } from "@/app/services/walletConnectFlow";
 
 export interface LandingGatewayResult {
   success: boolean;
@@ -19,9 +18,7 @@ export async function executeLandingGateway(): Promise<LandingGatewayResult> {
     if (isDevelopmentRuntime()) {
       console.log("[DEV] Development Runtime detected");
       await createDevelopmentSession();
-      return {
-        success: true,
-      };
+      return { success: true };
     }
     if (!WORLD_CONFIG.appId || WORLD_CONFIG.appId.trim() === "") {
       console.error("[TRACE] Missing NEXT_PUBLIC_WORLD_APP_ID");
@@ -50,31 +47,19 @@ export async function executeLandingGateway(): Promise<LandingGatewayResult> {
       };
     }
 
-    console.log("[TRACE-6] Calling verifyHuman()");
-    const verification = await verifyHuman();
-    console.log("[TRACE-7] verifyHuman() returned:", verification);
+    console.log("[TRACE-6] Calling connectAndVerifyWallet()");
+    const connectResult = await connectAndVerifyWallet();
+    console.log("[TRACE-7] connectAndVerifyWallet() returned:", connectResult);
 
-    if (!verification.success) {
+    if (!connectResult.success) {
       return {
         success: false,
-        error: verification.error ?? "World ID verification failed.",
+        error: connectResult.error ?? "Connection failed.",
       };
     }
 
-    console.log("[TRACE-8] Calling login(verifiedHuman = true)");
-    const loginResult = await login(true);
-    console.log("[TRACE-9] login() returned:", loginResult);
-    if (!loginResult) {
-      console.log("[TRACE-10] loginResult = false");
-      return {
-        success: false,
-        error: "Connection failed. Please authorize the wallet request in World App.",
-      };
-    }
     console.log("[TRACE-11] executeLandingGateway SUCCESS");
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error("[TRACE-ERROR]", error);
     return {
