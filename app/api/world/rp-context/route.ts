@@ -1,35 +1,64 @@
-import { NextResponse } from "next/server";
-import { validateWorldServerConfig } from "@/app/config/worldServer";
+import { NextRequest, NextResponse } from "next/server";
+import { signRequest } from "@worldcoin/idkit-core/signing";
 import {
-  createNonce,
-  createTimestamp,
-  createExpiration,
-} from "@/app/services/worldNonce";
+  validateWorldServerConfig,
+  WORLD_SERVER_CONFIG,
+} from "@/app/config/worldServer";
+import { WORLD_CONFIG } from "@/app/config/world";
 import type { RpContext } from "@/app/types/rpContext";
 
-export async function GET() {
-  if (!validateWorldServerConfig()) {
+interface RpContextRequestBody {
+  action?: string;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    if (!validateWorldServerConfig()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "WORLD_RP_SIGNING_KEY is not configured.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    const body: RpContextRequestBody = await request.json().catch(() => ({}));
+
+    const action =
+      typeof body.action === "string" && body.action.trim() !== ""
+        ? body.action
+        : WORLD_CONFIG.action;
+
+    const { sig, nonce, createdAt, expiresAt } = signRequest({
+      signingKeyHex: WORLD_SERVER_CONFIG.rpSigningKey,
+      action,
+    });
+
+    const rpContext: RpContext = {
+      rp_id: WORLD_CONFIG.rpId,
+      nonce,
+      created_at: createdAt,
+      expires_at: expiresAt,
+      signature: sig,
+    };
+
+    return NextResponse.json({
+      success: true,
+      rpContext,
+    });
+  } catch (error) {
+    console.error("[RP-CONTEXT-ERROR]", error);
     return NextResponse.json(
       {
         success: false,
-        error: "WORLD_RP_SIGNING_KEY is not configured.",
+        error: "Failed to generate RP signature.",
       },
       {
         status: 500,
       }
     );
   }
-
-  const rpContext: RpContext = {
-  rp_id: process.env.NEXT_PUBLIC_WORLD_RP_ID ?? "",
-  nonce: createNonce(),
-  created_at: createTimestamp(),
-  expires_at: createExpiration(),
-  signature: "",
-};
-
-return NextResponse.json({
-  success: true,
-  rpContext,
-});
 }
