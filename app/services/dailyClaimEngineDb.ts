@@ -1,5 +1,9 @@
 import { supabaseAdmin } from "@/app/services/supabaseAdmin";
-import { sendPufiFromRewardWallet } from "@/app/services/rewardWalletClient";
+import {
+  sendPufiFromRewardWallet,
+  validateRewardWalletTransfer,
+  type RewardWalletPreflightErrorCode,
+} from "@/app/services/rewardWalletClient";
 
 const CLAIM_AMOUNT = 1; // 1 PUFI per day
 const CLAIM_COOLDOWN_HOURS = 24;
@@ -8,6 +12,7 @@ export interface DailyClaimResult {
   success: boolean;
   txHash?: string;
   error?: string;
+  code?: RewardWalletPreflightErrorCode;
   nextClaimAt?: string;
 }
 
@@ -46,10 +51,27 @@ export async function processDailyClaim(
     };
   }
 
-  // 2. Send PUFI on-chain from Reward Wallet
+  // 2. Validate the reward wallet before any on-chain transfer.
+  const preflight = await validateRewardWalletTransfer(
+    normalizedAddress,
+    CLAIM_AMOUNT
+  );
+
+  if (!preflight.success) {
+    return {
+      success: false,
+      code: preflight.code,
+      error: preflight.error,
+    };
+  }
+
+  // 3. Send PUFI on-chain from Reward Wallet
   let txHash: string;
   try {
-    const result = await sendPufiFromRewardWallet(normalizedAddress, CLAIM_AMOUNT);
+    const result = await sendPufiFromRewardWallet(
+      normalizedAddress,
+      preflight.amountInBaseUnits
+    );
     txHash = result.txHash;
   } catch (error) {
     console.error("[DAILY_CLAIM] Transaction error:", error);
@@ -59,7 +81,7 @@ export async function processDailyClaim(
     };
   }
 
-  // 3. Record the claim
+  // 4. Record the claim
   const { error: insertError } = await supabaseAdmin.from("daily_claims").insert({
     wallet_address: normalizedAddress,
     amount: CLAIM_AMOUNT,
@@ -72,7 +94,7 @@ export async function processDailyClaim(
     // Transaction already succeeded on-chain; log for manual reconciliation
   }
 
-  // 4. Record in treasury ledger
+  // 5. Record in treasury ledger
   await supabaseAdmin.from("treasury_ledger").insert({
     entry_type: "DAILY_CLAIM_OUT",
     amount: CLAIM_AMOUNT,
