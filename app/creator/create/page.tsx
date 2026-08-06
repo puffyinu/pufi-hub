@@ -4,35 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useCampaign } from "@/app/hooks/useCampaign";
-import { useTransaction } from "@/app/hooks/useTransaction";
 import { canCreateCampaign } from "@/app/services/campaignEngine";
 import CampaignForm from "@/app/components/CampaignForm";
 import { Campaign } from "@/app/types/campaign";
-import UIFeedback from "@/app/components/UIFeedback";
-import { encodeFunctionData } from "viem";
 import AppBackground from "@/app/components/layout/AppBackground";
 
 export default function CreateCampaignPage() {
   const router = useRouter();
   const { createCampaign } = useCampaign();
-  const { send, loading: transactionLoading, transaction } = useTransaction();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCapacityReached, setShowCapacityReached] = useState(false);
-  
-  // Feedback State
-  const [feedback, setFeedback] = useState<{
-    isOpen: boolean;
-    type: "alert" | "confirm";
-    title: string;
-    message: string;
-    onConfirm: () => void;
-  }>({
-    isOpen: false,
-    type: "alert",
-    title: "",
-    message: "",
-    onConfirm: () => {},
-  });
 
   const ADVERTISER_ID = "advertiser-1";
 
@@ -46,33 +27,6 @@ export default function CreateCampaignPage() {
     setIsSubmitting(true);
 
     try {
-      // BUILD-007.4: Integration with World MiniKit Transaction
-      // We use a placeholder for the contract call to pay for the campaign
-      await send({
-        transactions: [
-          {
-            to: "0x0000000000000000000000000000000000000000",
-            data: encodeFunctionData({
-              abi: [
-                {
-                  name: "createCampaign",
-                  type: "function",
-                  stateMutability: "payable",
-                  inputs: [],
-                  outputs: [],
-                },
-              ],
-              functionName: "createCampaign",
-              args: [],
-            }),
-          },
-        ],
-        chainId: 480, // World Chain Mainnet
-      });
-
-      // We proceed with internal engine update if MiniKit didn't throw
-      // In a production app, we would wait for confirmation or verify transactionId
-      
       createCampaign({
         title: values.title!,
         description: values.description!,
@@ -86,15 +40,6 @@ export default function CreateCampaignPage() {
       });
 
       router.push("/creator");
-    } catch (error) {
-      console.error("Transaction failed", error);
-      setFeedback({
-        isOpen: true,
-        type: "alert",
-        title: "Transaction Failed",
-        message: "Transaction failed. Please try again.",
-        onConfirm: () => setFeedback(f => ({ ...f, isOpen: false })),
-      });
     } finally {
       setIsSubmitting(false);
     }
@@ -165,27 +110,8 @@ export default function CreateCampaignPage() {
 
       <CampaignForm 
         mode="create"
-        isSubmitting={isSubmitting || transactionLoading}
+        isSubmitting={isSubmitting}
         onSubmit={handleCreate}
-      />
-
-      {transaction.error && (
-        <UIFeedback
-          isOpen={true}
-          type="alert"
-          title="Transaction Error"
-          message={transaction.error}
-          onConfirm={() => setFeedback(f => ({ ...f, isOpen: false }))}
-        />
-      )}
-
-      <UIFeedback
-        isOpen={feedback.isOpen}
-        type={feedback.type}
-        title={feedback.title}
-        message={feedback.message}
-        onConfirm={feedback.onConfirm}
-        onCancel={() => setFeedback(f => ({ ...f, isOpen: false }))}
       />
     </main>
   );
