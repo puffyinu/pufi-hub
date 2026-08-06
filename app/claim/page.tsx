@@ -20,10 +20,15 @@ interface DailyClaimApiResponse {
 export default function ClaimPage() {
   const { wallet } = useWalletContext();
   const [claimState, setClaimState] = useState<ClaimState>("idle");
+  const [checkedAddress, setCheckedAddress] = useState<string | null>(null);
   const [countdown, setCountdown] = useState("23:59:59");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [nextClaimAt, setNextClaimAt] = useState<string | null>(null);
+
+  // Derived loading state to prevent UI flicker while verifying claim status
+  const isVerifying = !!(wallet.connected && wallet.address && wallet.address !== checkedAddress);
+  const effectiveState: ClaimState = (isVerifying || claimState === "loading") ? "loading" : claimState;
 
   const checkClaimStatus = async (address: string) => {
     try {
@@ -37,17 +42,26 @@ export default function ClaimPage() {
       }
     } catch (error) {
       console.error("[CLAIM] Status check failed", error);
+      setClaimState("idle");
+    } finally {
+      setCheckedAddress(address);
     }
   };
 
   useEffect(() => {
-    if (wallet.connected && wallet.address) {
-      const timer = setTimeout(() => {
-        checkClaimStatus(wallet.address!);
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-  }, [wallet.connected, wallet.address]);
+    const timer = setTimeout(() => {
+      if (wallet.connected && wallet.address) {
+        if (wallet.address !== checkedAddress) {
+          checkClaimStatus(wallet.address!);
+        }
+      } else if (wallet.connected === false) {
+        // Deferred reset to idle when disconnected
+        if (checkedAddress !== null) setCheckedAddress(null);
+        if (claimState !== "idle") setClaimState("idle");
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [wallet.connected, wallet.address, checkedAddress, claimState]);
 
   const handleClaimStart = async () => {
     setErrorMessage(null);
@@ -100,7 +114,7 @@ export default function ClaimPage() {
   };
 
   useEffect(() => {
-    if (claimState !== "claimed" || !nextClaimAt) return;
+    if (effectiveState !== "claimed" || !nextClaimAt) return;
 
     const targetDate = new Date(nextClaimAt).getTime();
 
@@ -122,7 +136,7 @@ export default function ClaimPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [claimState, nextClaimAt]);
+  }, [effectiveState, nextClaimAt]);
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30 select-none">
@@ -191,7 +205,7 @@ export default function ClaimPage() {
 
           <div className="flex-1" />
 
-          {txHash && claimState === "claimed" && (
+          {txHash && effectiveState === "claimed" && (
             <p className="text-center text-[10px] text-slate-500 mb-2 break-all">
               Tx: {txHash}
             </p>
@@ -199,7 +213,7 @@ export default function ClaimPage() {
 
           <div className="flex-none w-full">
             <button
-              disabled={claimState !== "idle"}
+              disabled={effectiveState !== "idle"}
               onClick={handleClaimStart}
               className={`
                 w-full min-h-[56px] rounded-2xl 
@@ -207,12 +221,12 @@ export default function ClaimPage() {
                 py-4 text-base font-black text-[#171717]
                 shadow-[0_8px_32px_rgba(255,200,87,0.25)] ring-1 ring-yellow-400/30 
                 transition-transform duration-150 touch-manipulation
-                ${claimState === "idle" ? "hover:scale-[1.01] active:scale-95" : "opacity-50 grayscale-[0.5]"}
+                ${effectiveState === "idle" ? "hover:scale-[1.01] active:scale-95" : "opacity-50 grayscale-[0.5]"}
               `}
             >
-              {claimState === "loading" ? (
+              {effectiveState === "loading" ? (
                 "CLAIMING..."
-              ) : claimState === "claimed" ? (
+              ) : effectiveState === "claimed" ? (
                 <div className="flex flex-col items-center leading-tight">
                   <span className="text-xs">✓ CLAIMED TODAY</span>
                   <span className="mt-0.5 text-sm font-bold tabular-nums text-[#171717]/80">
