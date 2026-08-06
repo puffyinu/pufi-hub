@@ -12,12 +12,15 @@ export default function RewardsClaimsCard() {
   const { reward } = useReward();
   const { send, loading: transactionLoading, transaction } = useTransaction();
   const [alertOpen, setAlertOpen] = useState(false);
+  const [claimActionStarted, setClaimActionStarted] = useState(false);
 
   const handleClaim = async (token: string, amount: number) => {
     const success = prepareRewardClaim();
     if (!success) return;
 
     try {
+      setClaimActionStarted(true);
+
       // BUILD-007.4: Integration with World MiniKit Transaction
       // This is the "Future Withdraw entry point"
       // We use a placeholder for the contract call to transfer reward to wallet
@@ -128,7 +131,7 @@ export default function RewardsClaimsCard() {
         ))}
       </div>
 
-      {transaction.error && (
+      {claimActionStarted && transaction.error && (
         <UIFeedback
           isOpen={true}
           type="alert"
