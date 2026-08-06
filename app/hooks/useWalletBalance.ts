@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import {
   getWalletBalance,
@@ -8,6 +8,7 @@ import {
 } from "../services/walletBalance";
 
 import { useWalletContext } from "../context/WalletProvider";
+import { WALLET_SESSION_EVENT } from "../services/walletSession";
 
 export function useWalletBalance() {
   const { wallet } = useWalletContext();
@@ -19,7 +20,7 @@ export function useWalletBalance() {
 
   const [loading, setLoading] = useState(false);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     if (!wallet.address) {
       setBalance({
         wld: "0.00",
@@ -34,11 +35,30 @@ export function useWalletBalance() {
       const result = await getWalletBalance(wallet.address);
       setBalance(result);
     } catch (error) {
-      console.error(error);
+      console.error("useWalletBalance: Refresh failed", error);
     } finally {
       setLoading(false);
     }
-  }
+  }, [wallet.address]);
+
+  // Initial load and auto-refresh when address changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [refresh]);
+
+  // Listen for global wallet session changes (e.g. after a transaction)
+  useEffect(() => {
+    const handleRefresh = () => {
+      refresh();
+    };
+    window.addEventListener(WALLET_SESSION_EVENT, handleRefresh);
+    return () => {
+      window.removeEventListener(WALLET_SESSION_EVENT, handleRefresh);
+    };
+  }, [refresh]);
 
   return {
     balance,

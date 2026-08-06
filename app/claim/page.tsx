@@ -52,6 +52,11 @@ export default function ClaimPage() {
       setTxHash(result.txHash ?? null);
       setCountdown("23:59:59");
       setClaimState("claimed");
+
+      // Trigger global balance refresh event
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("pufi-wallet-session-changed"));
+      }
     } catch (error) {
       console.error("[CLAIM] Request failed", error);
       setErrorMessage("Network error. Please try again.");
