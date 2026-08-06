@@ -19,27 +19,35 @@ export function useWalletBalance() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [loadedAddress, setLoadedAddress] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!wallet.address) {
+    const currentAddress = wallet.address;
+
+    if (!currentAddress) {
       setBalance({
         wld: "0.00",
         pufi: "0.00",
       });
+      setLoadedAddress(null);
       return;
     }
 
     setLoading(true);
 
     try {
-      const result = await getWalletBalance(wallet.address);
+      const result = await getWalletBalance(currentAddress);
       setBalance(result);
+      setLoadedAddress(currentAddress);
     } catch (error) {
       console.error("useWalletBalance: Refresh failed", error);
     } finally {
       setLoading(false);
     }
   }, [wallet.address]);
+
+  // Derived state: loading is "initial" if we have an address but haven't loaded its balance yet
+  const isInitialLoading = !!wallet.address && loadedAddress !== wallet.address;
 
   // Initial load and auto-refresh when address changes
   useEffect(() => {
@@ -63,6 +71,7 @@ export function useWalletBalance() {
   return {
     balance,
     loading,
+    isInitialLoading,
     refresh,
   };
 }

@@ -6,7 +6,7 @@ import { useLanguage } from "@/app/context/LanguageContext";
 import { MiniKit } from "@worldcoin/minikit-js";
 
 export default function PortfolioCard() {
-  const { balance } = useWalletBalance();
+  const { balance, isInitialLoading } = useWalletBalance();
   const { t } = useLanguage();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
@@ -34,9 +34,13 @@ export default function PortfolioCard() {
         </h2>
 
         <div className="mb-6 flex items-baseline justify-center gap-1.5">
-          <span className="text-5xl font-black tracking-tighter text-white">
-            {formattedPufi}
-          </span>
+          {isInitialLoading ? (
+            <div className="h-[48px] w-32 animate-pulse rounded-xl bg-white/10 my-1" />
+          ) : (
+            <span className="text-5xl font-black tracking-tighter text-white">
+              {formattedPufi}
+            </span>
+          )}
           <span className="text-sm font-black text-[#FFC857] uppercase tracking-widest">
             PUFI
           </span>
