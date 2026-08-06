@@ -17,7 +17,7 @@ export default function CreateCampaignPage() {
   const { createCampaign } = useCampaign();
   const { send, loading: transactionLoading, transaction } = useTransaction();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showLimitPopup, setShowLimitPopup] = useState(false);
+  const [showCapacityReached, setShowCapacityReached] = useState(false);
   
   // Feedback State
   const [feedback, setFeedback] = useState<{
@@ -38,7 +38,7 @@ export default function CreateCampaignPage() {
 
   useEffect(() => {
     if (!canCreateCampaign(ADVERTISER_ID)) {
-      Promise.resolve().then(() => setShowLimitPopup(true));
+      Promise.resolve().then(() => setShowCapacityReached(true));
     }
   }, []);
 
@@ -111,7 +111,7 @@ export default function CreateCampaignPage() {
       }}
     >
       <AppBackground />
-      {showLimitPopup && (
+      {showCapacityReached && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-6 backdrop-blur-sm">
           <div className="w-full max-w-[340px] overflow-hidden rounded-[32px] border border-white/10 bg-[#1A1D2E] p-8 text-center shadow-2xl">
             <div className="mb-6 flex justify-center">
@@ -119,55 +119,15 @@ export default function CreateCampaignPage() {
                 🔒
               </div>
             </div>
-            <h2 className="mb-2 text-xl font-black uppercase tracking-tight text-white">Free Slot Limit Reached</h2>
-            <p className="mb-8 text-xs font-medium text-slate-400">Unlock a Premium Slot to create additional campaigns.</p>
+            <h2 className="mb-2 text-xl font-black uppercase tracking-tight text-white">Campaign Capacity Reached</h2>
+            <p className="mb-8 text-xs font-medium text-slate-400">Unlock flow will be implemented in Phase 2.</p>
             
             <div className="flex flex-col gap-3">
               <button 
                 onClick={() => router.push("/creator")}
                 className="h-12 w-full rounded-2xl bg-white/5 text-[11px] font-black uppercase tracking-widest text-slate-400"
               >
-                Cancel
-              </button>
-              <button 
-                onClick={async () => {
-                  // BUILD-007.4: Unlock Premium also uses MiniKit
-                  await send({
-                    transactions: [
-                      {
-                        to: "0x0000000000000000000000000000000000000000",
-                        data: encodeFunctionData({
-                          abi: [
-                            {
-                              name: "unlockPremium",
-                              type: "function",
-                              stateMutability: "payable",
-                              inputs: [],
-                              outputs: [],
-                            },
-                          ],
-                          functionName: "unlockPremium",
-                          args: [],
-                        }),
-                      },
-                    ],
-                    chainId: 480, // World Chain Mainnet
-                  });
-                  
-                  setFeedback({
-                    isOpen: true,
-                    type: "alert",
-                    title: "Slot Unlocked",
-                    message: "Premium slot unlocked via World MiniKit!",
-                    onConfirm: () => {
-                      setFeedback(f => ({ ...f, isOpen: false }));
-                      setShowLimitPopup(false);
-                    },
-                  });
-                }}
-                className="h-12 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-[11px] font-black uppercase tracking-widest text-white shadow-lg"
-              >
-                Unlock Premium
+                Back to Campaigns
               </button>
             </div>
           </div>

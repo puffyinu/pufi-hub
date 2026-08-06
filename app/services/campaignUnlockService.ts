@@ -1,0 +1,32 @@
+import { CREATOR_CONFIG } from "@/app/config/creator";
+
+/**
+ * Returns the campaign capacity currently available to a creator.
+ *
+ * Unlock persistence is intentionally deferred, so every creator receives
+ * the configured free capacity during this phase.
+ */
+export function getCampaignCapacity(_userId: string): number {
+  return CREATOR_CONFIG.FREE_CAPACITY;
+}
+
+/**
+ * Determines whether a creator could unlock another campaign slot.
+ */
+export function canUnlock(userId: string): boolean {
+  return !isMaxCapacity(userId);
+}
+
+/**
+ * Determines whether a creator has reached the configured maximum capacity.
+ */
+export function isMaxCapacity(userId: string): boolean {
+  return getCampaignCapacity(userId) >= CREATOR_CONFIG.MAX_CAPACITY;
+}
+
+/**
+ * Returns the configured price for the next campaign-capacity unlock.
+ */
+export function getNextUnlockPrice(): number {
+  return CREATOR_CONFIG.UNLOCK_PRICE_USDC;
+}

@@ -1,0 +1,5 @@
+export const CREATOR_CONFIG = {
+  FREE_CAPACITY: 2,
+  MAX_CAPACITY: 5,
+  UNLOCK_PRICE_USDC: 2,
+} as const;

@@ -10,11 +10,11 @@ import {
 import { addReward } from "@/app/services/reward";
 import { recordActivity } from "@/app/services/activityEngine";
 import { setRewardState, getRewardState } from "@/app/services/rewardSession";
+import { getCampaignCapacity } from "@/app/services/campaignUnlockService";
 
 import type { Campaign, CampaignStatus } from "@/app/types/campaign";
 
 const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
-const FREE_SLOT_LIMIT = 2;
 
 /**
  * Returns all campaigns from the session.
@@ -41,11 +41,11 @@ export function getReadyCampaigns(): Campaign[] {
 }
 
 /**
- * Checks if an advertiser can create a new campaign (free slot limit).
+ * Checks whether an advertiser has remaining campaign capacity.
  */
 export function canCreateCampaign(userId: string): boolean {
   const myCampaigns = getMyCampaigns(userId);
-  return myCampaigns.length < FREE_SLOT_LIMIT;
+  return myCampaigns.length < getCampaignCapacity(userId);
 }
 
 /**
@@ -56,6 +56,10 @@ export function createCampaign(
 ): Campaign {
   if (!campaign.createdBy) {
     throw new Error("Missing advertiser: 'createdBy' is required.");
+  }
+
+  if (!canCreateCampaign(campaign.createdBy)) {
+    throw new Error("Campaign capacity reached.");
   }
 
   if (campaign.maxClaims <= 0) {
