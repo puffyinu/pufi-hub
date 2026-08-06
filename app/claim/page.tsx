@@ -23,6 +23,31 @@ export default function ClaimPage() {
   const [countdown, setCountdown] = useState("23:59:59");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [nextClaimAt, setNextClaimAt] = useState<string | null>(null);
+
+  const checkClaimStatus = async (address: string) => {
+    try {
+      const response = await fetch(`/api/claim/daily?walletAddress=${address}`);
+      const result = await response.json();
+      if (result.success && result.claimed) {
+        setNextClaimAt(result.nextClaimAt);
+        setClaimState("claimed");
+      } else {
+        setClaimState("idle");
+      }
+    } catch (error) {
+      console.error("[CLAIM] Status check failed", error);
+    }
+  };
+
+  useEffect(() => {
+    if (wallet.connected && wallet.address) {
+      const timer = setTimeout(() => {
+        checkClaimStatus(wallet.address!);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [wallet.connected, wallet.address]);
 
   const handleClaimStart = async () => {
     setErrorMessage(null);
@@ -45,12 +70,22 @@ export default function ClaimPage() {
 
       if (!result.success) {
         setErrorMessage(result.error ?? "Claim failed. Please try again.");
-        setClaimState("idle");
+        if (result.nextClaimAt) {
+          setNextClaimAt(result.nextClaimAt);
+          setClaimState("claimed");
+        } else {
+          setClaimState("idle");
+        }
         return;
       }
 
       setTxHash(result.txHash ?? null);
-      setCountdown("23:59:59");
+      
+      // Calculate 24h from now as fallback
+      const tomorrow = new Date();
+      tomorrow.setHours(tomorrow.getHours() + 24);
+      setNextClaimAt(tomorrow.toISOString());
+      
       setClaimState("claimed");
 
       // Trigger global balance refresh event
@@ -65,12 +100,13 @@ export default function ClaimPage() {
   };
 
   useEffect(() => {
-    if (claimState !== "claimed") return;
+    if (claimState !== "claimed" || !nextClaimAt) return;
 
-    let remaining = 24 * 60 * 60 - 1;
+    const targetDate = new Date(nextClaimAt).getTime();
 
     const timer = setInterval(() => {
-      remaining--;
+      const now = new Date().getTime();
+      const remaining = Math.max(0, Math.floor((targetDate - now) / 1000));
 
       const hours = String(Math.floor(remaining / 3600)).padStart(2, "0");
       const minutes = String(Math.floor((remaining % 3600) / 60)).padStart(2, "0");
@@ -81,12 +117,12 @@ export default function ClaimPage() {
       if (remaining <= 0) {
         clearInterval(timer);
         setClaimState("idle");
-        setCountdown("23:59:59");
+        setNextClaimAt(null);
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [claimState]);
+  }, [claimState, nextClaimAt]);
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden flex flex-col bg-[#0D1125] text-white selection:bg-[#FFC857]/30 select-none">
