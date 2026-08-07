@@ -1,8 +1,8 @@
 import type { HardhatUserConfig } from "hardhat/config";
-import hardhatToolboxViem from "@nomicfoundation/hardhat-toolbox-viem";
+import toolbox from "@nomicfoundation/hardhat-toolbox-viem";
 
 const config: HardhatUserConfig = {
-  plugins: [hardhatToolboxViem],
+  plugins: [toolbox],
   solidity: "0.8.24",
 };
 
