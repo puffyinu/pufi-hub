@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Campaign } from "@/app/types/campaign";
+import { calculateSettlement } from "@/app/services/campaignSettlementService";
 import UIFeedback from "./UIFeedback";
 
 interface CampaignFormProps {
@@ -41,6 +42,11 @@ export default function CampaignForm({
     return Math.floor(pool / reward);
   }, [poolAmount, rewardPerClick]);
 
+  const settlement = useMemo(() => {
+    const pool = Number(poolAmount);
+    return calculateSettlement(pool);
+  }, [poolAmount]);
+
   const handleSubmit = () => {
     if (!title || !description || !miniAppUrl || !poolAmount || !rewardPerClick) {
       setAlertOpen(true);
@@ -60,6 +66,8 @@ export default function CampaignForm({
       rewardAmount: stabilizedReward,
       budget: stabilizedBudget,
       maxClaims: mode === "create" ? maximumClaims : initialValues?.maxClaims,
+      // Pass settlement info if needed by service later
+      // settlement, 
     });
   };
 
@@ -75,17 +83,6 @@ export default function CampaignForm({
     // Use 3 decimals for other tokens but only if they are not integers
     return rounded.toFixed(3);
   };
-
-  const platformFee = useMemo(() => {
-    const pool = Number(poolAmount);
-    if (!pool) return 0;
-    return Math.round((pool * 0.3) * 1e6) / 1e6;
-  }, [poolAmount]);
-
-  const totalPayment = useMemo(() => {
-    const pool = Number(poolAmount);
-    return Math.round((pool + platformFee) * 1e6) / 1e6;
-  }, [poolAmount, platformFee]);
 
   return (
     <div
@@ -243,75 +240,6 @@ export default function CampaignForm({
             <div style={{ ...helperStyle, marginTop: 2 }}>(Auto Calculated)</div>
           </div>
 
-          {/* TOTAL PAYMENT */}
-          <div
-            style={{
-              ...cardStyle,
-              background: "#1E293B",
-              borderColor: "#334155",
-            }}
-          >
-            <div style={labelStyle}>TOTAL PAYMENT</div>
-
-            <div style={{ marginTop: 12 }}>
-              <div style={rowStyle}>
-                <span>Pool Amount</span>
-                <strong>
-                  {formatAmount(Number(poolAmount || 0))} {rewardToken}
-                </strong>
-              </div>
-
-              <div style={rowStyle}>
-                <span>Platform Fee (30%)</span>
-                <strong>
-                  {formatAmount(platformFee)} {rewardToken}
-                </strong>
-              </div>
-
-              <div
-                style={{
-                  height: 1,
-                  background: "#334155",
-                  margin: "12px 0",
-                  opacity: 0.5,
-                }}
-              />
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-end",
-                  color: "#FFFFFF",
-                  marginTop: 8,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "#94A3B8",
-                    paddingBottom: 4,
-                  }}
-                >
-                  TOTAL
-                </span>
-                <span
-                  style={{
-                    fontSize: 28,
-                    fontWeight: 900,
-                    letterSpacing: "-0.03em",
-                  }}
-                >
-                  {formatAmount(totalPayment)}{" "}
-                  <span style={{ fontSize: 16, fontWeight: 700 }}>
-                    {rewardToken}
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* Platform Fee Detail */}
           <div style={{ ...cardStyle, background: "transparent", padding: 12 }}>
             <label
@@ -319,19 +247,20 @@ export default function CampaignForm({
                 ...labelStyle,
                 fontSize: 10,
                 display: "block",
-                marginBottom: 4,
+                marginBottom: 8,
               }}
             >
               PLATFORM FEE STRUCTURE
             </label>
-            <div
-              style={{
-                color: "#64748B",
-                fontSize: 11,
-                lineHeight: 1.4,
-              }}
-            >
-              30% Management Fee applied to pool. 70% Distributed as User Rewards.
+            
+            <div style={rowStyle}>
+              <span>30% Platform Management Fee</span>
+              <strong>{formatAmount(settlement.platformFee)} {rewardToken}</strong>
+            </div>
+
+            <div style={rowStyle}>
+              <span>70% Campaign Reward Pool</span>
+              <strong>{formatAmount(settlement.rewardPool)} {rewardToken}</strong>
             </div>
           </div>
         </>
