@@ -48,3 +48,6 @@ next-env.d.ts
 .env*
 litellm-config.yaml
 .env.litellm
+
+# Editor swap files
+*.swp
