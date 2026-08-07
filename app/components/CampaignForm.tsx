@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 import { Campaign } from "@/app/types/campaign";
 import { calculateSettlement } from "@/app/services/campaignSettlementService";
+import { buildSettlementPlan, SettlementPlan } from "@/app/services/campaignSettlementEngine";
 import UIFeedback from "./UIFeedback";
 
 interface CampaignFormProps {
   initialValues?: Campaign;
   isSubmitting?: boolean;
-  onSubmit: (values: Partial<Campaign>) => void;
+  onSubmit: (values: Partial<Campaign>, settlementPlan: SettlementPlan) => void;
   onCancel?: () => void;
   mode: "create" | "edit";
 }
@@ -52,9 +53,15 @@ export default function CampaignForm({
       return;
     }
 
-    // Stabilize arithmetic values before submission to avoid precision drift
     const stabilizedReward = Math.round(Number(rewardPerClick) * 1e6) / 1e6;
     const stabilizedBudget = Math.round(Number(poolAmount) * 1e6) / 1e6;
+    
+    // Build settlement plan
+    const settlementPlan = buildSettlementPlan(
+      stabilizedBudget,
+      stabilizedReward,
+      rewardToken
+    );
 
     onSubmit({
       title,
@@ -64,10 +71,8 @@ export default function CampaignForm({
       rewardToken,
       rewardAmount: stabilizedReward,
       budget: stabilizedBudget,
-      maxClaims: mode === "create" ? maximumClaims : initialValues?.maxClaims,
-      // Pass settlement info if needed by service later
-      // settlement, 
-    });
+      maxClaims: settlementPlan.maximumClaims,
+    }, settlementPlan);
   };
 
 

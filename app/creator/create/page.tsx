@@ -1,5 +1,6 @@
 "use client";
 
+import { SettlementPlan } from "@/app/services/campaignSettlementEngine";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -23,8 +24,9 @@ export default function CreateCampaignPage() {
     }
   }, []);
 
-  const handleCreate = async (values: Partial<Campaign>) => {
+  const handleCreate = async (values: Partial<Campaign>, settlementPlan: SettlementPlan) => {
     setIsSubmitting(true);
+      // ...
 
     try {
       createCampaign({
@@ -37,7 +39,7 @@ export default function CreateCampaignPage() {
         budget: values.budget!,
         maxClaims: values.maxClaims!,
         createdBy: ADVERTISER_ID,
-      });
+      }, settlementPlan);
 
       router.push("/creator");
     } finally {

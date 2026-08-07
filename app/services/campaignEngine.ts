@@ -1,3 +1,4 @@
+import { SettlementPlan } from "./campaignSettlementEngine";
 import {
   getCampaigns as getSessionCampaigns,
   saveCampaigns,
@@ -150,7 +151,8 @@ export function canCreateCampaign(userId: string): boolean {
  * Creates a new campaign.
  */
 export function createCampaign(
-  campaign: Omit<Campaign, "id" | "status" | "createdAt" | "claimedCount">
+  campaign: Omit<Campaign, "id" | "status" | "createdAt" | "claimedCount">,
+  settlementPlan: SettlementPlan
 ): Campaign {
   if (!campaign.createdBy) {
     throw new Error("Missing advertiser: 'createdBy' is required.");
@@ -160,8 +162,8 @@ export function createCampaign(
     throw new Error("Campaign capacity reached.");
   }
 
-  if (campaign.maxClaims <= 0) {
-    throw new Error("Invalid campaign data: 'maxClaims' must be greater than zero.");
+  if (settlementPlan.maximumClaims <= 0) {
+    throw new Error("Invalid campaign data: 'maximumClaims' must be greater than zero.");
   }
 
   const id = `campaign-${Date.now()}`;
@@ -173,6 +175,9 @@ export function createCampaign(
     status: "LIVE",
     claimedCount: 0,
     createdAt: new Date().toISOString(),
+    // Use plan values
+    maxClaims: settlementPlan.maximumClaims,
+    budget: settlementPlan.campaignBudget,
   };
 
   addCampaignToSession(newCampaign);

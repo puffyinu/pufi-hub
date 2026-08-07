@@ -7,8 +7,8 @@ import { useTransaction } from "@/app/hooks/useTransaction";
 import { getTransactionState } from "@/app/services/transactionSession";
 import AppBackground from "@/app/components/layout/AppBackground";
 import { ERC20_ABI, PUFI_CONTRACT } from "@/app/services/contracts";
+import { wallets } from "@/app/config/wallets";
 
-const REWARD_WALLET = "0xD01482B99F59726b4F9fbb09B1138C546b0D0516";
 const WORLD_CHAIN_ID = 480;
 
 export default function FundRewardWalletPage() {
@@ -33,7 +33,7 @@ export default function FundRewardWalletPage() {
       const data = encodeFunctionData({
         abi: ERC20_ABI,
         functionName: "transfer",
-        args: [REWARD_WALLET as `0x${string}`, amountInWei],
+        args: [wallets.reward as `0x${string}`, amountInWei],
       });
 
       await send({
@@ -83,7 +83,7 @@ export default function FundRewardWalletPage() {
         </div>
         <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Destination — Reward Wallet</p>
-          <p className="font-mono text-xs text-violet-300 break-all">{REWARD_WALLET}</p>
+          <p className="font-mono text-xs text-violet-300 break-all">{wallets.reward}</p>
         </div>
 
         {step === "input" && (
