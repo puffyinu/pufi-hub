@@ -10,7 +10,7 @@ import UIFeedback from "./UIFeedback";
 const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
 
 export default function CampaignCard() {
-  const { campaigns } = useCampaign();
+  const { campaigns, loading, error } = useCampaign();
   
   const visitingCampaign = campaigns.find(c => c.status === "VISITING");
   const activeVisitId = visitingCampaign?.id || null;
@@ -150,6 +150,29 @@ export default function CampaignCard() {
     }
     return rounded.toFixed(3);
   };
+
+  const renderSkeleton = () => (
+    <div className="space-y-3">
+      {[1, 2].map((i) => (
+        <div
+          key={i}
+          className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-2xl animate-pulse"
+        >
+          <div className="flex gap-4">
+            <div className="h-14 w-14 shrink-0 rounded-xl bg-white/10" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-3/4 rounded bg-white/10" />
+              <div className="h-3 w-1/2 rounded bg-white/10" />
+              <div className="mt-4 flex items-center justify-between">
+                <div className="h-8 w-20 rounded bg-white/10" />
+                <div className="h-10 w-24 rounded bg-white/10" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   const renderCard = (campaign: (typeof campaigns)[number]) => {
     const isCompleted = campaign.claimedCount >= campaign.maxClaims || campaign.status === "COMPLETED";
@@ -299,7 +322,13 @@ export default function CampaignCard() {
           </div>
 
           <div className="space-y-3">
-            {readyToEarn.length > 0 ? (
+            {loading ? (
+              renderSkeleton()
+            ) : error ? (
+              <div className="py-10 text-center border border-dashed border-red-500/30 rounded-2xl bg-red-500/5">
+                <p className="text-xs font-bold text-red-400 uppercase tracking-widest">Error: {error}</p>
+              </div>
+            ) : readyToEarn.length > 0 ? (
               readyToEarn.map(renderCard)
             ) : (
               <div className="py-10 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
@@ -310,7 +339,7 @@ export default function CampaignCard() {
         </section>
 
         {/* AVAILABLE / COMPLETED */}
-        {available.length > 0 && (
+        {!loading && available.length > 0 && (
           <section>
             <div className="mb-3 flex items-center gap-2 px-1">
               <div className="h-2 w-2 rounded-full bg-slate-600" />

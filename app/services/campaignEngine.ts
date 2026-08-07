@@ -11,10 +11,68 @@ import { addReward } from "@/app/services/reward";
 import { recordActivity } from "@/app/services/activityEngine";
 import { setRewardState, getRewardState } from "@/app/services/rewardSession";
 import { getCampaignCapacity } from "@/app/services/campaignUnlockService";
+import { supabaseClient } from "./supabaseClient";
 
 import type { Campaign, CampaignStatus } from "@/app/types/campaign";
 
 const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
+
+/**
+ * Fetches active campaigns from Supabase and synchronizes them with the local session.
+ */
+export async function fetchActiveCampaigns(): Promise<Campaign[]> {
+  const { data, error } = await supabaseClient
+    .from("campaigns")
+    .select("*")
+    .eq("status", "LIVE");
+
+  if (error) {
+    console.error("Failed to fetch campaigns from Supabase", error);
+    throw error;
+  }
+
+  const dbCampaigns: Campaign[] = data.map((item) => ({
+    id: item.id,
+    title: item.title,
+    description: item.description || "",
+    logo: item.logo || DEFAULT_LOGO,
+    miniAppUrl: item.mini_app_url || "",
+    rewardToken: item.reward_token,
+    rewardAmount: Number(item.reward_per_claim),
+    budget: Number(item.pool_amount),
+    maxClaims: item.max_claims,
+    claimedCount: item.claimed_count,
+    status: item.status as CampaignStatus,
+    createdAt: item.created_at,
+    createdBy: item.created_by,
+  }));
+
+  // Sync with session: Keep local status if it's more specific (e.g., VISITING, CLAIM_READY, CLAIMED)
+  const sessionCampaigns = getSessionCampaigns();
+  const syncedCampaigns = dbCampaigns.map((db) => {
+    const local = sessionCampaigns.find((s) => s.id === db.id);
+    if (local) {
+      // If local is in a state that means user is interacting, keep it
+      const activeStates: CampaignStatus[] = ["VISITING", "VISITED", "CLAIM_READY", "CLAIMING", "CLAIMED"];
+      if (activeStates.includes(local.status)) {
+        return {
+          ...db,
+          status: local.status,
+          visitId: local.visitId,
+          visitStartedAt: local.visitStartedAt,
+          visitCompletedAt: local.visitCompletedAt,
+          visitCompleted: local.visitCompleted,
+          claimReady: local.claimReady,
+          visitExpired: local.visitExpired,
+        };
+      }
+    }
+    return db;
+  });
+
+  saveCampaigns(syncedCampaigns);
+  return syncedCampaigns;
+}
 
 /**
  * Returns all campaigns from the session.
