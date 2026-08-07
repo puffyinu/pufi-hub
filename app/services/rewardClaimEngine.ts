@@ -5,7 +5,7 @@ import {
 } from "@/app/services/rewardClaimSession";
 
 import { sendMiniKitTransaction } from "@/app/runtime/minikitManager";
-import { TOKEN_CONTRACTS, ERC20_TRANSFER_ABI } from "@/app/services/contracts";
+import { TOKEN_CONTRACTS, ERC20_TRANSFER_ABI, SupportedToken } from "@/app/services/contracts";
 import { encodeFunctionData, parseUnits } from "viem";
 
 import type { PendingReward, RewardClaimStatus } from "@/app/types/rewardClaim";
@@ -18,7 +18,7 @@ export function queueReward(
   campaignId: string,
   userId: string,
   walletAddress: string,
-  token: string,
+  token: SupportedToken,
   amount: number,
   validationResult: ValidationResult
 ): void {
@@ -68,7 +68,7 @@ export async function claimReward(rewardId: string): Promise<{ success: boolean;
     return { success: false, error: "Reward not found or not ready to claim." };
   }
 
-  const tokenAddress = TOKEN_CONTRACTS[reward.token];
+  const tokenAddress = TOKEN_CONTRACTS[reward.token as SupportedToken];
   if (!tokenAddress) {
     return { success: false, error: `Token ${reward.token} not configured.` };
   }

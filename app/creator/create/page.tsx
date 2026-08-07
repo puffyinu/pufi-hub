@@ -1,34 +1,77 @@
 "use client";
 
-import { SettlementPlan } from "@/app/services/campaignSettlementEngine";
+import { SettlementPlan, buildSettlementCalldata } from "@/app/services/campaignSettlementEngine";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useCampaign } from "@/app/hooks/useCampaign";
+import { useTransaction } from "@/app/hooks/useTransaction";
+import { useWallet } from "@/app/hooks/useWallet";
+import { useUserOperationReceipt } from "@/app/hooks/useUserOperationReceipt";
+import { getTransactionState } from "@/app/services/transactionSession";
 import { canCreateCampaign } from "@/app/services/campaignEngine";
 import CampaignForm from "@/app/components/CampaignForm";
 import { Campaign } from "@/app/types/campaign";
 import AppBackground from "@/app/components/layout/AppBackground";
+import { TOKEN_CONTRACTS, getSettlementContract } from "@/app/services/contracts";
+
+const WORLD_CHAIN_ID = 480;
 
 export default function CreateCampaignPage() {
   const router = useRouter();
   const { createCampaign } = useCampaign();
+  const { send, reset } = useTransaction();
+  const { wallet } = useWallet();
+  const { getReceipt } = useUserOperationReceipt();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCapacityReached, setShowCapacityReached] = useState(false);
 
-  const ADVERTISER_ID = "advertiser-1";
+  const ADVERTISER_ID = wallet.address ?? "advertiser-1";
 
   useEffect(() => {
     if (!canCreateCampaign(ADVERTISER_ID)) {
       Promise.resolve().then(() => setShowCapacityReached(true));
     }
-  }, []);
+  }, [ADVERTISER_ID]);
 
   const handleCreate = async (values: Partial<Campaign>, settlementPlan: SettlementPlan) => {
     setIsSubmitting(true);
-      // ...
+    reset();
 
     try {
+      const campaignId = `campaign-${Date.now()}`;
+      
+      const calldata = buildSettlementCalldata(
+          campaignId,
+          TOKEN_CONTRACTS[values.rewardToken as keyof typeof TOKEN_CONTRACTS],
+          values.budget!,
+          ADVERTISER_ID as `0x${string}`
+      );
+
+      // 3. Send transaction to Settlement Contract
+      // Permit2 flow note: The settlement contract is expected to handle Permit2 internally.
+      await send({
+          transactions: [
+              { to: getSettlementContract(), data: calldata }
+          ],
+          chainId: WORLD_CHAIN_ID,
+      });
+
+      // 4. Check success
+      const finalState = getTransactionState();
+      if (!finalState.transactionId || finalState.status === "failed" || finalState.error) {
+           throw new Error(finalState.error ?? "Transaction failed.");
+      }
+
+      // 5. Verify receipt
+      const events = await getReceipt(finalState.transactionId as `0x${string}`);
+      if (!events || events.length === 0) {
+          throw new Error("Transaction verification failed or no events found.");
+      }
+      
+      console.log("Parsed Events:", events);
+
+      // 6. Create Campaign
       createCampaign({
         title: values.title!,
         description: values.description!,
@@ -42,8 +85,11 @@ export default function CreateCampaignPage() {
       }, settlementPlan);
 
       router.push("/creator");
-    } finally {
+    } catch (e) {
+      console.error("Campaign creation failed:", e);
       setIsSubmitting(false);
+      alert("Campaign creation failed. Please try again.");
+    } finally {
     }
   };
 

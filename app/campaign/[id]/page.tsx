@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getCampaignById } from "@/app/services/campaignEngine";
 import { validateCampaignEligibility } from "@/app/services/validationEngine";
 import { queueReward } from "@/app/services/rewardClaimEngine";
+import { SupportedToken } from "@/app/services/contracts";
 import { getWalletState } from "@/app/services/walletSession";
 import type { Campaign } from "@/app/types/campaign";
 import AppBackground from "@/app/components/layout/AppBackground";
@@ -79,7 +80,7 @@ export default function CampaignDetailPage({ params }: PageProps) {
       if (result.isEligible) {
         // Step: Queue the Reward (Pending Queue)
         // userId placeholder for FOUNDATION sprint
-        queueReward(campaign.id, "user-placeholder", wallet.address, campaign.rewardToken, campaign.rewardAmount, result);
+        queueReward(campaign.id, "user-placeholder", wallet.address, campaign.rewardToken as SupportedToken, campaign.rewardAmount, result);
         
         setFeedback({
           isOpen: true,

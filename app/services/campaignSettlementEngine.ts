@@ -1,5 +1,6 @@
+import { encodeFunctionData, parseUnits } from "viem";
 import { calculateSettlement } from "./campaignSettlementService";
-
+import { SETTLEMENT_ABI } from "./contracts";
 import { wallets } from "@/app/config/wallets";
 
 export interface SettlementPlan {
@@ -38,4 +39,28 @@ export function buildSettlementPlan(
     rewardTreasury: wallets.reward,
     rewardToken,
   };
+}
+
+/**
+ * Builds the calldata for the settleCampaign function.
+ */
+export function buildSettlementCalldata(
+  campaignId: string,
+  token: `0x${string}`,
+  campaignBudget: number,
+  advertiser: `0x${string}`
+): `0x${string}` {
+  // Assuming 18 decimals for PUFI/WLD.
+  const budgetInWei = parseUnits(campaignBudget.toString(), 18);
+
+  return encodeFunctionData({
+    abi: SETTLEMENT_ABI,
+    functionName: "settleCampaign",
+    args: [
+      campaignId,
+      token,
+      budgetInWei,
+      advertiser,
+    ],
+  });
 }
