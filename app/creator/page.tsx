@@ -25,7 +25,7 @@ export default function CreatorPage() {
   const [showCapacityReached, setShowCapacityReached] = useState(false);
   
   const myCampaigns = campaigns.filter(c => c.createdBy === "advertiser-1");
-  const campaignCapacity = getCampaignCapacity("advertiser-1");
+  const campaignCapacity = getCampaignCapacity();
   const isAtCapacity = myCampaigns.length >= campaignCapacity;
 
   return (

@@ -1,57 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useReward } from "@/app/hooks/useReward";
-import { useTransaction } from "@/app/hooks/useTransaction";
-import { prepareRewardClaim } from "@/app/services/rewardClaimEngine";
+import { useRewardClaim } from "@/app/hooks/useRewardClaim";
 import UIFeedback from "./UIFeedback";
-import { encodeFunctionData } from "viem";
 
 export default function RewardsClaimsCard() {
   const { reward } = useReward();
-  const { send, loading: transactionLoading, transaction } = useTransaction();
+  const { rewardClaim, prepare, executeMock, reset } = useRewardClaim();
   const [alertOpen, setAlertOpen] = useState(false);
-  const [claimActionStarted, setClaimActionStarted] = useState(false);
+  const [successToken, setSuccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (rewardClaim.status === "claimed") {
+      const token = rewardClaim.token;
+      // Move state updates out of the synchronous effect body to avoid cascading renders
+      const timer = setTimeout(() => {
+        setSuccessToken(token);
+        setAlertOpen(true);
+        reset();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [rewardClaim.status, rewardClaim.token, reset]);
 
   const handleClaim = async (token: string, amount: number) => {
-    const success = prepareRewardClaim();
-    if (!success) return;
+    // Step 1: Prepare the claim
+    prepare(token, amount);
 
+    // Step 2: Execute mock claim logic
+    // This simulates the transaction process without actual blockchain interaction
     try {
-      setClaimActionStarted(true);
-
-      // BUILD-007.4: Integration with World MiniKit Transaction
-      // This is the "Future Withdraw entry point"
-      // We use a placeholder for the contract call to transfer reward to wallet
-      await send({
-        transactions: [
-          {
-            to: "0x0000000000000000000000000000000000000000",
-            data: encodeFunctionData({
-              abi: [
-                {
-                  name: "withdrawReward",
-                  type: "function",
-                  stateMutability: "nonpayable",
-                  inputs: [
-                    { name: "token", type: "string" },
-                    { name: "amount", type: "uint256" },
-                  ],
-                  outputs: [],
-                },
-              ],
-              functionName: "withdrawReward",
-              args: [token, BigInt(Math.floor(amount * 1e6))], // Simplified decimals handling
-            }),
-          },
-        ],
-        chainId: 480, // World Chain Mainnet
-      });
-
-      setAlertOpen(true);
+      await executeMock(token, amount);
     } catch (error) {
-      console.error("Withdrawal failed", error);
+      console.error("Claim execution failed", error);
     }
   };
 
@@ -90,63 +73,71 @@ export default function RewardsClaimsCard() {
       </h2>
 
       <div className="flex gap-2">
-        {rewardItems.map((item) => (
-          <div
-            key={item.token}
-            className="flex flex-1 flex-col items-center rounded-[16px] border border-white/10 bg-white/5 p-1.5 backdrop-blur-xl transition-all hover:bg-white/10"
-          >
-            <div className="mb-0.5 relative h-6 w-6 flex items-center justify-center">
-              {item.icon.startsWith("/") ? (
-                <Image 
-                  src={item.icon} 
-                  alt={item.token} 
-                  fill 
-                  className="object-contain" 
-                />
-              ) : (
-                <span className="text-xl">{item.icon}</span>
-              )}
-            </div>
+        {rewardItems.map((item) => {
+          const isClaimingThis = rewardClaim.status === "claiming" && rewardClaim.token === item.token;
+          const isLoading = rewardClaim.loading && isClaimingThis;
 
-            <div className="text-[11px] font-black text-white mb-0.5">
-              {formatAmount(item.amount)}
-            </div>
-
-            <div className="mb-2 text-[8px] font-black tracking-widest text-slate-400 uppercase">
-              {item.token}
-            </div>
-
-            <button 
-              disabled={item.amount === 0 || transactionLoading}
-              onClick={() => handleClaim(item.token, item.amount)}
-              className={`w-full rounded-lg py-1 text-[7px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110 ${
-                item.amount > 0 && !transactionLoading
-                ? "bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400]" 
-                : "bg-white/10 text-white/30 cursor-not-allowed"
-              }`}
+          return (
+            <div
+              key={item.token}
+              className="flex flex-1 flex-col items-center rounded-[16px] border border-white/10 bg-white/5 p-1.5 backdrop-blur-xl transition-all hover:bg-white/10"
             >
-              {transactionLoading ? "..." : "CLAIM"}
-            </button>
-          </div>
-        ))}
+              <div className="mb-0.5 relative h-6 w-6 flex items-center justify-center">
+                {item.icon.startsWith("/") ? (
+                  <Image 
+                    src={item.icon} 
+                    alt={item.token} 
+                    fill 
+                    className="object-contain" 
+                  />
+                ) : (
+                  <span className="text-xl">{item.icon}</span>
+                )}
+              </div>
+
+              <div className="text-[11px] font-black text-white mb-0.5">
+                {formatAmount(item.amount)}
+              </div>
+
+              <div className="mb-2 text-[8px] font-black tracking-widest text-slate-400 uppercase">
+                {item.token}
+              </div>
+
+              <button 
+                disabled={item.amount === 0 || rewardClaim.loading}
+                onClick={() => handleClaim(item.token, item.amount)}
+                className={`w-full rounded-lg py-1 text-[7px] font-black uppercase tracking-widest text-[#171717] shadow-lg transition-all active:scale-95 hover:brightness-110 ${
+                  item.amount > 0 && !rewardClaim.loading
+                  ? "bg-gradient-to-b from-[#FFE580] via-[#FFC857] to-[#E59400]" 
+                  : "bg-white/10 text-white/30 cursor-not-allowed"
+                }`}
+              >
+                {isLoading ? "..." : "CLAIM"}
+              </button>
+            </div>
+          );
+        })}
       </div>
 
-      {claimActionStarted && transaction.error && (
+      {rewardClaim.status === "failed" && rewardClaim.error && (
         <UIFeedback
           isOpen={true}
           type="alert"
-          title="Transaction Error"
-          message={transaction.error}
-          onConfirm={() => {}}
+          title="Claim Error"
+          message={rewardClaim.error}
+          onConfirm={() => reset()}
         />
       )}
 
       <UIFeedback
         isOpen={alertOpen}
         type="alert"
-        title="Claim Prepared"
-        message="Claim processed via World MiniKit! Reward is being transferred to your wallet."
-        onConfirm={() => setAlertOpen(false)}
+        title="Claim Successful"
+        message={`${successToken} reward has been claimed! (Foundation Mock Flow)`}
+        onConfirm={() => {
+          setAlertOpen(false);
+          setSuccessToken(null);
+        }}
       />
     </section>
   );

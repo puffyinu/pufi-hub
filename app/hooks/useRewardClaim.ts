@@ -10,6 +10,7 @@ import {
 
 import {
   prepareRewardClaim,
+  executeMockClaim,
 } from "@/app/services/rewardClaimEngine";
 
 import type { RewardClaimState } from "@/app/types/rewardClaim";
@@ -40,21 +41,22 @@ export function useRewardClaim() {
     };
   }, []);
 
-  const claim = () => {
-    prepareRewardClaim();
+  const prepare = (token: string, amount: number) => {
+    prepareRewardClaim(token, amount);
+  };
 
-    setRewardClaim(getRewardClaimState());
+  const executeMock = async (token: string, amount: number) => {
+    return await executeMockClaim(token, amount);
   };
 
   const reset = () => {
     resetRewardClaimState();
-
-    setRewardClaim(getRewardClaimState());
   };
 
   return {
     rewardClaim,
-    claim,
+    prepare,
+    executeMock,
     reset,
   };
 }

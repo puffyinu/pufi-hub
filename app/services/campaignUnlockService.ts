@@ -6,22 +6,22 @@ import { CREATOR_CONFIG } from "@/app/config/creator";
  * Unlock persistence is intentionally deferred, so every creator receives
  * the configured free capacity during this phase.
  */
-export function getCampaignCapacity(_userId: string): number {
+export function getCampaignCapacity(): number {
   return CREATOR_CONFIG.FREE_CAPACITY;
 }
 
 /**
  * Determines whether a creator could unlock another campaign slot.
  */
-export function canUnlock(userId: string): boolean {
-  return !isMaxCapacity(userId);
+export function canUnlock(): boolean {
+  return !isMaxCapacity();
 }
 
 /**
  * Determines whether a creator has reached the configured maximum capacity.
  */
-export function isMaxCapacity(userId: string): boolean {
-  return getCampaignCapacity(userId) >= CREATOR_CONFIG.MAX_CAPACITY;
+export function isMaxCapacity(): boolean {
+  return getCampaignCapacity() >= CREATOR_CONFIG.MAX_CAPACITY;
 }
 
 /**

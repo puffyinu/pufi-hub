@@ -8,7 +8,9 @@ export const REWARD_CLAIM_SESSION_EVENT =
 
 const DEFAULT_STATE: RewardClaimState = {
   status: "idle",
+  token: null,
   amount: 0,
+  txHash: null,
   loading: false,
   error: null,
 };

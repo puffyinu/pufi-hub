@@ -11,6 +11,7 @@ const DEFAULT_STATE: RewardState = {
   claimed: 0,
   pending: 0,
   pendingByToken: {},
+  claimedByToken: {},
   loading: false,
   error: null,
 };

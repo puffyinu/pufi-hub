@@ -26,7 +26,7 @@ export async function executeDailyClaim(): Promise<DailyClaimResult> {
 
     // Step 2: Prepare Reward Claim
     // This transitions the claim session state to 'ready' with the available balance.
-    const prepareSuccess = prepareRewardClaim();
+    const prepareSuccess = prepareRewardClaim("PUFI", 1);
     
     if (!prepareSuccess) {
       return {

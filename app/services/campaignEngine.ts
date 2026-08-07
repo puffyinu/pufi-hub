@@ -45,7 +45,7 @@ export function getReadyCampaigns(): Campaign[] {
  */
 export function canCreateCampaign(userId: string): boolean {
   const myCampaigns = getMyCampaigns(userId);
-  return myCampaigns.length < getCampaignCapacity(userId);
+  return myCampaigns.length < getCampaignCapacity();
 }
 
 /**

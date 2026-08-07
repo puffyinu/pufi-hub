@@ -3,6 +3,7 @@ export interface RewardState {
   claimed: number;
   pending: number;
   pendingByToken: Record<string, number>;
+  claimedByToken: Record<string, number>;
   loading: boolean;
   error: string | null;
 }

@@ -67,9 +67,13 @@ export function performDailyCheckIn(): boolean {
   );
 
   const reward = getRewardState();
+  const pendingByToken = { ...reward.pendingByToken };
+  pendingByToken["PUFI"] = (pendingByToken["PUFI"] || 0) + DAILY_CHECKIN_REWARD;
 
   setRewardState({
     available: reward.available + DAILY_CHECKIN_REWARD,
+    pending: reward.pending + DAILY_CHECKIN_REWARD,
+    pendingByToken,
   });
 
   // Step: Activity Updated
