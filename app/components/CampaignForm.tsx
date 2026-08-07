@@ -31,21 +31,20 @@ export default function CampaignForm({
 
   const [alertOpen, setAlertOpen] = useState(false);
 
-  const maximumClaims = useMemo(() => {
-    const pool = Number(poolAmount);
-    const reward = Number(rewardPerClick);
-
-    if (!pool || !reward || reward <= 0) {
-      return 0;
-    }
-
-    return Math.floor(pool / reward);
-  }, [poolAmount, rewardPerClick]);
-
   const settlement = useMemo(() => {
     const pool = Number(poolAmount);
     return calculateSettlement(pool);
   }, [poolAmount]);
+
+  const maximumClaims = useMemo(() => {
+    const reward = Number(rewardPerClick);
+
+    if (!settlement.rewardPool || !reward || reward <= 0) {
+      return 0;
+    }
+
+    return Math.floor(settlement.rewardPool / reward);
+  }, [settlement.rewardPool, rewardPerClick]);
 
   const handleSubmit = () => {
     if (!title || !description || !miniAppUrl || !poolAmount || !rewardPerClick) {
@@ -71,18 +70,6 @@ export default function CampaignForm({
     });
   };
 
-  const formatAmount = (value: number) => {
-    // Round to 6 decimals to remove floating point errors before formatting
-    const rounded = Math.round(value * 1e6) / 1e6;
-    if (Number.isInteger(rounded)) {
-      return rounded.toString();
-    }
-    if (rewardToken === "PUFI") {
-      return rounded.toFixed(2);
-    }
-    // Use 3 decimals for other tokens but only if they are not integers
-    return rounded.toFixed(3);
-  };
 
   return (
     <div
@@ -186,7 +173,7 @@ export default function CampaignForm({
 
           {/* Pool */}
           <div>
-            <label style={labelStyle}>POOL AMOUNT (MIN 1)</label>
+            <label style={labelStyle}>CAMPAIGN BUDGET (MIN 1)</label>
             <input
               type="text"
               inputMode="numeric"
@@ -237,7 +224,6 @@ export default function CampaignForm({
             >
               {maximumClaims.toLocaleString()} Claims
             </div>
-            <div style={{ ...helperStyle, marginTop: 2 }}>(Auto Calculated)</div>
           </div>
 
           {/* Platform Fee Detail */}
@@ -255,12 +241,10 @@ export default function CampaignForm({
             
             <div style={rowStyle}>
               <span>30% Platform Management Fee</span>
-              <strong>{formatAmount(settlement.platformFee)} {rewardToken}</strong>
             </div>
 
             <div style={rowStyle}>
               <span>70% Campaign Reward Pool</span>
-              <strong>{formatAmount(settlement.rewardPool)} {rewardToken}</strong>
             </div>
           </div>
         </>
