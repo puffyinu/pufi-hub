@@ -1,21 +1,16 @@
 import { load, remove, save } from "@/app/services/storage";
-import type { RewardClaimState } from "@/app/types/rewardClaim";
+import type { RewardClaimQueueState, PendingReward, RewardClaimStatus } from "@/app/types/rewardClaim";
 
-const STORAGE_KEY = "pufi-reward-claim-session";
+const STORAGE_KEY = "pufi-reward-claim-queue";
 
 export const REWARD_CLAIM_SESSION_EVENT =
-  "pufi-reward-claim-session-changed";
+  "pufi-reward-claim-queue-changed";
 
-const DEFAULT_STATE: RewardClaimState = {
-  status: "idle",
-  token: null,
-  amount: 0,
-  txHash: null,
-  loading: false,
-  error: null,
+const DEFAULT_STATE: RewardClaimQueueState = {
+  rewards: [],
 };
 
-let session: RewardClaimState | null = null;
+let session: RewardClaimQueueState | null = null;
 
 function notify(): void {
   if (typeof window !== "undefined") {
@@ -25,39 +20,45 @@ function notify(): void {
   }
 }
 
-function ensureState(): RewardClaimState {
+function ensureState(): RewardClaimQueueState {
   if (session === null) {
     session =
-      load<RewardClaimState>(STORAGE_KEY) ??
+      load<RewardClaimQueueState>(STORAGE_KEY) ??
       DEFAULT_STATE;
   }
 
   return session;
 }
 
-export function getRewardClaimState(): RewardClaimState {
-  return ensureState();
+export function getPendingRewards(): PendingReward[] {
+  return ensureState().rewards;
 }
 
-export function setRewardClaimState(
-  next: Partial<RewardClaimState>
-): void {
+export function addRewardToQueue(reward: PendingReward): void {
+  const state = ensureState();
   session = {
-    ...ensureState(),
-    ...next,
+    rewards: [...state.rewards, reward],
   };
 
   save(STORAGE_KEY, session);
-
   notify();
 }
 
-export function resetRewardClaimState(): void {
+export function updateRewardStatus(id: string, status: RewardClaimStatus): void {
+  const state = ensureState();
+  session = {
+    rewards: state.rewards.map(r => r.id === id ? { ...r, status } : r),
+  };
+
+  save(STORAGE_KEY, session);
+  notify();
+}
+
+export function resetRewardQueue(): void {
   session = {
     ...DEFAULT_STATE,
   };
 
   remove(STORAGE_KEY);
-
   notify();
 }

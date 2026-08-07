@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCampaign } from "@/app/hooks/useCampaign";
 import { recordClaim } from "@/app/services/campaignEngine";
 import { startVisit, handleReturnToApp, checkTimeouts, cancelVisit } from "@/app/services/visitEngine";
@@ -195,7 +196,7 @@ export default function CampaignCard() {
 
         <div className="flex gap-4">
           {/* Logo Section */}
-          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 shadow-inner overflow-hidden">
+          <Link href={`/campaign/${campaign.id}`} className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 shadow-inner overflow-hidden active:scale-95 transition-transform">
             <Image 
               src={logoSrc} 
               alt={campaign.title || "Campaign Logo"} 
@@ -203,19 +204,19 @@ export default function CampaignCard() {
               unoptimized
               className="object-cover"
             />
-          </div>
+          </Link>
 
           {/* Content Section */}
           <div className="flex flex-1 flex-col justify-between">
             <div className="flex items-start justify-between gap-2">
-              <div>
+              <Link href={`/campaign/${campaign.id}`} className="flex-1 active:opacity-70 transition-opacity">
                 <h3 className="text-sm font-black tracking-tight text-white leading-tight">
                   {campaign.title}
                 </h3>
                 <p className="mt-1 text-xs font-semibold text-slate-400 line-clamp-2 leading-snug">
                   {campaign.description}
                 </p>
-              </div>
+              </Link>
 
               <span
                 className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-widest ${
@@ -233,7 +234,7 @@ export default function CampaignCard() {
             </div>
 
             <div className="mt-3 flex items-center justify-between gap-3">
-              <div>
+              <Link href={`/campaign/${campaign.id}`} className="flex-1 active:opacity-70 transition-opacity">
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">
                   Reward
                 </p>
@@ -244,7 +245,7 @@ export default function CampaignCard() {
                 <p className="text-[9px] font-bold text-slate-400 mt-0.5">
                   PROGRESS {campaign.claimedCount} / {campaign.maxClaims}
                 </p>
-              </div>
+              </Link>
 
               {/* Action Button - Touch target dioptimalkan (min-h-[44px]) */}
               <button
@@ -256,7 +257,7 @@ export default function CampaignCard() {
                     handleVisitAction(campaign.id);
                   }
                 }}
-                className={`min-h-[44px] min-w-[100px] px-4 flex items-center justify-center rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 touch-manipulation ${
+                className={`min-h-[44px] min-w-[100px] px-4 flex items-center justify-center rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 touch-manipulation z-10 relative ${
                   isCompleted || isClaimed
                     ? "cursor-default bg-green-500/10 text-green-400 border border-green-500/10"
                     : isVisiting || isClaiming || isBusy

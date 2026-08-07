@@ -1,84 +1,107 @@
 import {
-  getRewardClaimState,
-  setRewardClaimState,
+  getPendingRewards,
+  addRewardToQueue,
+  updateRewardStatus,
 } from "@/app/services/rewardClaimSession";
 
-import { getRewardState, setRewardState } from "@/app/services/rewardSession";
+import { sendMiniKitTransaction } from "@/app/runtime/minikitManager";
+import { TOKEN_CONTRACTS, ERC20_TRANSFER_ABI } from "@/app/services/contracts";
+import { encodeFunctionData, parseUnits } from "viem";
 
-export function canClaimReward(token?: string): boolean {
-  const state = getRewardState();
-  if (token) {
-    return (state.pendingByToken[token] || 0) > 0;
-  }
-  return state.available > 0;
-}
+import type { PendingReward, RewardClaimStatus } from "@/app/types/rewardClaim";
+import { ValidationResult } from "@/app/services/validationEngine";
 
-export function prepareRewardClaim(token: string, amount: number): boolean {
-  if (!canClaimReward(token)) {
-    setRewardClaimState({
-      status: "failed",
-      token,
-      amount: 0,
-      error: "No reward available for this token.",
-    });
+/**
+ * Adds a validated reward to the queue.
+ */
+export function queueReward(
+  campaignId: string,
+  userId: string,
+  walletAddress: string,
+  token: string,
+  amount: number,
+  validationResult: ValidationResult
+): void {
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24h expiration
 
-    return false;
-  }
-
-  setRewardClaimState({
-    status: "ready",
+  const reward: PendingReward = {
+    id: crypto.randomUUID(),
+    campaignId,
+    userId,
+    walletAddress,
     token,
     amount,
-    loading: false,
-    error: null,
-  });
+    status: "PENDING",
+    createdAt: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    validationResult,
+  };
 
-  return true;
+  addRewardToQueue(reward);
 }
 
-export async function executeMockClaim(token: string, amount: number): Promise<boolean> {
-  const claimState = getRewardClaimState();
-  if (claimState.status !== "ready" || claimState.token !== token) {
-    return false;
+/**
+ * Retrieves the reward queue and checks for expired rewards.
+ */
+export function getRewardQueue(): PendingReward[] {
+  const rewards = getPendingRewards();
+  const now = new Date();
+
+  return rewards.map((reward) => {
+    if (reward.status === "PENDING" && new Date(reward.expiresAt) < now) {
+      updateRewardStatus(reward.id, "EXPIRED");
+      return { ...reward, status: "EXPIRED" as RewardClaimStatus };
+    }
+    return reward;
+  });
+}
+
+/**
+ * Claims a ready reward on-chain via MiniKit.
+ */
+export async function claimReward(rewardId: string): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  const rewards = getPendingRewards();
+  const reward = rewards.find((r) => r.id === rewardId);
+
+  if (!reward || reward.status !== "READY") {
+    return { success: false, error: "Reward not found or not ready to claim." };
   }
 
-  setRewardClaimState({
-    status: "claiming",
-    loading: true,
-  });
+  const tokenAddress = TOKEN_CONTRACTS[reward.token];
+  if (!tokenAddress) {
+    return { success: false, error: `Token ${reward.token} not configured.` };
+  }
 
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  updateRewardStatus(rewardId, "CLAIMING");
 
-  const rewardState = getRewardState();
-  
-  // Update Reward State
-  const pendingByToken = { ...rewardState.pendingByToken };
-  const claimedByToken = { ...rewardState.claimedByToken };
+  try {
+    // MiniKit transaction: withdrawReward(string token, uint256 amount)
+    const tx = await sendMiniKitTransaction({
+      transactions: [
+        {
+          to: tokenAddress,
+          data: encodeFunctionData({
+            abi: ERC20_TRANSFER_ABI,
+            functionName: "transfer",
+            args: [reward.walletAddress as `0x${string}`, parseUnits(reward.amount.toString(), 6)],
+          }),
+        },
+      ],
+      chainId: 480,
+    });
 
-  pendingByToken[token] = Math.max(0, (pendingByToken[token] || 0) - amount);
-  claimedByToken[token] = (claimedByToken[token] || 0) + amount;
+    if (tx && tx.data && (tx.data as { transactionHash: string }).transactionHash) {
+      updateRewardStatus(rewardId, "CLAIMED");
+      return { success: true, txHash: (tx.data as { transactionHash: string }).transactionHash };
+    }
 
-  const totalPending = Object.values(pendingByToken).reduce((a, b) => a + b, 0);
-  const totalClaimed = Object.values(claimedByToken).reduce((a, b) => a + b, 0);
+    updateRewardStatus(rewardId, "FAILED");
+    return { success: false, error: "Transaction failed." };
 
-  setRewardState({
-    pending: totalPending,
-    available: totalPending, // Syncing available with pending for now
-    claimed: totalClaimed,
-    pendingByToken,
-    claimedByToken,
-  });
-
-  setRewardClaimState({
-    status: "claimed",
-    loading: false,
-    txHash: `0xmock${Math.random().toString(16).slice(2, 10)}`,
-  });
-
-  return true;
-}
-
-export function getCurrentRewardClaim() {
-  return getRewardClaimState();
+  } catch (error) {
+    console.error("[CLAIM-REWARD-ERROR]", error);
+    updateRewardStatus(rewardId, "FAILED");
+    return { success: false, error: "Transaction execution failed." };
+  }
 }

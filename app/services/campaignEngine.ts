@@ -82,6 +82,46 @@ export function getCampaigns(): Campaign[] {
 }
 
 /**
+ * Returns a specific campaign by ID.
+ * First checks local session, then falls back to Supabase.
+ */
+export async function getCampaignById(id: string): Promise<Campaign | null> {
+  // Check local session first (preserves interactive states)
+  const local = getSessionCampaigns().find((c) => c.id === id);
+  if (local) return local;
+
+  // Fallback to Supabase
+  const { data, error } = await supabaseClient
+    .from("campaigns")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    console.error("Campaign not found in Supabase", error);
+    return null;
+  }
+
+  const campaign: Campaign = {
+    id: data.id,
+    title: data.title,
+    description: data.description || "",
+    logo: data.logo || DEFAULT_LOGO,
+    miniAppUrl: data.mini_app_url || "",
+    rewardToken: data.reward_token,
+    rewardAmount: Number(data.reward_per_claim),
+    budget: Number(data.pool_amount),
+    maxClaims: data.max_claims,
+    claimedCount: data.claimed_count,
+    status: data.status as CampaignStatus,
+    createdAt: data.created_at,
+    createdBy: data.created_by,
+  };
+
+  return campaign;
+}
+
+/**
  * Returns campaigns created by the current user.
  */
 export function getMyCampaigns(userId: string): Campaign[] {

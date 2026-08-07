@@ -1,15 +1,26 @@
-export type RewardClaimStatus =
-  | "idle"
-  | "ready"
-  | "claiming"
-  | "claimed"
-  | "failed";
+import { ValidationResult } from "@/app/services/validationEngine";
 
-export interface RewardClaimState {
-  status: RewardClaimStatus;
-  token: string | null;
+export type RewardClaimStatus =
+  | "PENDING"
+  | "READY"
+  | "CLAIMING"
+  | "CLAIMED"
+  | "FAILED"
+  | "EXPIRED";
+
+export interface PendingReward {
+  id: string;
+  campaignId: string;
+  userId: string;
+  walletAddress: string;
+  token: string;
   amount: number;
-  txHash: string | null;
-  loading: boolean;
-  error: string | null;
+  status: RewardClaimStatus;
+  createdAt: string;
+  expiresAt: string;
+  validationResult: ValidationResult;
+}
+
+export interface RewardClaimQueueState {
+  rewards: PendingReward[];
 }

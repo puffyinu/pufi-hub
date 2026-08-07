@@ -1,5 +1,5 @@
 import { performDailyCheckIn } from "./checkinEngine";
-import { prepareRewardClaim } from "./rewardClaimEngine";
+import { queueReward } from "./rewardClaimEngine";
 
 export interface DailyClaimResult {
   success: boolean;
@@ -8,13 +8,10 @@ export interface DailyClaimResult {
 
 /**
  * Orchestrates the Daily Claim process.
- * 1. Performs the daily check-in (updates streak, achievements, internal wallet, activity).
- * 2. Prepares the reward claim state for the UI.
  */
 export async function executeDailyClaim(): Promise<DailyClaimResult> {
   try {
     // Step 1: Perform Daily Check-In
-    // This updates the RewardEngine (Internal Wallet) and ActivityEngine internally.
     const checkInSuccess = performDailyCheckIn();
     
     if (!checkInSuccess) {
@@ -24,16 +21,8 @@ export async function executeDailyClaim(): Promise<DailyClaimResult> {
       };
     }
 
-    // Step 2: Prepare Reward Claim
-    // This transitions the claim session state to 'ready' with the available balance.
-    const prepareSuccess = prepareRewardClaim("PUFI", 1);
-    
-    if (!prepareSuccess) {
-      return {
-        success: false,
-        error: "Failed to prepare reward claim.",
-      };
-    }
+    // Step 2: Queue the Reward
+    queueReward("daily-checkin", "user-placeholder", "user-wallet-placeholder", "PUFI", 1, { status: "ELIGIBLE", isEligible: true, message: "Daily Check-in" });
 
     return { success: true };
   } catch (error) {
