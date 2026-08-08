@@ -30,13 +30,17 @@ async function deploySettlementFixture() {
     { account: owner.account.address },
   );
 
+  const permit2 = await viem.deployContract("Permit2Mock");
+
   const settlement = await viem.deployContract("Settlement", [
     platformWallet.account.address,
     rewardWallet.account.address,
+    permit2.address,
   ]);
 
   return {
     settlement,
+    permit2,
     token,
     owner,
     advertiser,
@@ -46,7 +50,87 @@ async function deploySettlementFixture() {
   };
 }
 
+async function approvePermit2(
+  token: any,
+  permit2: any,
+  settlement: any,
+  advertiser: any,
+  amount: bigint,
+) {
+  await token.write.approve(
+    [permit2.address, amount],
+    { account: advertiser.account.address },
+  );
+
+  await permit2.write.approve(
+    [
+      token.address,
+      settlement.address,
+      amount,
+      2_000_000_000,
+    ],
+    { account: advertiser.account.address },
+  );
+}
+
 describe("Settlement", function () {
+
+  it("should settle campaign through Permit2 allowance", async function () {
+    const {
+      settlement,
+      permit2,
+      token,
+      advertiser,
+      platformWallet,
+      rewardWallet,
+      viem,
+    } = await deploySettlementFixture();
+
+    const budget = parseUnits("100", 18);
+
+    // Token approval must be granted to Permit2, not Settlement.
+    await token.write.approve(
+      [permit2.address, budget],
+      { account: advertiser.account.address },
+    );
+
+    // Permit2 allowance for Settlement as spender.
+    await permit2.write.approve(
+      [
+        token.address,
+        settlement.address,
+        budget,
+        2_000_000_000,
+      ],
+      { account: advertiser.account.address },
+    );
+
+    const txHash = await settlement.write.settleCampaign(
+      [
+        "permit2-campaign",
+        token.address,
+        budget,
+        advertiser.account.address,
+      ],
+      { account: advertiser.account.address },
+    );
+
+    const publicClient = await viem.getPublicClient();
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+
+    expect(receipt.status).to.equal("success");
+
+    expect(
+      await token.read.balanceOf([platformWallet.account.address]),
+    ).to.equal((budget * 30n) / 100n);
+
+    expect(
+      await token.read.balanceOf([rewardWallet.account.address]),
+    ).to.equal(budget - (budget * 30n) / 100n);
+  });
+
   it("should store immutable wallets in constructor", async function () {
     const { settlement, platformWallet, rewardWallet } =
       await deploySettlementFixture();
@@ -63,6 +147,7 @@ describe("Settlement", function () {
   it("should successfully settle a campaign", async function () {
     const {
       settlement,
+      permit2,
       token,
       advertiser,
       platformWallet,
@@ -74,9 +159,12 @@ describe("Settlement", function () {
     const platformFee = (budget * 30n) / 100n;
     const rewardPool = budget - platformFee;
 
-    await token.write.approve(
-      [settlement.address, budget],
-      { account: advertiser.account.address },
+    await approvePermit2(
+      token,
+      permit2,
+      settlement,
+      advertiser,
+      budget,
     );
 
     const txHash = await settlement.write.settleCampaign(
@@ -242,14 +330,17 @@ describe("Settlement", function () {
   });
 
   it("should reject duplicate campaign", async function () {
-    const { settlement, token, advertiser } =
+    const { settlement, permit2, token, advertiser } =
       await deploySettlementFixture();
 
     const budget = parseUnits("100", 18);
 
-    await token.write.approve(
-      [settlement.address, budget * 2n],
-      { account: advertiser.account.address },
+    await approvePermit2(
+      token,
+      permit2,
+      settlement,
+      advertiser,
+      budget * 2n,
     );
 
     await settlement.write.settleCampaign(
@@ -280,14 +371,17 @@ describe("Settlement", function () {
   });
 
   it("should settle different campaign IDs independently", async function () {
-    const { settlement, token, advertiser } =
+    const { settlement, permit2, token, advertiser } =
       await deploySettlementFixture();
 
     const budget = parseUnits("100", 18);
 
-    await token.write.approve(
-      [settlement.address, budget * 2n],
-      { account: advertiser.account.address },
+    await approvePermit2(
+      token,
+      permit2,
+      settlement,
+      advertiser,
+      budget * 2n,
     );
 
     await settlement.write.settleCampaign(
@@ -326,6 +420,7 @@ describe("Settlement", function () {
   it("should correctly distribute 30 percent platform fee and 70 percent reward pool", async function () {
     const {
       settlement,
+      permit2,
       token,
       advertiser,
       platformWallet,
@@ -334,9 +429,12 @@ describe("Settlement", function () {
 
     const budget = parseUnits("1000", 18);
 
-    await token.write.approve(
-      [settlement.address, budget],
-      { account: advertiser.account.address },
+    await approvePermit2(
+      token,
+      permit2,
+      settlement,
+      advertiser,
+      budget,
     );
 
     await settlement.write.settleCampaign(
@@ -362,15 +460,22 @@ describe("Settlement", function () {
   });
 
   it("should reject insufficient allowance", async function () {
-    const { settlement, token, advertiser } =
-      await deploySettlementFixture();
+    const {
+      settlement,
+      permit2,
+      token,
+      advertiser,
+    } = await deploySettlementFixture();
 
     const budget = parseUnits("100", 18);
     const allowance = parseUnits("99", 18);
 
-    await token.write.approve(
-      [settlement.address, allowance],
-      { account: advertiser.account.address },
+    await approvePermit2(
+      token,
+      permit2,
+      settlement,
+      advertiser,
+      allowance,
     );
 
     try {
@@ -391,8 +496,12 @@ describe("Settlement", function () {
   });
 
   it("should reject insufficient advertiser balance", async function () {
-    const { settlement, token, advertiser } =
-      await deploySettlementFixture();
+    const {
+      settlement,
+      permit2,
+      token,
+      advertiser,
+    } = await deploySettlementFixture();
 
     const advertiserBalance = await token.read.balanceOf([
       advertiser.account.address,
@@ -400,9 +509,12 @@ describe("Settlement", function () {
 
     const budget = advertiserBalance + 1n;
 
-    await token.write.approve(
-      [settlement.address, budget],
-      { account: advertiser.account.address },
+    await approvePermit2(
+      token,
+      permit2,
+      settlement,
+      advertiser,
+      budget,
     );
 
     try {
@@ -425,6 +537,7 @@ describe("Settlement", function () {
   it("should preserve exact budget conservation for a 1-unit campaign", async function () {
     const {
       settlement,
+      permit2,
       token,
       advertiser,
       platformWallet,
@@ -433,9 +546,12 @@ describe("Settlement", function () {
 
     const budget = 1n;
 
-    await token.write.approve(
-      [settlement.address, budget],
-      { account: advertiser.account.address },
+    await approvePermit2(
+      token,
+      permit2,
+      settlement,
+      advertiser,
+      budget,
     );
 
     await settlement.write.settleCampaign(
@@ -468,15 +584,19 @@ describe("Settlement", function () {
     it(`should conserve exact budget for boundary budget ${budget}`, async function () {
       const {
         settlement,
+        permit2,
         token,
         advertiser,
         platformWallet,
         rewardWallet,
       } = await deploySettlementFixture();
 
-      await token.write.approve(
-        [settlement.address, budget],
-        { account: advertiser.account.address },
+      await approvePermit2(
+        token,
+        permit2,
+        settlement,
+        advertiser,
+        budget,
       );
 
       await settlement.write.settleCampaign(
@@ -513,11 +633,13 @@ describe("Settlement", function () {
     if (!viem) throw new Error("Viem is undefined");
 
     const wallets = await viem.getWalletClients();
+    const permit2 = await viem.deployContract("Permit2Mock");
 
     try {
       await viem.deployContract("Settlement", [
         "0x0000000000000000000000000000000000000000",
         wallets[2].account.address,
+        permit2.address,
       ]);
 
       expect.fail("Should have rejected");
@@ -533,11 +655,13 @@ describe("Settlement", function () {
     if (!viem) throw new Error("Viem is undefined");
 
     const wallets = await viem.getWalletClients();
+    const permit2 = await viem.deployContract("Permit2Mock");
 
     try {
       await viem.deployContract("Settlement", [
         wallets[2].account.address,
         "0x0000000000000000000000000000000000000000",
+        permit2.address,
       ]);
 
       expect.fail("Should have rejected");

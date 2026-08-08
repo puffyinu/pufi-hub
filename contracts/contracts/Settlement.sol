@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IAllowanceTransfer} from "./interfaces/IAllowanceTransfer.sol";
 
 /**
  * @title Settlement
@@ -14,6 +15,7 @@ contract Settlement is ReentrancyGuard {
 
     address public immutable platformWallet;
     address public immutable rewardWallet;
+    IAllowanceTransfer public immutable permit2;
 
     mapping(bytes32 => bool) public settledCampaigns;
 
@@ -35,12 +37,22 @@ contract Settlement is ReentrancyGuard {
     error InvalidAdvertiser();
     error InvalidToken();
 
-    constructor(address _platformWallet, address _rewardWallet) {
-        if (_platformWallet == address(0) || _rewardWallet == address(0)) {
+    constructor(
+        address _platformWallet,
+        address _rewardWallet,
+        address _permit2
+    ) {
+        if (
+            _platformWallet == address(0) ||
+            _rewardWallet == address(0) ||
+            _permit2 == address(0)
+        ) {
             revert ZeroAddress();
         }
+
         platformWallet = _platformWallet;
         rewardWallet = _rewardWallet;
+        permit2 = IAllowanceTransfer(_permit2);
     }
 
     /**
@@ -52,7 +64,10 @@ contract Settlement is ReentrancyGuard {
         uint256 campaignBudget,
         address advertiser
     ) external nonReentrant {
-        if (campaignBudget == 0) revert InvalidBudget();
+        if (
+            campaignBudget == 0 ||
+            campaignBudget > type(uint160).max
+        ) revert InvalidBudget();
         if (advertiser == address(0)) revert InvalidAdvertiser();
         if (token == address(0)) revert InvalidToken();
 
@@ -62,8 +77,13 @@ contract Settlement is ReentrancyGuard {
         // Mark as settled before interaction (Checks-Effects-Interactions)
         settledCampaigns[campaignKey] = true;
 
-        // 1. Transfer budget from advertiser
-        IERC20(token).safeTransferFrom(advertiser, address(this), campaignBudget);
+        // 1. Pull budget from advertiser through Permit2.
+        permit2.transferFrom(
+            advertiser,
+            address(this),
+            uint160(campaignBudget),
+            token
+        );
 
         // 2. Calculate split (30% platform, 70% reward)
         uint256 platformFee = (campaignBudget * 30) / 100;
