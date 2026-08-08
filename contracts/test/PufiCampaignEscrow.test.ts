@@ -454,6 +454,202 @@ describe("PufiCampaignEscrow", function () {
     }
   });
 
+
+  it("should reject operator rotation from non-owner", async function () {
+    const {
+      escrow,
+      advertiser,
+      alternateOperator,
+    } = await deployEscrowFixture();
+
+    try {
+      await escrow.write.setOperator(
+        [alternateOperator.account.address],
+        { account: advertiser.account.address },
+      );
+
+      expect.fail("Expected non-owner operator rotation to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("OwnableUnauthorizedAccount");
+    }
+  });
+
+  it("should reject platform fee wallet update from non-owner", async function () {
+    const {
+      escrow,
+      advertiser,
+      user,
+    } = await deployEscrowFixture();
+
+    try {
+      await escrow.write.setPlatformFeeWallet(
+        [user.account.address],
+        { account: advertiser.account.address },
+      );
+
+      expect.fail("Expected non-owner platform wallet update to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("OwnableUnauthorizedAccount");
+    }
+  });
+
+  it("should reject reward release for a nonexistent campaign", async function () {
+    const {
+      escrow,
+      token,
+      operator,
+      user,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("nonexistent");
+
+    try {
+      await escrow.write.releaseReward(
+        [id, token.address, user.account.address, 1n],
+        { account: operator.account.address },
+      );
+
+      expect.fail("Expected nonexistent campaign to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("CampaignDoesNotExist");
+    }
+  });
+
+  it("should reject zero reward amount", async function () {
+    const {
+      escrow,
+      token,
+      advertiser,
+      operator,
+      user,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("zero-reward");
+    const poolAmount = parseEther("700");
+    const feeAmount = parseEther("300");
+
+    await token.write.approve(
+      [escrow.address, poolAmount + feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    await escrow.write.createCampaign(
+      [id, token.address, poolAmount, feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    try {
+      await escrow.write.releaseReward(
+        [id, token.address, user.account.address, 0n],
+        { account: operator.account.address },
+      );
+
+      expect.fail("Expected zero reward to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("ZeroAmount");
+    }
+  });
+
+  it("should fully deplete campaign balance and reject further release", async function () {
+    const {
+      escrow,
+      token,
+      advertiser,
+      operator,
+      user,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("full-release");
+    const poolAmount = parseEther("700");
+    const feeAmount = parseEther("300");
+
+    await token.write.approve(
+      [escrow.address, poolAmount + feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    await escrow.write.createCampaign(
+      [id, token.address, poolAmount, feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    await escrow.write.releaseReward(
+      [id, token.address, user.account.address, poolAmount],
+      { account: operator.account.address },
+    );
+
+    expect(
+      await escrow.read.campaignBalance([id, token.address]),
+    ).to.equal(0n);
+
+    try {
+      await escrow.write.releaseReward(
+        [id, token.address, user.account.address, 1n],
+        { account: operator.account.address },
+      );
+
+      expect.fail("Expected release after depletion to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("InsufficientCampaignBalance");
+    }
+  });
+
+  it("should reject campaign creation with insufficient allowance", async function () {
+    const {
+      escrow,
+      token,
+      advertiser,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("insufficient-allowance");
+    const poolAmount = parseEther("700");
+    const feeAmount = parseEther("300");
+
+    await token.write.approve(
+      [escrow.address, poolAmount],
+      { account: advertiser.account.address },
+    );
+
+    try {
+      await escrow.write.createCampaign(
+        [id, token.address, poolAmount, feeAmount],
+        { account: advertiser.account.address },
+      );
+
+      expect.fail("Expected insufficient allowance to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("ERC20InsufficientAllowance");
+    }
+  });
+
+  it("should reject campaign creation with insufficient advertiser balance", async function () {
+    const {
+      escrow,
+      token,
+      advertiser,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("insufficient-balance");
+    const poolAmount = parseEther("1500");
+    const feeAmount = parseEther("600");
+
+    await token.write.approve(
+      [escrow.address, poolAmount + feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    try {
+      await escrow.write.createCampaign(
+        [id, token.address, poolAmount, feeAmount],
+        { account: advertiser.account.address },
+      );
+
+      expect.fail("Expected insufficient advertiser balance to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("ERC20InsufficientBalance");
+    }
+  });
+
   it("should reject zero platform fee wallet", async function () {
     const {
       escrow,
