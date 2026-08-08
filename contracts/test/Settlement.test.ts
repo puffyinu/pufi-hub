@@ -361,6 +361,151 @@ describe("Settlement", function () {
     ).to.equal(rewardPool);
   });
 
+  it("should reject insufficient allowance", async function () {
+    const { settlement, token, advertiser } =
+      await deploySettlementFixture();
+
+    const budget = parseUnits("100", 18);
+    const allowance = parseUnits("99", 18);
+
+    await token.write.approve(
+      [settlement.address, allowance],
+      { account: advertiser.account.address },
+    );
+
+    try {
+      await settlement.write.settleCampaign(
+        [
+          "insufficient-allowance",
+          token.address,
+          budget,
+          advertiser.account.address,
+        ],
+        { account: advertiser.account.address },
+      );
+
+      expect.fail("Should have rejected");
+    } catch (error: any) {
+      expect(error).to.exist;
+    }
+  });
+
+  it("should reject insufficient advertiser balance", async function () {
+    const { settlement, token, advertiser } =
+      await deploySettlementFixture();
+
+    const advertiserBalance = await token.read.balanceOf([
+      advertiser.account.address,
+    ]);
+
+    const budget = advertiserBalance + 1n;
+
+    await token.write.approve(
+      [settlement.address, budget],
+      { account: advertiser.account.address },
+    );
+
+    try {
+      await settlement.write.settleCampaign(
+        [
+          "insufficient-balance",
+          token.address,
+          budget,
+          advertiser.account.address,
+        ],
+        { account: advertiser.account.address },
+      );
+
+      expect.fail("Should have rejected");
+    } catch (error: any) {
+      expect(error).to.exist;
+    }
+  });
+
+  it("should preserve exact budget conservation for a 1-unit campaign", async function () {
+    const {
+      settlement,
+      token,
+      advertiser,
+      platformWallet,
+      rewardWallet,
+    } = await deploySettlementFixture();
+
+    const budget = 1n;
+
+    await token.write.approve(
+      [settlement.address, budget],
+      { account: advertiser.account.address },
+    );
+
+    await settlement.write.settleCampaign(
+      [
+        "rounding-1",
+        token.address,
+        budget,
+        advertiser.account.address,
+      ],
+      { account: advertiser.account.address },
+    );
+
+    const platformBalance = await token.read.balanceOf([
+      platformWallet.account.address,
+    ]);
+
+    const rewardBalance = await token.read.balanceOf([
+      rewardWallet.account.address,
+    ]);
+
+    const platformFee = (budget * 30n) / 100n;
+    const rewardPool = budget - platformFee;
+
+    expect(platformFee + rewardPool).to.equal(budget);
+    expect(platformBalance).to.equal(platformFee);
+    expect(rewardBalance).to.equal(rewardPool);
+  });
+
+  for (const budget of [99n, 101n]) {
+    it(`should conserve exact budget for boundary budget ${budget}`, async function () {
+      const {
+        settlement,
+        token,
+        advertiser,
+        platformWallet,
+        rewardWallet,
+      } = await deploySettlementFixture();
+
+      await token.write.approve(
+        [settlement.address, budget],
+        { account: advertiser.account.address },
+      );
+
+      await settlement.write.settleCampaign(
+        [
+          `boundary-${budget}`,
+          token.address,
+          budget,
+          advertiser.account.address,
+        ],
+        { account: advertiser.account.address },
+      );
+
+      const platformFee = (budget * 30n) / 100n;
+      const rewardPool = budget - platformFee;
+
+      const platformBalance = await token.read.balanceOf([
+        platformWallet.account.address,
+      ]);
+
+      const rewardBalance = await token.read.balanceOf([
+        rewardWallet.account.address,
+      ]);
+
+      expect(platformFee + rewardPool).to.equal(budget);
+      expect(platformBalance).to.equal(platformFee);
+      expect(rewardBalance).to.equal(rewardPool);
+    });
+  }
+
   it("should reject zero platform wallet in constructor", async function () {
     const runtime = await hre.network.create();
 
