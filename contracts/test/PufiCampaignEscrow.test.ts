@@ -4,6 +4,7 @@ import {
   parseEther,
   keccak256,
   stringToBytes,
+  parseEventLogs,
 } from "viem";
 import { describe, it } from "node:test";
 
@@ -50,6 +51,7 @@ async function deployEscrowFixture() {
     platformFeeWallet,
     user,
     alternateOperator,
+    viem,
   };
 }
 
@@ -667,4 +669,226 @@ describe("PufiCampaignEscrow", function () {
       expect(error.message).to.contain("ZeroAddress");
     }
   });
+
+  it("should emit CampaignCreated with exact accounting values", async function () {
+    const {
+      viem,
+      escrow,
+      token,
+      advertiser,
+      platformFeeWallet,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("event-created");
+    const poolAmount = parseEther("700");
+    const feeAmount = parseEther("300");
+
+    await token.write.approve(
+      [escrow.address, poolAmount + feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    const txHash = await escrow.write.createCampaign(
+      [id, token.address, poolAmount, feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    const publicClient = await viem.getPublicClient();
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+
+    const logs = parseEventLogs({
+      abi: escrow.abi,
+      logs: receipt.logs,
+      eventName: "CampaignCreated",
+    });
+
+    expect(logs).to.have.length(1);
+    expect(logs[0].args.campaignId).to.equal(id);
+    expect(logs[0].args.advertiser?.toLowerCase()).to.equal(
+      advertiser.account.address.toLowerCase(),
+    );
+    expect(logs[0].args.token?.toLowerCase()).to.equal(
+      token.address.toLowerCase(),
+    );
+    expect(logs[0].args.poolAmount).to.equal(poolAmount);
+    expect(logs[0].args.feeAmount).to.equal(feeAmount);
+
+    expect(
+      await token.read.balanceOf([platformFeeWallet.account.address]),
+    ).to.equal(feeAmount);
+  });
+
+  it("should emit RewardReleased with exact payout values", async function () {
+    const {
+      viem,
+      escrow,
+      token,
+      advertiser,
+      operator,
+      user,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("event-released");
+    const poolAmount = parseEther("700");
+    const feeAmount = parseEther("300");
+    const reward = parseEther("25");
+
+    await token.write.approve(
+      [escrow.address, poolAmount + feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    await escrow.write.createCampaign(
+      [id, token.address, poolAmount, feeAmount],
+      { account: advertiser.account.address },
+    );
+
+    const txHash = await escrow.write.releaseReward(
+      [id, token.address, user.account.address, reward],
+      { account: operator.account.address },
+    );
+
+    const publicClient = await viem.getPublicClient();
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+
+    const logs = parseEventLogs({
+      abi: escrow.abi,
+      logs: receipt.logs,
+      eventName: "RewardReleased",
+    });
+
+    expect(logs).to.have.length(1);
+    expect(logs[0].args.campaignId).to.equal(id);
+    expect(logs[0].args.to?.toLowerCase()).to.equal(
+      user.account.address.toLowerCase(),
+    );
+    expect(logs[0].args.token?.toLowerCase()).to.equal(
+      token.address.toLowerCase(),
+    );
+    expect(logs[0].args.amount).to.equal(reward);
+  });
+
+  it("should emit admin update events with exact previous and new addresses", async function () {
+    const {
+      viem,
+      escrow,
+      owner,
+      operator,
+      alternateOperator,
+      platformFeeWallet,
+      user,
+    } = await deployEscrowFixture();
+
+    const publicClient = await viem.getPublicClient();
+
+    const operatorTxHash = await escrow.write.setOperator(
+      [alternateOperator.account.address],
+      { account: owner.account.address },
+    );
+
+    const operatorReceipt = await publicClient.waitForTransactionReceipt({
+      hash: operatorTxHash,
+    });
+
+    const operatorLogs = parseEventLogs({
+      abi: escrow.abi,
+      logs: operatorReceipt.logs,
+      eventName: "OperatorUpdated",
+    });
+
+    expect(operatorLogs).to.have.length(1);
+    expect(operatorLogs[0].args.previousOperator?.toLowerCase()).to.equal(
+      operator.account.address.toLowerCase(),
+    );
+    expect(operatorLogs[0].args.newOperator?.toLowerCase()).to.equal(
+      alternateOperator.account.address.toLowerCase(),
+    );
+
+    const feeWalletTxHash = await escrow.write.setPlatformFeeWallet(
+      [user.account.address],
+      { account: owner.account.address },
+    );
+
+    const feeWalletReceipt = await publicClient.waitForTransactionReceipt({
+      hash: feeWalletTxHash,
+    });
+
+    const feeWalletLogs = parseEventLogs({
+      abi: escrow.abi,
+      logs: feeWalletReceipt.logs,
+      eventName: "PlatformFeeWalletUpdated",
+    });
+
+    expect(feeWalletLogs).to.have.length(1);
+    expect(feeWalletLogs[0].args.previousWallet?.toLowerCase()).to.equal(
+      platformFeeWallet.account.address.toLowerCase(),
+    );
+    expect(feeWalletLogs[0].args.newWallet?.toLowerCase()).to.equal(
+      user.account.address.toLowerCase(),
+    );
+  });
+
+  it("should fully rollback campaign state when funding transfer fails", async function () {
+    const {
+      escrow,
+      token,
+      advertiser,
+      platformFeeWallet,
+    } = await deployEscrowFixture();
+
+    const id = campaignId("rollback-funding");
+    const poolAmount = parseEther("1500");
+    const feeAmount = parseEther("600");
+    const total = poolAmount + feeAmount;
+
+    await token.write.approve(
+      [escrow.address, total],
+      { account: advertiser.account.address },
+    );
+
+    const platformBefore = await token.read.balanceOf([
+      platformFeeWallet.account.address,
+    ]);
+    const advertiserBefore = await token.read.balanceOf([
+      advertiser.account.address,
+    ]);
+
+    try {
+      await escrow.write.createCampaign(
+        [id, token.address, poolAmount, feeAmount],
+        { account: advertiser.account.address },
+      );
+
+      expect.fail("Expected insufficient advertiser balance to revert");
+    } catch (error: any) {
+      expect(error.message).to.contain("ERC20InsufficientBalance");
+    }
+
+    expect(await escrow.read.campaignExists([id])).to.equal(false);
+
+    expect(
+      await escrow.read.campaignBalance([id, token.address]),
+    ).to.equal(0n);
+
+    expect(
+      await token.read.balanceOf([escrow.address]),
+    ).to.equal(0n);
+
+    expect(
+      await token.read.balanceOf([
+        platformFeeWallet.account.address,
+      ]),
+    ).to.equal(platformBefore);
+
+    expect(
+      await token.read.balanceOf([
+        advertiser.account.address,
+      ]),
+    ).to.equal(advertiserBefore);
+  });
+
 });
