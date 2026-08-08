@@ -50,11 +50,17 @@ async function deploySettlementFixture() {
   };
 }
 
+type SettlementFixture = Awaited<ReturnType<typeof deploySettlementFixture>>;
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 async function approvePermit2(
-  token: any,
-  permit2: any,
-  settlement: any,
-  advertiser: any,
+  token: SettlementFixture["token"],
+  permit2: SettlementFixture["permit2"],
+  settlement: SettlementFixture["settlement"],
+  advertiser: SettlementFixture["advertiser"],
   amount: bigint,
 ) {
   await token.write.approve(
@@ -253,7 +259,7 @@ describe("Settlement", function () {
       keccak256(stringToBytes("camp1")),
     ]);
 
-    expect(settled).to.be.true;
+    expect(settled).to.equal(true);
 
     const platformBalance = await token.read.balanceOf([
       platformWallet.account.address,
@@ -283,8 +289,8 @@ describe("Settlement", function () {
       );
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error.message).to.contain("InvalidBudget");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("InvalidBudget");
     }
   });
 
@@ -303,8 +309,8 @@ describe("Settlement", function () {
       );
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error.message).to.contain("InvalidAdvertiser");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("InvalidAdvertiser");
     }
   });
 
@@ -324,8 +330,8 @@ describe("Settlement", function () {
       );
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error.message).to.contain("InvalidToken");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("InvalidToken");
     }
   });
 
@@ -365,8 +371,8 @@ describe("Settlement", function () {
       );
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error.message).to.contain("CampaignAlreadySettled");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("CampaignAlreadySettled");
     }
   });
 
@@ -408,13 +414,13 @@ describe("Settlement", function () {
       await settlement.read.settledCampaigns([
         keccak256(stringToBytes("camp1")),
       ]),
-    ).to.be.true;
+    ).to.equal(true);
 
     expect(
       await settlement.read.settledCampaigns([
         keccak256(stringToBytes("camp2")),
       ]),
-    ).to.be.true;
+    ).to.equal(true);
   });
 
   it("should correctly distribute 30 percent platform fee and 70 percent reward pool", async function () {
@@ -490,8 +496,8 @@ describe("Settlement", function () {
       );
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error).to.exist;
+    } catch (error: unknown) {
+      expect(error).to.be.instanceOf(Error);
     }
   });
 
@@ -529,8 +535,8 @@ describe("Settlement", function () {
       );
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error).to.exist;
+    } catch (error: unknown) {
+      expect(error).to.be.instanceOf(Error);
     }
   });
 
@@ -643,8 +649,8 @@ describe("Settlement", function () {
       ]);
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAddress");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAddress");
     }
   });
 
@@ -665,8 +671,8 @@ describe("Settlement", function () {
       ]);
 
       expect.fail("Should have rejected");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAddress");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAddress");
     }
   });
 });

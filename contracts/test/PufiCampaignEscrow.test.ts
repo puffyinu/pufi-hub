@@ -59,6 +59,23 @@ function campaignId(value: string) {
   return keccak256(stringToBytes(value));
 }
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
 describe("PufiCampaignEscrow", function () {
   it("should initialize owner, operator and platform fee wallet", async function () {
     const {
@@ -164,8 +181,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected duplicate campaign to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("CampaignAlreadyExists");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("CampaignAlreadyExists");
     }
   });
 
@@ -189,8 +206,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected zero token to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAddress");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAddress");
     }
   });
 
@@ -215,8 +232,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected zero pool to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAmount");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAmount");
     }
   });
 
@@ -241,8 +258,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected zero fee to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAmount");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAmount");
     }
   });
 
@@ -317,8 +334,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected non-operator release to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("NotOperator");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("NotOperator");
     }
   });
 
@@ -357,8 +374,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected over-payout to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain(
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain(
         "InsufficientCampaignBalance",
       );
     }
@@ -451,8 +468,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected zero operator to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAddress");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAddress");
     }
   });
 
@@ -471,8 +488,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected non-owner operator rotation to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("OwnableUnauthorizedAccount");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("OwnableUnauthorizedAccount");
     }
   });
 
@@ -490,8 +507,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected non-owner platform wallet update to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("OwnableUnauthorizedAccount");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("OwnableUnauthorizedAccount");
     }
   });
 
@@ -512,8 +529,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected nonexistent campaign to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("CampaignDoesNotExist");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("CampaignDoesNotExist");
     }
   });
 
@@ -547,8 +564,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected zero reward to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAmount");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAmount");
     }
   });
 
@@ -591,8 +608,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected release after depletion to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("InsufficientCampaignBalance");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("InsufficientCampaignBalance");
     }
   });
 
@@ -619,8 +636,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected insufficient allowance to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ERC20InsufficientAllowance");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ERC20InsufficientAllowance");
     }
   });
 
@@ -647,8 +664,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected insufficient advertiser balance to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ERC20InsufficientBalance");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ERC20InsufficientBalance");
     }
   });
 
@@ -665,8 +682,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected zero platform wallet to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ZeroAddress");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ZeroAddress");
     }
   });
 
@@ -864,8 +881,8 @@ describe("PufiCampaignEscrow", function () {
       );
 
       expect.fail("Expected insufficient advertiser balance to revert");
-    } catch (error: any) {
-      expect(error.message).to.contain("ERC20InsufficientBalance");
+    } catch (error: unknown) {
+      expect(getErrorMessage(error)).to.contain("ERC20InsufficientBalance");
     }
 
     expect(await escrow.read.campaignExists([id])).to.equal(false);
