@@ -7,8 +7,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "types": ["node", "mocha", "chai"]
+    "types": ["node", "chai"]
   },
-  "include": ["test/**/*.ts", "scripts/**/*.ts"],
+  "include": ["test/**/*.ts", "scripts/**/*.ts", "artifacts/**/*.d.ts"],
   "files": ["hardhat.config.ts"]
 }
