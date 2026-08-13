@@ -1,9 +1,11 @@
-import { supabaseAdmin } from "@/app/services/supabaseAdmin";
+﻿import { getSupabaseAdmin } from "@/app/services/supabaseAdmin";
 
 export async function recordWorldIdVerification(
   nullifiers: string[],
   action: string
 ): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+
   const rows = nullifiers.map((nullifier) => ({
     nullifier,
     action,
@@ -24,6 +26,8 @@ export async function recordVerifiedWallet(
   address: string,
   nullifier: string
 ): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+
   const { error } = await supabaseAdmin
     .from("verified_wallets")
     .upsert(

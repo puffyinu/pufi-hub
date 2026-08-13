@@ -72,7 +72,7 @@ export default function CreateCampaignPage() {
       console.log("Parsed Events:", events);
 
       // 6. Create Campaign
-      createCampaign({
+      createCampaign(campaignId, {
         title: values.title!,
         description: values.description!,
         logo: values.logo!,

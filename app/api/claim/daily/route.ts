@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processDailyClaim } from "@/app/services/dailyClaimEngineDb";
-import { supabaseAdmin } from "@/app/services/supabaseAdmin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +30,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const { getSupabaseAdmin } = await import("@/app/services/supabaseAdmin");
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const { searchParams } = new URL(request.url);
     const walletAddress = searchParams.get("walletAddress")?.toLowerCase();

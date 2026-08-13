@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/app/services/supabaseAdmin";
+import { getSupabaseAdmin } from "@/app/services/supabaseAdmin";
 
 interface WalletStatusRequestBody {
   address?: string;
 }
 
 export async function POST(request: NextRequest) {
+  const supabaseAdmin = getSupabaseAdmin();
   try {
     const body: WalletStatusRequestBody = await request.json();
     const address = body.address?.toLowerCase();

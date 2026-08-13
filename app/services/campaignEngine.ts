@@ -12,7 +12,7 @@ import { addReward } from "@/app/services/reward";
 import { recordActivity } from "@/app/services/activityEngine";
 import { setRewardState, getRewardState } from "@/app/services/rewardSession";
 import { getCampaignCapacity } from "@/app/services/campaignUnlockService";
-import { supabaseClient } from "./supabaseClient";
+import { getSupabaseClient } from "./supabaseClient";
 
 import type { Campaign, CampaignStatus } from "@/app/types/campaign";
 
@@ -22,6 +22,8 @@ const DEFAULT_LOGO = "/images/brand/pufi-logo.png";
  * Fetches active campaigns from Supabase and synchronizes them with the local session.
  */
 export async function fetchActiveCampaigns(): Promise<Campaign[]> {
+  const supabaseClient = getSupabaseClient();
+
   const { data, error } = await supabaseClient
     .from("campaigns")
     .select("*")
@@ -92,6 +94,8 @@ export async function getCampaignById(id: string): Promise<Campaign | null> {
   if (local) return local;
 
   // Fallback to Supabase
+  const supabaseClient = getSupabaseClient();
+
   const { data, error } = await supabaseClient
     .from("campaigns")
     .select("*")
@@ -151,6 +155,7 @@ export function canCreateCampaign(userId: string): boolean {
  * Creates a new campaign.
  */
 export function createCampaign(
+  id: string,
   campaign: Omit<Campaign, "id" | "status" | "createdAt" | "claimedCount">,
   settlementPlan: SettlementPlan
 ): Campaign {
@@ -165,8 +170,9 @@ export function createCampaign(
   if (settlementPlan.maximumClaims <= 0) {
     throw new Error("Invalid campaign data: 'maximumClaims' must be greater than zero.");
   }
-
-  const id = `campaign-${Date.now()}`;
+  if (!id.trim()) {
+    throw new Error("Missing campaign ID.");
+  }
 
   const newCampaign: Campaign = {
     ...campaign,

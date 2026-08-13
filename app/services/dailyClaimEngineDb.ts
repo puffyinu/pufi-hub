@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/app/services/supabaseAdmin";
+import { getSupabaseAdmin } from "@/app/services/supabaseAdmin";
 import {
   sendPufiFromRewardWallet,
   validateRewardWalletTransfer,
@@ -24,6 +24,7 @@ export async function processDailyClaim(
   }
 
   const normalizedAddress = walletAddress.toLowerCase();
+  const supabaseAdmin = getSupabaseAdmin();
   const cooldownMs = CLAIM_COOLDOWN_HOURS * 60 * 60 * 1000;
   const cutoff = new Date(Date.now() - cooldownMs).toISOString();
 
