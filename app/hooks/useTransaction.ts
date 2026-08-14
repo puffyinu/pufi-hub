@@ -59,6 +59,8 @@ export function useTransaction() {
     setTransactionState({
       status: "preparing",
       loading: true,
+      transactionId: null,
+      transactionHash: null,
       error: null,
     });
 

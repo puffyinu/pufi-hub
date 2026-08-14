@@ -11,6 +11,7 @@ export type TransactionStatus =
 export interface TransactionState {
   status: TransactionStatus;
   transactionId: string | null;
+  transactionHash: string | null;
   from: string | null;
   timestamp: string | null;
   loading: boolean;
@@ -23,6 +24,7 @@ export const TRANSACTION_SESSION_EVENT = "pufi-transaction-session-changed";
 const DEFAULT_TRANSACTION_STATE: TransactionState = {
   status: "idle",
   transactionId: null,
+  transactionHash: null,
   from: null,
   timestamp: null,
   loading: false,

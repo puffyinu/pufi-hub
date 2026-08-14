@@ -8,7 +8,10 @@ import { useCampaign } from "@/app/hooks/useCampaign";
 import { useTransaction } from "@/app/hooks/useTransaction";
 import { useWallet } from "@/app/hooks/useWallet";
 import { useUserOperationReceipt } from "@/app/hooks/useUserOperationReceipt";
-import { getTransactionState } from "@/app/services/transactionSession";
+import {
+  getTransactionState,
+  setTransactionState,
+} from "@/app/services/transactionSession";
 import { canCreateCampaign } from "@/app/services/campaignEngine";
 import CampaignForm from "@/app/components/CampaignForm";
 import { Campaign } from "@/app/types/campaign";
@@ -64,12 +67,18 @@ export default function CreateCampaignPage() {
       }
 
       // 5. Verify receipt
-      const events = await getReceipt(finalState.transactionId as `0x${string}`);
-      if (!events || events.length === 0) {
-          throw new Error("Transaction verification failed or no events found.");
+      const verification = await getReceipt(
+        finalState.transactionId as `0x${string}`,
+      );
+      if (!verification || verification.events.length === 0) {
+        throw new Error("Transaction verification failed or no events found.");
       }
       
-      console.log("Parsed Events:", events);
+      setTransactionState({
+        transactionHash: verification.transactionHash,
+      });
+
+      console.log("Parsed Events:", verification.events);
 
       // 6. Create Campaign
       createCampaign(campaignId, {

@@ -10,10 +10,10 @@ export default function TransactionStatusCard() {
   } = useTransaction();
 
   const hasTransaction =
-    transaction.transactionId !== null;
+    transaction.transactionHash !== null;
 
   const explorerUrl = hasTransaction
-    ? `https://worldscan.org/tx/${transaction.transactionId}`
+    ? `https://worldscan.org/tx/${transaction.transactionHash}`
     : null;
 
   return (
