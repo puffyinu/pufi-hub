@@ -7,6 +7,7 @@
 export interface WorldUser {
   walletAddress: string
     username?: string
+      profilePictureUrl?: string
       verified: boolean
       }
 

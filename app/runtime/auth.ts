@@ -1,6 +1,10 @@
 import type { WalletAuthPayload } from "@/app/runtime/minikitManager";
-import { walletAuth, isMiniKitInstalled } from "@/app/runtime/minikitManager";
-import { clearSession, hasSession, setSession } from "@/app/services/session";
+import {
+  getWorldUserMetadata,
+  walletAuth,
+  isMiniKitInstalled,
+} from "@/app/runtime/minikitManager";
+import { clearSession, getSession, hasSession, setSession } from "@/app/services/session";
 import { resetWalletState, setWalletState } from "@/app/services/walletSession";
 import type { WorldSession } from "@/app/types/world";
 
@@ -61,10 +65,13 @@ export async function login(
       return null;
     }
 
+    const worldUser = await getWorldUserMetadata(address);
+
     const session: WorldSession = {
       isAuthenticated: true,
       user: {
         walletAddress: address,
+        ...worldUser,
         verified: verifiedHuman,
       },
     };
@@ -85,10 +92,20 @@ export async function login(
 }
 
 export function markSessionVerified(address: string, verified: boolean): void {
+  const existingUser = getSession()?.user;
+  const identityMetadata =
+    existingUser?.walletAddress.toLowerCase() === address.toLowerCase()
+      ? {
+          username: existingUser.username,
+          profilePictureUrl: existingUser.profilePictureUrl,
+        }
+      : {};
+
   const session: WorldSession = {
     isAuthenticated: true,
     user: {
       walletAddress: address,
+      ...identityMetadata,
       verified,
     },
   };

@@ -11,6 +11,75 @@ export interface WalletAuthPayload {
   payload?: WalletAuthResult;
 }
 
+export interface WorldUserMetadata {
+  username?: string;
+  profilePictureUrl?: string;
+}
+
+function normalizeOptionalString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  return normalized || undefined;
+}
+
+function normalizeProfilePictureUrl(value: unknown): string | undefined {
+  const url = normalizeOptionalString(value);
+  if (!url) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" && !parsed.username && !parsed.password
+      ? parsed.href
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function isForWallet(
+  user: { walletAddress?: string },
+  walletAddress: string
+): boolean {
+  return user.walletAddress?.toLowerCase() === walletAddress.toLowerCase();
+}
+
+/**
+ * Display-only World profile metadata. The SIWE-verified address remains the
+ * canonical identity and is never derived from this response.
+ */
+export async function getWorldUserMetadata(
+  walletAddress: string
+): Promise<WorldUserMetadata> {
+  let directoryUser: Awaited<ReturnType<typeof MiniKit.getUserByAddress>> | null = null;
+
+  try {
+    const result = await MiniKit.getUserByAddress(walletAddress);
+    if (isForWallet(result, walletAddress)) {
+      directoryUser = result;
+    }
+  } catch (error) {
+    console.warn("[MINIKIT] Unable to resolve World user metadata", error);
+  }
+
+  const currentUser = isForWallet(MiniKit.user, walletAddress)
+    ? MiniKit.user
+    : undefined;
+
+  return {
+    username: normalizeOptionalString(
+      directoryUser?.username ?? currentUser?.username
+    ),
+    profilePictureUrl: normalizeProfilePictureUrl(
+      directoryUser?.profilePictureUrl ?? currentUser?.profilePictureUrl
+    ),
+  };
+}
+
 export function getMiniKit() {
   return MiniKit;
 }

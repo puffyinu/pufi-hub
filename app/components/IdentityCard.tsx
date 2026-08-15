@@ -1,22 +1,39 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { useWallet } from "@/app/hooks/useWallet";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { getSession, SESSION_EVENT } from "@/app/services/session";
 
-const subscribe = () => () => {};
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener(SESSION_EVENT, onStoreChange);
+  return () => window.removeEventListener(SESSION_EVENT, onStoreChange);
+}
+
+function formatUsername(username?: string): string | undefined {
+  const normalized = username?.trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  return normalized.includes("@") ? normalized : `@${normalized}`;
+}
 
 export default function IdentityCard() {
   const { wallet } = useWallet();
   const { t } = useLanguage();
+  const session = useSyncExternalStore(subscribe, getSession, () => null);
   const isMounted = useSyncExternalStore(
-    subscribe,
+    () => () => {},
     () => true,
     () => false
   );
-
-  const username = "CHOQYE";
+  const username = formatUsername(session?.user?.username);
+  const profilePictureUrl = session?.user?.profilePictureUrl;
+  const [avatarFailedFor, setAvatarFailedFor] = useState<string | null>(null);
+  const shouldShowProfilePicture =
+    Boolean(profilePictureUrl) && avatarFailedFor !== profilePictureUrl;
 
   return (
     <section className="mx-4 mb-5 rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-2xl p-5 shadow-2xl">
@@ -24,17 +41,30 @@ export default function IdentityCard() {
         {/* Left */}
         <div className="flex items-center gap-4">
           <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-yellow-400/20 bg-white/5 shadow-inner">
-            <Image
-              src="/images/mascot/pufi-mascot.png"
-              alt="Avatar"
-              fill
-              className="object-cover scale-110"
-            />
+            {profilePictureUrl && shouldShowProfilePicture ? (
+              // World profile-picture hosts are dynamic. A native client image avoids
+              // a broad Next Image allowlist or server-side image fetch proxy.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profilePictureUrl}
+                alt={username ? `${username} profile picture` : "World profile picture"}
+                referrerPolicy="no-referrer"
+                onError={() => setAvatarFailedFor(profilePictureUrl)}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Image
+                src="/images/mascot/pufi-mascot.png"
+                alt="PUFI mascot"
+                fill
+                className="object-cover scale-110"
+              />
+            )}
           </div>
 
           <div className="flex flex-col gap-0.5">
             <h2 className="text-lg font-black tracking-tight text-white">
-              {username}
+              {username ?? "World User"}
             </h2>
 
             <div className="flex flex-col gap-1.5 mt-1">
