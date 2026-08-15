@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hashSignal } from "@worldcoin/idkit-core/hashing";
 import { WORLD_CONFIG } from "@/app/config/world";
 import {
   recordWorldIdVerification,
@@ -8,6 +9,7 @@ import {
 interface IDKitResponseItem {
   identifier?: string;
   nullifier?: string;
+  signal_hash?: string;
   [key: string]: unknown;
 }
 
@@ -35,6 +37,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (typeof body.address !== "string" || body.address.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Missing wallet address." },
+        { status: 400 }
+      );
+    }
+
+    const canonicalAddress = body.address.toLowerCase();
+
     const rpId = body.rp_id ?? WORLD_CONFIG.rpId;
 
     const portalResponse = await fetch(
@@ -57,6 +68,18 @@ export async function POST(request: NextRequest) {
 
     const action = body.idkitResponse.action ?? WORLD_CONFIG.action;
 
+    const signalHash = (body.idkitResponse.responses ?? []).find(
+      (item) => item.identifier === "proof_of_human"
+    )?.signal_hash;
+    const expectedSignalHash = hashSignal(canonicalAddress);
+
+    if (signalHash !== expectedSignalHash) {
+      return NextResponse.json(
+        { success: false, error: "World ID signal does not match the wallet." },
+        { status: 400 }
+      );
+    }
+
     const nullifiers = (body.idkitResponse.responses ?? [])
       .map((item) => item.nullifier)
       .filter(
@@ -73,9 +96,7 @@ export async function POST(request: NextRequest) {
 
     await recordWorldIdVerification(nullifiers, action);
 
-    if (body.address) {
-      await recordVerifiedWallet(body.address, nullifiers[0]);
-    }
+    await recordVerifiedWallet(canonicalAddress, nullifiers[0]);
 
     return NextResponse.json({ success: true });
   } catch (error) {

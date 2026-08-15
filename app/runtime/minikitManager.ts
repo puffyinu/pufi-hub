@@ -1,12 +1,14 @@
 "use client";
 
 import { MiniKit } from "@worldcoin/minikit-js";
+import type { WalletAuthResult } from "@worldcoin/minikit-js/commands";
 
 export interface WalletAuthPayload {
   status: "success" | "error";
   address?: string;
   message?: string;
   signature?: string;
+  payload?: WalletAuthResult;
 }
 
 export function getMiniKit() {
@@ -27,8 +29,6 @@ export async function walletAuth(nonce: string): Promise<WalletAuthPayload> {
     return { status: "error", message: "MiniKit not installed" };
   }
 
-  console.log("[MINIKIT-1] walletAuth() called, nonce =", nonce);
-
   try {
     const result = await MiniKit.walletAuth({
       nonce,
@@ -36,16 +36,16 @@ export async function walletAuth(nonce: string): Promise<WalletAuthPayload> {
       expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
-    console.log("[MINIKIT-2] result =", result);
+    const payload = result?.data;
+    const address = payload?.address;
 
-    // v2 shape: { executedWith: "minikit"|"wagmi", data: WalletAuthResult }
-    // WalletAuthResult = { address: string }
-    const address = result?.data?.address;
-
-    if (address) {
+    if (address && payload?.message && payload.signature) {
       return {
         status: "success",
         address,
+        message: payload.message,
+        signature: payload.signature,
+        payload,
       };
     }
 

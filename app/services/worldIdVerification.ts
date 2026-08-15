@@ -29,6 +29,15 @@ export async function verifyHuman(
   address?: string
 ): Promise<WorldIdVerificationResult> {
   try {
+    if (!address) {
+      return {
+        success: false,
+        error: "A connected wallet address is required for World ID verification.",
+      };
+    }
+
+    const canonicalAddress = address.toLowerCase();
+
     if (!isInWorldApp()) {
       return {
         success: false,
@@ -44,7 +53,7 @@ export async function verifyHuman(
       action_description: "Verify you are human to access PUFI HUB",
       allow_legacy_proofs: true,
       environment: "production",
-    }).preset(proofOfHuman());
+    }).preset(proofOfHuman({ signal: canonicalAddress }));
     const completion = await request.pollUntilCompletion();
     if (!completion.success) {
       return {
@@ -58,7 +67,7 @@ export async function verifyHuman(
       body: JSON.stringify({
         rp_id: rpContext.rp_id,
         idkitResponse: completion.result,
-        address,
+        address: canonicalAddress,
       }),
     });
     const verifyData = await verifyResponse.json();

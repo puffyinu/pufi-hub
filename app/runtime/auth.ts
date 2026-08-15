@@ -1,9 +1,41 @@
 import type { WalletAuthPayload } from "@/app/runtime/minikitManager";
-import { generateAlphanumericNonce } from "@/app/runtime/nonce";
-import { clearSession, hasSession, setSession } from "@/app/services/session";
-import type { WorldSession } from "@/app/types/world";
-import { resetWalletState, setWalletState } from "@/app/services/walletSession";
 import { walletAuth, isMiniKitInstalled } from "@/app/runtime/minikitManager";
+import { clearSession, hasSession, setSession } from "@/app/services/session";
+import { resetWalletState, setWalletState } from "@/app/services/walletSession";
+import type { WorldSession } from "@/app/types/world";
+
+async function getSiweNonce(): Promise<string | null> {
+  const response = await fetch("/api/world/nonce", {
+    credentials: "same-origin",
+  });
+  const body = (await response.json()) as { nonce?: string };
+
+  return response.ok && typeof body.nonce === "string" ? body.nonce : null;
+}
+
+async function verifyWalletAuth(
+  result: WalletAuthPayload,
+  nonce: string
+): Promise<string | null> {
+  if (!result.payload) {
+    return null;
+  }
+
+  const response = await fetch("/api/world/complete-siwe", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ payload: result.payload, nonce }),
+  });
+  const body = (await response.json()) as {
+    isValid?: boolean;
+    address?: string;
+  };
+
+  return response.ok && body.isValid && typeof body.address === "string"
+    ? body.address
+    : null;
+}
 
 export async function login(
   verifiedHuman: boolean
@@ -11,45 +43,41 @@ export async function login(
   address: string;
   result: WalletAuthPayload;
 } | null> {
-  const nonce = generateAlphanumericNonce();
-  console.log("========== BUILD 010 DEBUG ==========");
-  console.log("[AUTH-1] login()");
-  console.log("[AUTH-2] nonce =", nonce);
-  console.log("[AUTH-2b] verifiedHuman =", verifiedHuman);
   if (!isMiniKitInstalled()) {
-    console.warn("[AUTH] MiniKit not installed — skipping walletAuth");
-    console.warn("[AUTH] Are you running inside World App?");
     return null;
   }
+
   try {
-    console.log("[AUTH-3] BEFORE walletAuth");
-    const result = await walletAuth(nonce);
-    console.log("[AUTH-4] AFTER walletAuth");
-    console.log("[AUTH-5] result =", result);
-    if (result.status === "success" && result.address) {
-      console.log("[AUTH-6] SUCCESS");
-      const session: WorldSession = {
-        isAuthenticated: true,
-        user: {
-          walletAddress: result.address,
-          verified: verifiedHuman,
-        },
-      };
-      setSession(session);
-      setWalletState({
-        connected: true,
-        address: result.address,
-        isVerified: verifiedHuman,
-        loading: false,
-        error: null,
-      });
-      return {
-        address: result.address,
-        result,
-      };
+    const nonce = await getSiweNonce();
+    if (!nonce) {
+      return null;
     }
-    console.log("[AUTH-7] No address returned — status:", result.status);
-    return null;
+
+    const result = await walletAuth(nonce);
+    const address =
+      result.status === "success" ? await verifyWalletAuth(result, nonce) : null;
+
+    if (!address) {
+      return null;
+    }
+
+    const session: WorldSession = {
+      isAuthenticated: true,
+      user: {
+        walletAddress: address,
+        verified: verifiedHuman,
+      },
+    };
+    setSession(session);
+    setWalletState({
+      connected: true,
+      address,
+      isVerified: verifiedHuman,
+      loading: false,
+      error: null,
+    });
+
+    return { address, result };
   } catch (error) {
     console.error("[AUTH-ERROR]", error);
     return null;
