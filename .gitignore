@@ -51,3 +51,6 @@ litellm-config.yaml
 
 # Editor swap files
 *.swp
+
+# Local engineering logs and AI audit/build artifacts
+docs/engineering-logs/

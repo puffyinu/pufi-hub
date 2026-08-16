@@ -1,67 +1,40 @@
 "use client";
 
 import { useLanguage } from "@/app/context/LanguageContext";
+import { useActivity } from "@/app/hooks/useActivity";
+import { useCampaign } from "@/app/hooks/useCampaign";
+import { useReward } from "@/app/hooks/useReward";
 
 export default function NetworkStats() {
   const { t } = useLanguage();
+  const { activities } = useActivity();
+  const { campaigns, loading: campaignsLoading, error: campaignsError } = useCampaign();
+  const { reward } = useReward();
+  const claims = activities.filter((activity) => activity.type === "claim").length;
 
-  const STATS = [
-    {
-      label: t("campaigns_joined"),
-      value: "0",
-      icon: "🎯",
-    },
-    {
-      label: t("claim"),
-      value: "0",
-      icon: "🎁",
-    },
-    {
-      label: t("total_rewards"),
-      value: "0 PUFI",
-      icon: "💰",
-    },
-    {
-      label: t("activity_log"),
-      value: "0",
-      icon: "📈",
-    },
+  const stats = [
+    { label: t("active_campaigns"), value: campaignsLoading ? null : String(campaigns.length), empty: !campaignsLoading && !campaignsError && campaigns.length === 0, error: campaignsError, icon: "C" },
+    { label: t("claim"), value: String(claims), empty: claims === 0, error: null, icon: "R" },
+    { label: t("total_rewards"), value: reward.loading ? null : `${reward.claimed} PUFI`, empty: !reward.loading && !reward.error && reward.claimed === 0, error: reward.error, icon: "$" },
+    { label: t("activity_log"), value: String(activities.length), empty: activities.length === 0, error: null, icon: "A" },
   ];
 
   return (
-    <div className="w-full">
-      <h3 className="text-[#FFC857]/50 text-[10px] font-black uppercase tracking-widest mb-3 px-2">
-        {t("performance_hub")}
-      </h3>
-
+    <section className="w-full" aria-labelledby="performance-heading">
+      <h3 id="performance-heading" className="mb-3 px-2 text-[10px] font-black uppercase tracking-widest text-[#FFC857]/50">{t("performance_hub")}</h3>
       <div className="grid grid-cols-2 gap-3">
-        {STATS.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white/5 backdrop-blur-xl rounded-3xl p-5 border border-white/10 shadow-xl relative overflow-hidden group"
-          >
-            <div className="absolute top-0 right-0 p-3 opacity-10 transition-opacity pointer-events-none">
-               <span className="text-4xl grayscale">{stat.icon}</span>
-            </div>
-
-            <div className="flex flex-col items-start justify-between min-h-[80px]">
-              <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-[#FFC857]/10 text-[#FFC857] text-xl border border-[#FFC857]/20 shrink-0">
-                {stat.icon}
-              </div>
-
+        {stats.map((stat) => (
+          <div key={stat.label} className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl backdrop-blur-xl">
+            <div className="flex min-h-[80px] flex-col items-start justify-between">
+              <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#FFC857]/20 bg-[#FFC857]/10 text-xl font-black text-[#FFC857]">{stat.icon}</span>
               <div className="mt-4">
-                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-1">
-                  {stat.label}
-                </p>
-
-                <p className="text-white text-lg font-black tracking-tight">
-                  {stat.value}
-                </p>
+                <p className="mb-1 text-[9px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
+                {stat.value === null ? <div className="h-6 w-16 animate-pulse rounded bg-white/10" aria-label={t("loading")} /> : stat.error ? <p className="text-xs font-bold text-rose-300">{t("unavailable")}</p> : stat.empty ? <p className="text-xs font-bold text-slate-400">{t("no_data_yet")}</p> : <p className="text-lg font-black tracking-tight text-white">{stat.value}</p>}
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
