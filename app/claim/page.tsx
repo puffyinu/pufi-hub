@@ -32,7 +32,7 @@ export default function ClaimPage() {
 
   const checkClaimStatus = async (address: string) => {
     try {
-      const response = await fetch(`/api/claim/daily?walletAddress=${address}`);
+      const response = await fetch("/api/claim/daily");
       const result = await response.json();
       if (result.success && result.claimed) {
         setNextClaimAt(result.nextClaimAt);
@@ -77,7 +77,6 @@ export default function ClaimPage() {
       const response = await fetch("/api/claim/daily", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletAddress: wallet.address }),
       });
 
       const result: DailyClaimApiResponse = await response.json();
@@ -234,7 +233,7 @@ export default function ClaimPage() {
                   </span>
                 </div>
               ) : (
-                "🎁 CLAIM REWARD"
+                "­ƒÄü CLAIM REWARD"
               )}
             </button>
           </div>

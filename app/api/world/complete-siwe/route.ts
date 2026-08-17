@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { WalletAuthResult } from "@worldcoin/minikit-js/commands";
 import { verifySiweMessage } from "@worldcoin/minikit-js/siwe";
+import {
+  createServerAuthToken,
+  getServerAuthCookieName,
+  getServerAuthCookieOptions,
+} from "@/app/services/serverAuthSession";
 
 const SIWE_NONCE_COOKIE = "pufi-siwe-nonce";
 
@@ -46,12 +51,26 @@ export async function POST(request: NextRequest) {
       return invalidRequest("Invalid wallet signature.");
     }
 
-    return clearNonce(
-      NextResponse.json({
-        isValid: true,
-        address: verification.siweMessageData.address,
-      })
+    const address =
+      verification.siweMessageData.address;
+
+    const serverAuth =
+      createServerAuthToken(address);
+
+    const response = NextResponse.json({
+      isValid: true,
+      address,
+    });
+
+    response.cookies.set(
+      getServerAuthCookieName(),
+      serverAuth.token,
+      getServerAuthCookieOptions(
+        serverAuth.maxAge
+      )
     );
+
+    return clearNonce(response);
   } catch (error) {
     console.error("[API /world/complete-siwe] SIWE verification failed:", error);
     return invalidRequest("Unable to verify wallet signature.");
